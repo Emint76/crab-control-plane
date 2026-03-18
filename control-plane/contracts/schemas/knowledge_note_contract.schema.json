@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KnowledgeNoteContract",
+  "type": "object",
+  "required": [
+    "note_type",
+    "title",
+    "summary",
+    "status",
+    "tags"
+  ],
+  "properties": {
+    "note_type": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conceptual_links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frontmatter_guidance": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

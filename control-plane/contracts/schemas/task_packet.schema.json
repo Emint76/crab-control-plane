@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskPacket",
+  "type": "object",
+  "required": [
+    "id",
+    "task_type",
+    "title",
+    "objective",
+    "scope",
+    "inputs",
+    "constraints",
+    "expected_outputs",
+    "acceptance_criteria",
+    "destination_hint",
+    "priority"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "task_type": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "objective": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "destination_hint": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string"
+    },
+    "provenance_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status_hint": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

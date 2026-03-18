@@ -1,0 +1,14 @@
+version: 1
+tools:
+  codex:
+    allowed: true
+    requires_task_packet: true
+  notion:
+    allowed: true
+    workflow_state_only: true
+  obsidian:
+    allowed: true
+    semantic_notes_only: true
+  kb:
+    allowed: true
+    sanctioned_assets_only: true

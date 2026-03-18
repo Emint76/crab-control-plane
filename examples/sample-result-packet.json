@@ -1,0 +1,28 @@
+{
+  "task_id": "task-extraction-001",
+  "result_summary": "Created a structured architecture summary and a draft semantic note.",
+  "produced_artifacts": [
+    {
+      "artifact_id": "note-architecture-summary-001",
+      "artifact_type": "semantic-note",
+      "path": "knowledge/obsidian/notes/architecture-summary.md"
+    }
+  ],
+  "unresolved_issues": [
+    "Admission to KB still requires review"
+  ],
+  "confidence": "medium",
+  "evidence": [
+    {
+      "type": "document",
+      "ref": "docs/source-bundle.md"
+    }
+  ],
+  "suggested_placement": "obsidian",
+  "suggested_followups": [
+    "Run review decision on semantic note"
+  ],
+  "warnings": [
+    "This output is not yet a sanctioned KB asset"
+  ]
+}

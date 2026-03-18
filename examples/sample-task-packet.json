@@ -1,0 +1,33 @@
+{
+  "id": "task-extraction-001",
+  "task_type": "knowledge-extraction",
+  "title": "Extract architecture layers from source bundle",
+  "objective": "Produce a structured semantic summary of the provided material.",
+  "scope": "Use only the supplied inputs. Do not invent missing sources.",
+  "inputs": [
+    {
+      "type": "document",
+      "ref": "docs/source-bundle.md",
+      "description": "Input material for extraction"
+    }
+  ],
+  "constraints": [
+    "Do not change the target architecture",
+    "Do not introduce new storage layers"
+  ],
+  "expected_outputs": [
+    "Structured result packet",
+    "Draft semantic note proposal"
+  ],
+  "acceptance_criteria": [
+    "All extracted layers match input evidence",
+    "Output is placement-ready for review"
+  ],
+  "destination_hint": "obsidian",
+  "priority": "high",
+  "provenance_requirements": [
+    "Preserve references to supplied inputs"
+  ],
+  "notes": "Prefer simple and audit-friendly structure.",
+  "status_hint": "new"
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReviewDecision",
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "decision",
+    "rationale"
+  ],
+  "properties": {
+    "artifact_id": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "return_for_revision",
+        "hold",
+        "reject"
+      ]
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "blocking_issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_changes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approved_destination": {
+      "type": "string"
+    },
+    "reviewer_notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

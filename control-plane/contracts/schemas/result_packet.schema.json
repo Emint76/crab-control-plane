@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResultPacket",
+  "type": "object",
+  "required": [
+    "task_id",
+    "result_summary",
+    "produced_artifacts",
+    "unresolved_issues",
+    "confidence",
+    "evidence",
+    "suggested_placement"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string"
+    },
+    "result_summary": {
+      "type": "string"
+    },
+    "produced_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "unresolved_issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "suggested_placement": {
+      "type": "string"
+    },
+    "suggested_followups": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

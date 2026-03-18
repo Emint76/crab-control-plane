@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SourceCapturePackage",
+  "type": "object",
+  "required": [
+    "source_id",
+    "canonical_pointer",
+    "retrieval_status",
+    "retrieval_timestamp",
+    "content_type",
+    "stable_representation",
+    "human_identifier"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string"
+    },
+    "canonical_pointer": {
+      "type": "string"
+    },
+    "retrieval_status": {
+      "type": "string"
+    },
+    "retrieval_timestamp": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string"
+    },
+    "stable_representation": {
+      "type": "string"
+    },
+    "human_identifier": {
+      "type": "string"
+    },
+    "provenance_notes": {
+      "type": "string"
+    },
+    "linkage": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

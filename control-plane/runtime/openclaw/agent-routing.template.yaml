@@ -1,0 +1,9 @@
+version: 1
+routing:
+  default_mode: review-first
+  delegation:
+    enabled: true
+    executor: codex
+    require_task_packet: true
+  placement:
+    default_review_required: true

@@ -1,0 +1,20 @@
+{
+  "agent": {
+    "name": "krab",
+    "role": "runtime-orchestrator",
+    "delegation": {
+      "enabled": true,
+      "executor": "codex",
+      "approval_required": true
+    }
+  },
+  "paths": {
+    "control_plane_repo": "./",
+    "knowledge_root": "knowledge/",
+    "observability_root": "observability/"
+  },
+  "notes": [
+    "Template only",
+    "Do not place secrets or live values here"
+  ]
+}

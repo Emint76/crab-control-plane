@@ -1,0 +1,6 @@
+version: 1
+integration: notion
+enabled: true
+notes:
+  - template only
+  - fill with non-secret project values later

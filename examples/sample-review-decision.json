@@ -1,0 +1,14 @@
+{
+  "artifact_id": "note-architecture-summary-001",
+  "decision": "return_for_revision",
+  "rationale": "The note is semantically useful but lacks explicit source linkage.",
+  "blocking_issues": [
+    "No source_links field populated"
+  ],
+  "required_changes": [
+    "Add source_links",
+    "Clarify note status"
+  ],
+  "approved_destination": "obsidian",
+  "reviewer_notes": "Suitable as working note after revision."
+}

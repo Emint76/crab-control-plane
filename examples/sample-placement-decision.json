@@ -1,0 +1,13 @@
+{
+  "artifact_id": "note-architecture-summary-001",
+  "artifact_type": "semantic-note",
+  "placement_target": "obsidian",
+  "rationale": "Durable semantic note with human-readable value, but not yet sanctioned for KB.",
+  "required_preconditions": [
+    "Maintain frontmatter minimum"
+  ],
+  "post_placement_actions": [
+    "Link related concept notes",
+    "Queue KB admission review only if upgraded"
+  ]
+}

@@ -1,0 +1,6 @@
+version: 1
+integration: codex
+enabled: true
+notes:
+  - template only
+  - fill with non-secret project values later

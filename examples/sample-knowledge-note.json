@@ -1,0 +1,18 @@
+{
+  "note_type": "concept-note",
+  "title": "Operational plane versus semantic plane",
+  "summary": "Explains the separation between workflow state and durable semantic knowledge.",
+  "status": "working",
+  "tags": [
+    "architecture",
+    "control-plane"
+  ],
+  "source_links": [
+    "source-001"
+  ],
+  "conceptual_links": [
+    "concept-knowledge-layer",
+    "concept-operational-plane"
+  ],
+  "frontmatter_guidance": "Use semantic links, not workflow fields."
+}
