@@ -16,8 +16,15 @@
     "Do not introduce new storage layers"
   ],
   "expected_outputs": [
-    "Structured result packet",
-    "Draft semantic note proposal"
+    {
+      "type": "result-packet",
+      "description": "Structured result packet describing the completed extraction"
+    },
+    {
+      "type": "semantic-note",
+      "description": "Draft semantic note proposal derived from the supplied evidence",
+      "destination_hint": "obsidian"
+    }
   ],
   "acceptance_criteria": [
     "All extracted layers match input evidence",
@@ -29,5 +36,5 @@
     "Preserve references to supplied inputs"
   ],
   "notes": "Prefer simple and audit-friendly structure.",
-  "status_hint": "new"
+  "status_hint": "queued"
 }

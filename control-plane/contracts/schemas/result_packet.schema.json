@@ -13,45 +13,125 @@
   ],
   "properties": {
     "task_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "result_summary": {
-      "type": "string"
+      "type": "string",
+      "minLength": 10
     },
     "produced_artifacts": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object"
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "artifact_type",
+          "ref"
+        ],
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "artifact_type": {
+            "type": "string",
+            "enum": [
+              "task-packet",
+              "result-packet",
+              "semantic-note",
+              "source-capture-package",
+              "knowledge-asset",
+              "observability-report"
+            ]
+          },
+          "artifact_role": {
+            "type": "string",
+            "enum": [
+              "operational",
+              "semantic",
+              "source-bearing",
+              "knowledge",
+              "observability"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
       }
     },
     "unresolved_issues": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     },
     "confidence": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
     },
     "evidence": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object"
+        "type": "object",
+        "required": [
+          "type",
+          "ref"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "document",
+              "note",
+              "source-package",
+              "log",
+              "policy-doc"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       }
     },
     "suggested_placement": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "notion",
+        "obsidian",
+        "kb",
+        "observability",
+        "mixed"
+      ]
     },
     "suggested_followups": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     },
     "warnings": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     }
   },

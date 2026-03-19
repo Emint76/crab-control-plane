@@ -2,7 +2,7 @@
 id: ""
 title: ""
 note_type: "source-note"
-status: "draft"
+status: "working"
 created: ""
 updated: ""
 tags: []
@@ -11,9 +11,10 @@ conceptual_links: []
 ---
 
 # Summary
-
-TODO
+One paragraph identifying the source, what it contains, and why it matters.
 
 # Body
-
-TODO
+- Source identity and context
+- Key extracted points
+- Provenance limitations
+- Links to related concepts or notes

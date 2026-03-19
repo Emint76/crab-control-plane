@@ -2,7 +2,7 @@
 id: ""
 title: ""
 note_type: "concept-note"
-status: "draft"
+status: "working"
 created: ""
 updated: ""
 tags: []
@@ -11,9 +11,10 @@ conceptual_links: []
 ---
 
 # Summary
-
-TODO
+One paragraph defining the concept, why it matters, and what boundary or meaning it clarifies.
 
 # Body
-
-TODO
+- Definition
+- Key distinctions
+- Source-linked support
+- Related concepts

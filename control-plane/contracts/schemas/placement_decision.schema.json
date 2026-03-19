@@ -10,10 +10,19 @@
   ],
   "properties": {
     "artifact_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "artifact_type": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "task-packet",
+        "result-packet",
+        "semantic-note",
+        "source-capture-package",
+        "knowledge-asset",
+        "observability-report"
+      ]
     },
     "placement_target": {
       "type": "string",
@@ -26,18 +35,50 @@
       ]
     },
     "rationale": {
-      "type": "string"
+      "type": "string",
+      "minLength": 10
     },
     "required_preconditions": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     },
     "post_placement_actions": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "split_targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "artifact_part",
+          "destination"
+        ],
+        "properties": {
+          "artifact_part": {
+            "type": "string",
+            "minLength": 3
+          },
+          "destination": {
+            "type": "string",
+            "enum": [
+              "notion",
+              "obsidian",
+              "kb",
+              "observability"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       }
     }
   },

@@ -14,5 +14,6 @@
     "concept-knowledge-layer",
     "concept-operational-plane"
   ],
-  "frontmatter_guidance": "Use semantic links, not workflow fields."
+  "frontmatter_guidance": "Use semantic links, not workflow fields.",
+  "filename_slug": "operational-plane-versus-semantic-plane"
 }

@@ -17,61 +17,160 @@
   ],
   "properties": {
     "id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "task_type": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "knowledge-extraction",
+        "source-capture",
+        "semantic-synthesis",
+        "review-preparation",
+        "schema-tightening",
+        "documentation-completion"
+      ]
     },
     "title": {
-      "type": "string"
+      "type": "string",
+      "minLength": 3
     },
     "objective": {
-      "type": "string"
+      "type": "string",
+      "minLength": 10
     },
     "scope": {
-      "type": "string"
+      "type": "string",
+      "minLength": 10
     },
     "inputs": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object"
+        "type": "object",
+        "required": [
+          "type",
+          "ref"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "document",
+              "schema",
+              "note",
+              "source-package",
+              "review-decision",
+              "policy-doc"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "version_hint": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       }
     },
     "constraints": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     },
     "expected_outputs": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "string"
+        "type": "object",
+        "required": [
+          "type",
+          "description"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "result-packet",
+              "semantic-note",
+              "source-capture-package",
+              "review-decision-draft",
+              "schema-update",
+              "doc-update"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 3
+          },
+          "destination_hint": {
+            "type": "string",
+            "enum": [
+              "notion",
+              "obsidian",
+              "kb",
+              "observability",
+              "mixed"
+            ]
+          }
+        },
+        "additionalProperties": false
       }
     },
     "acceptance_criteria": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     },
     "destination_hint": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "notion",
+        "obsidian",
+        "kb",
+        "observability",
+        "mixed"
+      ]
     },
     "priority": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ]
     },
     "provenance_requirements": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 3
       }
     },
     "notes": {
       "type": "string"
     },
     "status_hint": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "new",
+        "triaging",
+        "queued",
+        "in_progress",
+        "blocked"
+      ]
     }
   },
   "additionalProperties": false

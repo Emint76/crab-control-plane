@@ -5,7 +5,8 @@
     {
       "artifact_id": "note-architecture-summary-001",
       "artifact_type": "semantic-note",
-      "path": "knowledge/obsidian/notes/architecture-summary.md"
+      "artifact_role": "semantic",
+      "ref": "knowledge/obsidian/notes/architecture-summary.md"
     }
   ],
   "unresolved_issues": [
@@ -15,7 +16,8 @@
   "evidence": [
     {
       "type": "document",
-      "ref": "docs/source-bundle.md"
+      "ref": "docs/source-bundle.md",
+      "description": "Primary extraction input"
     }
   ],
   "suggested_placement": "obsidian",
