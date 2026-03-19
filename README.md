@@ -37,7 +37,7 @@ This repo defines how the system should be structured across six layers:
 
 ## Recommended next steps
 
-1. Commit this starter structure
+1. Commit the repository as the control-plane source of truth
 2. Connect Codex to this repo
 3. Give Codex the control-plane assembly prompt
 4. Review Codex output before applying any ideas to the live Гоша instance
