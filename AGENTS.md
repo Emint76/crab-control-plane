@@ -44,7 +44,7 @@ When working in this repo:
 - no marketing language
 - explain design boundaries clearly
 - use tables only where useful
-- prefer placeholders with explicit TODO markers over invented specifics
+- prefer placeholders with explicit markers over invented specifics
 
 ## Priority files
 
