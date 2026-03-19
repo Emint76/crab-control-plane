@@ -11,37 +11,57 @@
   ],
   "properties": {
     "note_type": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "source-note",
+        "permanent-note",
+        "concept-note",
+        "comparison-note"
+      ]
     },
     "title": {
-      "type": "string"
+      "type": "string",
+      "minLength": 3
     },
     "summary": {
-      "type": "string"
+      "type": "string",
+      "minLength": 10
     },
     "status": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "working",
+        "stable",
+        "archived"
+      ]
     },
     "tags": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       }
     },
     "source_links": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       }
     },
     "conceptual_links": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       }
     },
     "frontmatter_guidance": {
       "type": "string"
+    },
+    "filename_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     }
   },
   "additionalProperties": false

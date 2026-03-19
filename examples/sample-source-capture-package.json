@@ -1,7 +1,7 @@
 {
   "source_id": "source-001",
   "canonical_pointer": "https://example.com/source",
-  "retrieval_status": "200",
+  "retrieval_status": "success",
   "retrieval_timestamp": "2026-03-18T10:00:00Z",
   "content_type": "text/html",
   "stable_representation": "archive/source-001.html",
@@ -9,5 +9,7 @@
   "provenance_notes": "Captured for controlled knowledge processing.",
   "linkage": [
     "note-source-example-001"
-  ]
+  ],
+  "capture_method": "web-capture",
+  "hash": "sha256:abcdef1234567890"
 }

@@ -2,7 +2,7 @@
 id: ""
 title: ""
 note_type: "permanent-note"
-status: "draft"
+status: "working"
 created: ""
 updated: ""
 tags: []
@@ -11,9 +11,10 @@ conceptual_links: []
 ---
 
 # Summary
-
-TODO
+One paragraph capturing the durable claim or synthesis this note should preserve for later reuse.
 
 # Body
-
-TODO
+- Core claim
+- Supporting reasoning
+- Source linkage
+- Related permanent or concept notes

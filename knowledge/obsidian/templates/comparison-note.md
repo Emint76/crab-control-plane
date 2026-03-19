@@ -2,7 +2,7 @@
 id: ""
 title: ""
 note_type: "comparison-note"
-status: "draft"
+status: "working"
 created: ""
 updated: ""
 tags: []
@@ -11,9 +11,10 @@ conceptual_links: []
 ---
 
 # Summary
-
-TODO
+One paragraph stating what is being compared and the main contrast the note captures.
 
 # Body
-
-TODO
+- Compared items
+- Similarities
+- Differences
+- Decision-relevant implications

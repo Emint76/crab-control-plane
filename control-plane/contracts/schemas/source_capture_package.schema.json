@@ -13,25 +13,38 @@
   ],
   "properties": {
     "source_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "canonical_pointer": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "retrieval_status": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "success",
+        "not_found",
+        "forbidden",
+        "error",
+        "partial"
+      ]
     },
     "retrieval_timestamp": {
-      "type": "string"
+      "type": "string",
+      "format": "date-time"
     },
     "content_type": {
-      "type": "string"
+      "type": "string",
+      "minLength": 3
     },
     "stable_representation": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "human_identifier": {
-      "type": "string"
+      "type": "string",
+      "minLength": 3
     },
     "provenance_notes": {
       "type": "string"
@@ -39,8 +52,23 @@
     "linkage": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       }
+    },
+    "capture_method": {
+      "type": "string",
+      "enum": [
+        "manual-download",
+        "web-capture",
+        "repository-export",
+        "api-fetch",
+        "other-controlled"
+      ]
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9:_-]{8,}$"
     }
   },
   "additionalProperties": false
