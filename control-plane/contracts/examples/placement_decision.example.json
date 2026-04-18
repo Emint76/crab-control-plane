@@ -1,0 +1,10 @@
+{
+  "run_id": "phase2-example-run",
+  "generated_at": "2026-04-18T00:00:00Z",
+  "engine_mode": "scaffold",
+  "evaluation_mode": "static-v1",
+  "decision": "approved",
+  "target_layer": "observability",
+  "target_path": "observability/phase2/phase2-example-run/",
+  "rationale": "Scaffold decisions are represented as observability-facing machine artifacts."
+}

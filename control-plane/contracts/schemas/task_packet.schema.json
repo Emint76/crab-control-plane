@@ -152,6 +152,47 @@
         "urgent"
       ]
     },
+    "policy_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "placement_request": {
+      "type": "object",
+      "required": [
+        "target_layer",
+        "review_required"
+      ],
+      "properties": {
+        "target_layer": {
+          "type": "string",
+          "enum": [
+            "notion",
+            "obsidian",
+            "kb",
+            "observability",
+            "mixed"
+          ]
+        },
+        "target_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_required": {
+          "type": "boolean"
+        },
+        "apply_mode": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "controlled-apply"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "provenance_requirements": {
       "type": "array",
       "items": {

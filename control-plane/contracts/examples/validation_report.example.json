@@ -1,0 +1,14 @@
+{
+  "run_id": "phase2-example-run",
+  "generated_at": "2026-04-18T00:00:00Z",
+  "engine_mode": "scaffold",
+  "evaluation_mode": "static-v1",
+  "status": "pass",
+  "checks": [
+    {
+      "name": "contracts_validation",
+      "status": "pass",
+      "detail": "All scaffold schemas and examples validated."
+    }
+  ]
+}

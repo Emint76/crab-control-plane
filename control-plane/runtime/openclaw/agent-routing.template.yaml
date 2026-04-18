@@ -1,9 +1,24 @@
-version: 1
+version: 2
 routing:
   default_mode: review-first
   delegation:
     enabled: true
     executor: codex
     require_task_packet: true
+  validation:
+    enabled: true
+    surface: operations/harness-phase2
+    require_validation_report: true
+    require_admission_decision: true
+    require_placement_decision: true
+  apply:
+    mode: controlled-apply
+    render_before_execution: true
+    phase2_renders_runtime_ready: true
+    phase2_live_writes_forbidden: true
   placement:
     default_review_required: true
+    require_explicit_target_path: true
+  execution:
+    runtime_ready_source: operations/harness-phase2/runs/<RUN_ID>/output/runtime-ready/
+    execution_owner_consumes_rendered_output: true
