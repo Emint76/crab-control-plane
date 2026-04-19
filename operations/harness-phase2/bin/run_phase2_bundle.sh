@@ -35,10 +35,34 @@ cat > "${RUN_DIR}/run_meta.json" <<EOF
 }
 EOF
 
-bash "${PHASE2_ROOT}/bin/preflight_wrong_root_scan.sh" "${REPO_ROOT}" "${RUN_DIR}"
-"${PYTHON_BIN}" "${PHASE2_ROOT}/bin/validate_contracts.py" "${REPO_ROOT}" "${RUN_DIR}"
-"${PYTHON_BIN}" "${PHASE2_ROOT}/bin/validate_policy.py" "${REPO_ROOT}" "${RUN_DIR}"
-"${PYTHON_BIN}" "${PHASE2_ROOT}/bin/render_apply_plan.py" "${REPO_ROOT}" "${RUN_DIR}" "${RUN_ID}"
+PREFLIGHT_EXIT=0
+CONTRACTS_EXIT=0
+POLICY_EXIT=0
+RENDER_EXIT=0
+
+if bash "${PHASE2_ROOT}/bin/preflight_wrong_root_scan.sh" "${REPO_ROOT}" "${RUN_DIR}"; then
+  PREFLIGHT_EXIT=0
+else
+  PREFLIGHT_EXIT=$?
+fi
+
+if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/validate_contracts.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+  CONTRACTS_EXIT=0
+else
+  CONTRACTS_EXIT=$?
+fi
+
+if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/validate_policy.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+  POLICY_EXIT=0
+else
+  POLICY_EXIT=$?
+fi
+
+if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/render_apply_plan.py" "${REPO_ROOT}" "${RUN_DIR}" "${RUN_ID}"; then
+  RENDER_EXIT=0
+else
+  RENDER_EXIT=$?
+fi
 
 required_files=(
   "${RUN_DIR}/run_meta.json"
@@ -56,5 +80,9 @@ for f in "${required_files[@]}"; do
 done
 
 [[ -d "${OUTPUT_DIR}" ]] || { echo "FAIL missing runtime-ready output directory" >&2; exit 1; }
+
+for status_code in "${PREFLIGHT_EXIT}" "${CONTRACTS_EXIT}" "${POLICY_EXIT}" "${RENDER_EXIT}"; do
+  [[ "${status_code}" -eq 0 ]] || exit 1
+done
 
 EXIT_STATUS="0"
