@@ -1,14 +1,44 @@
-version: 1
+version: 2
 tools:
   codex:
     allowed: true
     requires_task_packet: true
+    direct_runtime_write_allowed: false
+    direct_kb_write_allowed: false
+    output_contracts:
+      - result_packet
+      - validation_report
+      - apply_plan
   notion:
     allowed: true
     workflow_state_only: true
+    requires_review_state: true
   obsidian:
     allowed: true
     semantic_notes_only: true
+    requires_placement_decision: true
   kb:
     allowed: true
     sanctioned_assets_only: true
+    requires_admission_decision: true
+    requires_placement_decision: true
+gates:
+  validation:
+    enabled: true
+    required_before_apply: true
+  admission:
+    enabled: true
+    required_for:
+      - kb
+      - observability
+  placement:
+    enabled: true
+    required_for:
+      - obsidian
+      - kb
+      - observability
+  apply:
+    mode: controlled-apply
+    require_apply_plan: true
+    require_review_approval: true
+    live_target_allowed: false

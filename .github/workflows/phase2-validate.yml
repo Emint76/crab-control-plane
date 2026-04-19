@@ -1,0 +1,34 @@
+name: phase2-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  phase2-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install requirements
+        run: pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Compile scaffold scripts
+        run: python -m compileall operations/harness-phase2/bin
+
+      - name: Run Phase 2 bundle
+        run: bash operations/harness-phase2/bin/run_phase2_bundle.sh ci-run
+
+      - name: Upload Phase 2 run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-run-ci-run
+          path: operations/harness-phase2/runs/ci-run/

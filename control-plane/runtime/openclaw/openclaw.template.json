@@ -11,10 +11,34 @@
   "paths": {
     "control_plane_repo": "./",
     "knowledge_root": "knowledge/",
-    "observability_root": "observability/"
+    "observability_root": "observability/",
+    "phase2_root": "operations/harness-phase2/",
+    "phase2_runs_root": "operations/harness-phase2/runs/"
+  },
+  "validation": {
+    "enabled": true,
+    "surface": "operations/harness-phase2",
+    "entrypoint": "operations/harness-phase2/bin/run_phase2_bundle.sh",
+    "required_outputs": [
+      "validation_report.json",
+      "admission_decision.json",
+      "placement_decision.json",
+      "apply_plan.json"
+    ]
+  },
+  "apply": {
+    "mode": "controlled-apply",
+    "live_write_allowed": false,
+    "render_target": "operations/harness-phase2/runs/<RUN_ID>/output/runtime-ready/",
+    "require_validation_report": true,
+    "require_admission_decision": true,
+    "require_placement_decision": true,
+    "require_apply_plan": true
   },
   "notes": [
-    "Template only",
-    "Do not place secrets or live values here"
+    "Template only.",
+    "Do not place secrets or live values here.",
+    "Phase 2 validates and renders only.",
+    "Phase 2 does not write to a live runtime instance."
   ]
 }

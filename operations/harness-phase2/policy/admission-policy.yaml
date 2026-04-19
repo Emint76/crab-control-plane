@@ -1,0 +1,17 @@
+version: 1
+rules:
+  kb:
+    requires:
+      - result_packet
+      - evidence
+      - review_approval
+      - admission_decision
+  observability:
+    requires:
+      - validation_report
+    review_approval: false
+  obsidian:
+    requires:
+      - result_packet
+      - review_approval
+      - placement_decision

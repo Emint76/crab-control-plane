@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "placement_decision",
+  "title": "admission_decision",
   "type": "object",
   "required": [
     "run_id",
@@ -8,9 +8,8 @@
     "engine_mode",
     "evaluation_mode",
     "decision",
-    "target_layer",
-    "target_path",
-    "rationale"
+    "checklist",
+    "blockers"
   ],
   "properties": {
     "run_id": {
@@ -37,23 +36,20 @@
         "needs_changes"
       ]
     },
-    "target_layer": {
-      "type": "string",
-      "enum": [
-        "notion",
-        "obsidian",
-        "kb",
-        "observability",
-        "mixed"
-      ]
+    "checklist": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     },
-    "target_path": {
-      "type": "string",
-      "minLength": 1
-    },
-    "rationale": {
-      "type": "string",
-      "minLength": 3
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     }
   },
   "additionalProperties": false

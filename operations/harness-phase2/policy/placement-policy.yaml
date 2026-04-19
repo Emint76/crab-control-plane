@@ -1,0 +1,15 @@
+version: 1
+roots:
+  notion: operations/notion/
+  obsidian: knowledge/obsidian/
+  kb: knowledge/kb/
+  observability: observability/
+rules:
+  validation_report:
+    target_layer: observability
+  admission_decision:
+    target_layer: observability
+  placement_decision:
+    target_layer: observability
+  apply_plan:
+    target_layer: observability

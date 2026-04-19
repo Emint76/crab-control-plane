@@ -120,6 +120,22 @@
         "mixed"
       ]
     },
+    "validation_report_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "admission_decision_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "placement_decision_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "apply_plan_ref": {
+      "type": "string",
+      "minLength": 1
+    },
     "suggested_followups": {
       "type": "array",
       "items": {

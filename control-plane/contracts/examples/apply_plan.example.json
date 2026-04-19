@@ -1,0 +1,20 @@
+{
+  "run_id": "phase2-example-run",
+  "plan_id": "apply-plan-phase2-example",
+  "generated_at": "2026-04-18T00:00:00Z",
+  "engine_mode": "scaffold",
+  "evaluation_mode": "static-v1",
+  "status": "ready",
+  "review_required": true,
+  "target_runtime": "openclaw",
+  "steps": [
+    {
+      "id": "copy-openclaw-template",
+      "kind": "copy",
+      "source_ref": "control-plane/runtime/openclaw/openclaw.template.json",
+      "target_path": "operations/harness-phase2/runs/phase2-example-run/output/runtime-ready/openclaw.template.json",
+      "required_gate": "validation"
+    }
+  ],
+  "blockers": []
+}

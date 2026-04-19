@@ -1,0 +1,2 @@
+operations/harness-phase2/runs/*
+!operations/harness-phase2/runs/.gitkeep
