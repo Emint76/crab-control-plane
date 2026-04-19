@@ -43,6 +43,7 @@ done
 
 tracked_tmp=""
 scan_mode="tree-scan"
+self_scan_exempt="operations/harness-phase2/bin/preflight_wrong_root_scan.sh"
 if git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   tracked_tmp="$(mktemp)"
   git -C "${REPO_ROOT}" ls-files > "${tracked_tmp}" || true
@@ -58,6 +59,7 @@ secret_pattern='(BEGIN [A-Z ]*PRIVATE KEY|API_KEY|SECRET_KEY|ACCESS_KEY|TOKEN=|p
 if [[ -n "${tracked_tmp}" ]]; then
   while IFS= read -r rel_file; do
     [[ -n "${rel_file}" ]] || continue
+    [[ "${rel_file}" == "${self_scan_exempt}" ]] && continue
     if grep -IE -n "${secret_pattern}" "${REPO_ROOT}/${rel_file}" >/dev/null 2>&1; then
       STATUS="FAIL"
       ISSUES+=("probable secret material detected in tracked file: ${rel_file}")
@@ -66,8 +68,9 @@ if [[ -n "${tracked_tmp}" ]]; then
   rm -f "${tracked_tmp}"
 else
   while IFS= read -r file_path; do
+    rel_path="${file_path#${REPO_ROOT}/}"
+    [[ "${rel_path}" == "${self_scan_exempt}" ]] && continue
     if grep -IE -n "${secret_pattern}" "${file_path}" >/dev/null 2>&1; then
-      rel_path="${file_path#${REPO_ROOT}/}"
       STATUS="FAIL"
       ISSUES+=("probable secret material detected in scanned file: ${rel_path}")
     fi
