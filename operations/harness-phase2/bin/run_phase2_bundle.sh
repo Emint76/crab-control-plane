@@ -39,6 +39,8 @@ PREFLIGHT_EXIT=0
 CONTRACTS_EXIT=0
 POLICY_EXIT=0
 RENDER_EXIT=0
+SMOKE_EXIT=0
+REPORT_EXIT=0
 
 if bash "${PHASE2_ROOT}/bin/preflight_wrong_root_scan.sh" "${REPO_ROOT}" "${RUN_DIR}"; then
   PREFLIGHT_EXIT=0
@@ -64,6 +66,18 @@ else
   RENDER_EXIT=$?
 fi
 
+if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/run_phase2_smoke.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+  SMOKE_EXIT=0
+else
+  SMOKE_EXIT=$?
+fi
+
+if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/emit_phase2_report.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+  REPORT_EXIT=0
+else
+  REPORT_EXIT=$?
+fi
+
 required_files=(
   "${RUN_DIR}/run_meta.json"
   "${RUN_DIR}/validation_report.json"
@@ -73,6 +87,9 @@ required_files=(
   "${CHECKS_DIR}/wrong_root_preflight.txt"
   "${CHECKS_DIR}/contracts_validation.json"
   "${CHECKS_DIR}/policy_validation.json"
+  "${CHECKS_DIR}/smoke_validation.json"
+  "${RUN_DIR}/report.json"
+  "${RUN_DIR}/report.md"
 )
 
 for f in "${required_files[@]}"; do
@@ -81,7 +98,7 @@ done
 
 [[ -d "${OUTPUT_DIR}" ]] || { echo "FAIL missing runtime-ready output directory" >&2; exit 1; }
 
-for status_code in "${PREFLIGHT_EXIT}" "${CONTRACTS_EXIT}" "${POLICY_EXIT}" "${RENDER_EXIT}"; do
+for status_code in "${PREFLIGHT_EXIT}" "${CONTRACTS_EXIT}" "${POLICY_EXIT}" "${RENDER_EXIT}" "${SMOKE_EXIT}" "${REPORT_EXIT}"; do
   [[ "${status_code}" -eq 0 ]] || exit 1
 done
 
