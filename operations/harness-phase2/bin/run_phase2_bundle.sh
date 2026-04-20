@@ -40,6 +40,7 @@ CONTRACTS_EXIT=0
 POLICY_EXIT=0
 RENDER_EXIT=0
 SMOKE_EXIT=0
+CONFORMANCE_EXIT=0
 REPORT_EXIT=0
 
 if bash "${PHASE2_ROOT}/bin/preflight_wrong_root_scan.sh" "${REPO_ROOT}" "${RUN_DIR}"; then
@@ -72,6 +73,12 @@ else
   SMOKE_EXIT=$?
 fi
 
+if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/run_phase2_conformance.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+  CONFORMANCE_EXIT=0
+else
+  CONFORMANCE_EXIT=$?
+fi
+
 if "${PYTHON_BIN}" "${PHASE2_ROOT}/bin/emit_phase2_report.py" "${REPO_ROOT}" "${RUN_DIR}"; then
   REPORT_EXIT=0
 else
@@ -88,6 +95,8 @@ required_files=(
   "${CHECKS_DIR}/contracts_validation.json"
   "${CHECKS_DIR}/policy_validation.json"
   "${CHECKS_DIR}/smoke_validation.json"
+  "${CHECKS_DIR}/conformance_validation.json"
+  "${RUN_DIR}/handoff_ready.json"
   "${RUN_DIR}/report.json"
   "${RUN_DIR}/report.md"
 )
@@ -98,7 +107,7 @@ done
 
 [[ -d "${OUTPUT_DIR}" ]] || { echo "FAIL missing runtime-ready output directory" >&2; exit 1; }
 
-for status_code in "${PREFLIGHT_EXIT}" "${CONTRACTS_EXIT}" "${POLICY_EXIT}" "${RENDER_EXIT}" "${SMOKE_EXIT}" "${REPORT_EXIT}"; do
+for status_code in "${PREFLIGHT_EXIT}" "${CONTRACTS_EXIT}" "${POLICY_EXIT}" "${RENDER_EXIT}" "${SMOKE_EXIT}" "${CONFORMANCE_EXIT}" "${REPORT_EXIT}"; do
   [[ "${status_code}" -eq 0 ]] || exit 1
 done
 
