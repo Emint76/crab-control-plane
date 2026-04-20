@@ -15,12 +15,14 @@ CHECK_ARTIFACTS = {
     "contracts_validation": "checks/contracts_validation.json",
     "policy_validation": "checks/policy_validation.json",
     "smoke_validation": "checks/smoke_validation.json",
+    "conformance_validation": "checks/conformance_validation.json",
 }
 DECISION_ARTIFACTS = {
     "validation_report": "validation_report.json",
     "admission_decision": "admission_decision.json",
     "placement_decision": "placement_decision.json",
     "apply_plan": "apply_plan.json",
+    "handoff_ready": "handoff_ready.json",
     "run_meta": "run_meta.json",
 }
 
@@ -229,6 +231,102 @@ def parse_decision(path: Path, artifact_id: str, field_name: str, allowed_values
     }
 
 
+def parse_handoff(path: Path) -> dict[str, Any]:
+    artifact_id = "handoff_ready"
+    if not path.is_file():
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": f"missing required artifact: {path.name}",
+            "payload": None,
+            "summary": {},
+            "blockers": [f"missing_artifact:{artifact_id}"],
+        }
+
+    try:
+        payload = read_json(path)
+    except OSError as exc:
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": normalize_text(f"unreadable artifact: {exc}"),
+            "payload": None,
+            "summary": {},
+            "blockers": [f"invalid_artifact:{artifact_id}"],
+        }
+    except (ValueError, json.JSONDecodeError) as exc:
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": normalize_text(f"malformed artifact: {exc}"),
+            "payload": None,
+            "summary": {},
+            "blockers": [f"invalid_artifact:{artifact_id}"],
+        }
+
+    value = payload.get("status")
+    target = payload.get("handoff_target")
+    summary = payload.get("summary")
+    blockers = payload.get("blockers")
+    if value not in {"ready", "not_ready"}:
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": "malformed artifact: expected top-level status=ready|not_ready",
+            "payload": None,
+            "summary": {},
+            "blockers": [f"invalid_artifact:{artifact_id}"],
+        }
+    if target != "phase3_execution_owner":
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": "malformed artifact: expected handoff_target=phase3_execution_owner",
+            "payload": None,
+            "summary": {},
+            "blockers": [f"invalid_artifact:{artifact_id}"],
+        }
+    if not isinstance(summary, dict):
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": "malformed artifact: expected summary to be an object",
+            "payload": None,
+            "summary": {},
+            "blockers": [f"invalid_artifact:{artifact_id}"],
+        }
+    if not isinstance(blockers, list) or any(not isinstance(item, str) or not item for item in blockers):
+        return {
+            "artifact_ok": False,
+            "value": "invalid",
+            "target": "phase3_execution_owner",
+            "detail": "malformed artifact: expected blockers to be an array of non-empty strings",
+            "payload": None,
+            "summary": {},
+            "blockers": [f"invalid_artifact:{artifact_id}"],
+        }
+
+    derived_blockers = list(blockers)
+    if value != "ready":
+        derived_blockers.append("handoff_not_ready")
+
+    return {
+        "artifact_ok": True,
+        "value": value,
+        "target": target,
+        "detail": f"status={value}",
+        "payload": payload,
+        "summary": summary,
+        "blockers": sorted(set(derived_blockers)),
+    }
+
+
 def parse_run_meta(path: Path, fallback_run_id: str) -> dict[str, Any]:
     if not path.is_file():
         return {
@@ -330,6 +428,10 @@ def main() -> int:
         contracts = parse_status_report(run_dir / CHECK_ARTIFACTS["contracts_validation"], "contracts_validation")
         policy = parse_status_report(run_dir / CHECK_ARTIFACTS["policy_validation"], "policy_validation")
         smoke = parse_status_report(run_dir / CHECK_ARTIFACTS["smoke_validation"], "smoke_validation")
+        conformance = parse_status_report(
+            run_dir / CHECK_ARTIFACTS["conformance_validation"],
+            "conformance_validation",
+        )
         validation = parse_decision(
             run_dir / DECISION_ARTIFACTS["validation_report"],
             "validation_report",
@@ -354,8 +456,9 @@ def main() -> int:
             "status",
             {"ready", "blocked", "draft"},
         )
+        handoff = parse_handoff(run_dir / DECISION_ARTIFACTS["handoff_ready"])
 
-        for state in (preflight, contracts, policy, smoke, validation, admission, placement, apply_plan):
+        for state in (preflight, contracts, policy, smoke, conformance, validation, admission, placement, apply_plan, handoff):
             blockers.update(state["blockers"])
 
         if isinstance(admission.get("payload"), dict):
@@ -378,10 +481,14 @@ def main() -> int:
             "contracts_validation": contracts["status"],
             "policy_validation": policy["status"],
             "smoke_validation": smoke["status"],
+            "conformance_validation": conformance["status"],
             "validation_report": validation["value"],
             "admission_decision": admission["value"],
             "placement_decision": placement["value"],
             "apply_plan": apply_plan["value"],
+            "handoff_ready": handoff["value"],
+            "handoff_target": handoff["target"],
+            "handoff_summary": handoff["summary"],
             "runtime_ready_package": runtime_ready_summary,
         }
 
@@ -390,10 +497,12 @@ def main() -> int:
             and contracts["status"] == "pass"
             and policy["status"] == "pass"
             and smoke["status"] == "pass"
+            and conformance["status"] == "pass"
             and validation["value"] == "pass"
             and admission["value"] == "approved"
             and placement["value"] == "approved"
             and apply_plan["value"] == "ready"
+            and handoff["value"] == "ready"
             and run_meta["artifact_ok"]
         ):
             overall_status = "pass"
@@ -426,6 +535,7 @@ def main() -> int:
                 f"- wrong_root_preflight: `{preflight['status']}`",
                 f"- contracts_validation: `{contracts['status']}`",
                 f"- policy_validation: `{policy['status']}`",
+                f"- conformance_validation: `{conformance['status']}`",
                 "",
                 "## Decision summary",
                 f"- validation_report: `{validation['value']}`",
@@ -436,6 +546,14 @@ def main() -> int:
                 "## Smoke summary",
                 f"- smoke_validation: `{smoke['status']}`",
                 f"- runtime_ready_package_status: `{runtime_ready_summary['status']}`",
+                "",
+                "## Conformance summary",
+                f"- conformance_validation: `{conformance['status']}`",
+                "",
+                "## Handoff readiness",
+                f"- handoff_ready: `{handoff['value']}`",
+                f"- handoff_target: `{handoff['target']}`",
+                f"- handoff_blockers: {', '.join(handoff['blockers']) if handoff['blockers'] else 'none'}",
                 "",
                 "## Blockers",
                 *[f"- {item}" for item in block_lines],
@@ -462,10 +580,14 @@ def main() -> int:
                 "contracts_validation": "unknown",
                 "policy_validation": "unknown",
                 "smoke_validation": "unknown",
+                "conformance_validation": "unknown",
                 "validation_report": "unknown",
                 "admission_decision": "unknown",
                 "placement_decision": "unknown",
                 "apply_plan": "unknown",
+                "handoff_ready": "unknown",
+                "handoff_target": "phase3_execution_owner",
+                "handoff_summary": {},
                 "runtime_ready_package": {
                     "status": "unknown",
                     "present_files": [],
@@ -492,6 +614,14 @@ def main() -> int:
                 "## Smoke summary",
                 "- smoke_validation: `unknown`",
                 "- runtime_ready_package_status: `unknown`",
+                "",
+                "## Conformance summary",
+                "- conformance_validation: `unknown`",
+                "",
+                "## Handoff readiness",
+                "- handoff_ready: `unknown`",
+                "- handoff_target: `phase3_execution_owner`",
+                "- handoff_blockers: none",
                 "",
                 "## Blockers",
                 "- report_emitter_unhandled_exception",
