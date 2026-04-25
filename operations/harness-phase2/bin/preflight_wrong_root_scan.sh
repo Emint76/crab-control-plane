@@ -41,6 +41,55 @@ for forbidden_root in ".env" "openclaw.json" "state" "workspace"; do
   fi
 done
 
+forbidden_wrong_roots=(
+  "operations/harness/"
+  "harness-phase2/"
+  "state/harness-phase2/"
+  "state/control-plane/harness-phase2/"
+  "contracts/"
+  "policy/"
+  "runtime/"
+)
+
+for rel_path in "${forbidden_wrong_roots[@]}"; do
+  if [[ -e "${REPO_ROOT}/${rel_path%/}" ]]; then
+    STATUS="FAIL"
+    ISSUES+=("${rel_path}")
+  fi
+done
+
+phase2_artifact_names=(
+  "PHASE2_REPORT.md"
+  "FINAL_REPORT.md"
+  "PREFLIGHT_RESULT.txt"
+  "SMOKE_OUTPUT.txt"
+  "CREATED_PATHS.txt"
+  "PHASE2_TREE.txt"
+  "validation_report.json"
+  "admission_decision.json"
+  "placement_decision.json"
+  "apply_plan.json"
+  "handoff_ready.json"
+  "runtime-ready"
+  "wrong_root_preflight.txt"
+  "contracts_validation.json"
+  "policy_validation.json"
+  "smoke_validation.json"
+  "conformance_validation.json"
+)
+
+for artifact_name in "${phase2_artifact_names[@]}"; do
+  while IFS= read -r artifact_path; do
+    rel_path="${artifact_path#${REPO_ROOT}/}"
+    STATUS="FAIL"
+    ISSUES+=("${rel_path}")
+  done < <(
+    find "${REPO_ROOT}" \
+      \( -path "${REPO_ROOT}/.git" -o -path "${REPO_ROOT}/operations/harness-phase2" -o -path "${REPO_ROOT}/.venv" -o -path "${REPO_ROOT}/node_modules" -o -path "${REPO_ROOT}/.pytest_cache" \) -prune \
+      -o -name "${artifact_name}" -print | sort
+  )
+done
+
 tracked_tmp=""
 scan_mode="tree-scan"
 self_scan_exempt="operations/harness-phase2/bin/preflight_wrong_root_scan.sh"
