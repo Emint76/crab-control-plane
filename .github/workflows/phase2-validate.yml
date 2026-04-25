@@ -30,6 +30,9 @@ jobs:
       - name: Run Phase 2 fixture smoke suite
         run: bash operations/harness-phase2/tests/run_fixture_smoke.sh
 
+      - name: Run Phase 2 standalone check tools
+        run: bash operations/harness-phase2/tests/test_standalone_check_tools.sh
+
       - name: Run Phase 2 strict check-layer profile
         run: bash operations/harness-phase2/tests/test_check_layer_profile.sh
 

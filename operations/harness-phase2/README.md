@@ -58,6 +58,16 @@ bash operations/harness-phase2/tests/run_fixture_smoke.sh
 - rejects admission fixtures with missing source capture evidence
 - proves semantic fail-closed behavior when `placement.artifact_type` is not `source-capture-package`
 
+## Standalone check tools
+
+```bash
+bash operations/harness-phase2/bin/validate_json_against_schema.sh <schema> <json-file>
+python operations/harness-phase2/bin/check_placement_policy.py <repo-root> <placement-json>
+python operations/harness-phase2/bin/check_admission_policy.py <repo-root> <admission-fixture-json>
+```
+
+These are small Phase 2 external-check-layer utilities. They validate schema, placement policy, and admission fixture semantics without performing runtime writes.
+
 ## Outputs
 
 Required outputs for each run:
