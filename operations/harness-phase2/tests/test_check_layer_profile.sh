@@ -29,6 +29,11 @@ required_files=(
   "${RUN_DIR}/checks/contracts_validation.json"
   "${RUN_DIR}/checks/policy_validation.json"
   "${RUN_DIR}/checks/fixture_smoke.txt"
+  "${RUN_DIR}/PHASE2_TREE.txt"
+  "${RUN_DIR}/PREFLIGHT_RESULT.txt"
+  "${RUN_DIR}/SMOKE_OUTPUT.txt"
+  "${RUN_DIR}/CREATED_PATHS.txt"
+  "${RUN_DIR}/FINAL_REPORT.md"
 )
 
 for required_file in "${required_files[@]}"; do
@@ -53,5 +58,29 @@ done
 grep -Fq '"profile": "check-layer-strict"' "${RUN_DIR}/run_meta.json" || fail "run_meta.json missing check-layer-strict profile"
 grep -Fxq '0' "${RUN_DIR}/exit_code" || fail "exit_code was not 0"
 grep -Fq 'PASS valid task packet schema' "${RUN_DIR}/checks/fixture_smoke.txt" || fail "fixture_smoke.txt missing fixture smoke output"
+grep -Fq 'status=PASS' "${RUN_DIR}/PREFLIGHT_RESULT.txt" || fail "PREFLIGHT_RESULT.txt missing status=PASS"
+grep -Fq 'PASS valid task packet schema' "${RUN_DIR}/SMOKE_OUTPUT.txt" || fail "SMOKE_OUTPUT.txt missing fixture smoke output"
+grep -Fq 'No OpenClaw runtime connection was implemented.' "${RUN_DIR}/FINAL_REPORT.md" || fail "FINAL_REPORT.md missing runtime connection statement"
+grep -Fq 'No automatic runtime enforcement was implemented.' "${RUN_DIR}/FINAL_REPORT.md" || fail "FINAL_REPORT.md missing runtime enforcement statement"
+grep -Fq 'No writes occurred outside the strict Phase 2 run directory.' "${RUN_DIR}/FINAL_REPORT.md" || fail "FINAL_REPORT.md missing write-surface statement"
+
+expected_evidence_entries=(
+  "run_meta.json"
+  "exit_code"
+  "checks/wrong_root_preflight.txt"
+  "checks/contracts_validation.json"
+  "checks/policy_validation.json"
+  "checks/fixture_smoke.txt"
+  "PHASE2_TREE.txt"
+  "PREFLIGHT_RESULT.txt"
+  "SMOKE_OUTPUT.txt"
+  "CREATED_PATHS.txt"
+  "FINAL_REPORT.md"
+)
+
+for expected_entry in "${expected_evidence_entries[@]}"; do
+  grep -Fq "${expected_entry}" "${RUN_DIR}/PHASE2_TREE.txt" || fail "PHASE2_TREE.txt missing ${expected_entry}"
+  grep -Fq "operations/harness-phase2/runs/${RUN_ID}/${expected_entry}" "${RUN_DIR}/CREATED_PATHS.txt" || fail "CREATED_PATHS.txt missing ${expected_entry}"
+done
 
 printf 'PASS check-layer profile separation\n'
