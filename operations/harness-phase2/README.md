@@ -36,6 +36,17 @@ bash operations/harness-phase2/bin/run_phase2_bundle.sh <RUN_ID>
 
 If `<RUN_ID>` is omitted, the bundle generates a UTC timestamp-based id.
 
+## Profiles
+
+| Profile | Entrypoint | Meaning |
+| --- | --- | --- |
+| `check-layer-strict` | `bin/run_phase2_check_layer.sh` | strict external check layer only; no render, no runtime-ready, no handoff |
+| `repo-native-scaffold` | `bin/run_phase2_bundle.sh` | existing scaffold bundle; renders decision artifacts, runtime-ready package, conformance, report, handoff readiness |
+
+The strict check-layer profile is the closest repo-native equivalent of the earlier VPS Phase 2 harness.
+
+The repo-native scaffold profile is intentionally broader and must not be mistaken for the strict external check layer.
+
 ## Fixture smoke suite
 
 ```bash
