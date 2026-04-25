@@ -78,16 +78,40 @@ python operations/harness-phase2/bin/check_admission_policy.py <repo-root> <admi
 
 These are small Phase 2 external-check-layer utilities. They validate schema, placement policy, and admission fixture semantics without performing runtime writes.
 
-## Outputs
+## Observability sample emitter
 
-Required outputs for each run:
+```bash
+python operations/harness-phase2/bin/emit_observability_record.py <repo-root> <run-id>
+```
+
+- writes JSONL only under `operations/harness-phase2/reports/`
+- does not write to global `observability/`
+- is a sample external-check-layer observability emitter, not runtime instrumentation
+
+## Strict profile outputs
+
+- `run_meta.json`
+- `exit_code`
+- `checks/wrong_root_preflight.txt`
+- `checks/contracts_validation.json`
+- `checks/policy_validation.json`
+- `checks/fixture_smoke.txt`
+- `PHASE2_TREE.txt`
+- `PREFLIGHT_RESULT.txt`
+- `SMOKE_OUTPUT.txt`
+- `CREATED_PATHS.txt`
+- `FINAL_REPORT.md`
+
+## Repo-native scaffold outputs
+
 - `run_meta.json`
 - `exit_code`
 - `apply_plan.json`
 - `validation_report.json`
 - `admission_decision.json`
 - `placement_decision.json`
-- `checks/wrong_root_preflight.txt`
-- `checks/contracts_validation.json`
-- `checks/policy_validation.json`
+- `handoff_ready.json`
+- `report.json`
+- `report.md`
+- `checks/*`
 - `output/runtime-ready/`
