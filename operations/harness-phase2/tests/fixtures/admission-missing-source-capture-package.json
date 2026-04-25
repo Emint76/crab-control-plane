@@ -1,0 +1,25 @@
+{
+  "case_id": "admission-missing-source-capture-package",
+  "target_layer": "kb",
+  "result_packet_ref": "valid-result-packet.json",
+  "review_decision_ref": "valid-review-decision.json",
+  "admission_decision": {
+    "run_id": "fixture-smoke",
+    "generated_at": "2026-04-25T00:00:00Z",
+    "engine_mode": "scaffold",
+    "evaluation_mode": "static-v1",
+    "decision": "approved",
+    "checklist": [
+      "result_packet present",
+      "evidence present",
+      "review approval present"
+    ],
+    "blockers": []
+  },
+  "placement": {
+    "artifact_id": "fixture-source-capture",
+    "artifact_type": "source-capture-package",
+    "target_layer": "kb",
+    "target_path": "knowledge/kb/fixture-source-capture.json"
+  }
+}

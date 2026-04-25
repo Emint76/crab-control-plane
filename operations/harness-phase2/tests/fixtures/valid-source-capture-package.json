@@ -1,0 +1,15 @@
+{
+  "source_id": "fixture-source-capture",
+  "canonical_pointer": "repo://operations/harness-phase2/tests/fixtures/source",
+  "retrieval_status": "success",
+  "retrieval_timestamp": "2026-04-25T00:00:00Z",
+  "content_type": "text/markdown",
+  "stable_representation": "Source fixture content held in controlled test data.",
+  "human_identifier": "Phase 2 fixture source",
+  "provenance_notes": "Synthetic fixture for smoke validation only.",
+  "linkage": [
+    "phase2-fixture-task"
+  ],
+  "capture_method": "repository-export",
+  "hash": "sha256:fixturehash0001"
+}

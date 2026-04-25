@@ -1,0 +1,42 @@
+{
+  "id": "phase2-fixture-task",
+  "task_type": "source-capture",
+  "title": "Capture controlled source package",
+  "objective": "Capture a source package for Phase 2 fixture validation.",
+  "scope": "Use only fixture inputs and local contract schemas.",
+  "inputs": [
+    {
+      "type": "document",
+      "ref": "docs/fixture-source.md",
+      "description": "Fixture source document"
+    }
+  ],
+  "constraints": [
+    "Do not write outside the fixture smoke surface."
+  ],
+  "expected_outputs": [
+    {
+      "type": "source-capture-package",
+      "description": "A source capture package fixture.",
+      "destination_hint": "kb"
+    }
+  ],
+  "acceptance_criteria": [
+    "Fixture source capture package validates."
+  ],
+  "destination_hint": "kb",
+  "priority": "high",
+  "policy_refs": [
+    "operations/harness-phase2/policy/admission-policy.yaml"
+  ],
+  "placement_request": {
+    "target_layer": "kb",
+    "target_path": "knowledge/kb/source-capture-package-fixture.json",
+    "review_required": true,
+    "apply_mode": "manual"
+  },
+  "provenance_requirements": [
+    "source capture package required"
+  ],
+  "status_hint": "queued"
+}

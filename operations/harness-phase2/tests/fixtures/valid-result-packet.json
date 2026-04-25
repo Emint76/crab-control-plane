@@ -1,0 +1,30 @@
+{
+  "task_id": "phase2-fixture-task",
+  "result_summary": "Captured source package fixture for Phase 2 smoke validation.",
+  "produced_artifacts": [
+    {
+      "artifact_id": "fixture-source-capture",
+      "artifact_type": "source-capture-package",
+      "artifact_role": "source-bearing",
+      "ref": "operations/harness-phase2/tests/fixtures/valid-source-capture-package.json"
+    }
+  ],
+  "unresolved_issues": [],
+  "confidence": "high",
+  "evidence": [
+    {
+      "type": "source-package",
+      "ref": "operations/harness-phase2/tests/fixtures/valid-source-capture-package.json",
+      "description": "Valid source capture package fixture."
+    }
+  ],
+  "suggested_placement": "kb",
+  "validation_report_ref": "fixture://validation-report",
+  "admission_decision_ref": "fixture://admission-decision",
+  "placement_decision_ref": "fixture://placement-decision",
+  "apply_plan_ref": "fixture://apply-plan",
+  "suggested_followups": [
+    "Keep fixture coverage aligned with schema changes."
+  ],
+  "warnings": []
+}

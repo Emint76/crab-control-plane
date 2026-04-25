@@ -1,0 +1,10 @@
+{
+  "run_id": "fixture-smoke",
+  "generated_at": "2026-04-25T00:00:00Z",
+  "engine_mode": "scaffold",
+  "evaluation_mode": "static-v1",
+  "decision": "approved",
+  "target_layer": "kb",
+  "target_path": "knowledge/kb/fixture-source-capture.json",
+  "rationale": "This fixture is schema-valid but violates the Phase 2 placement policy for placement_decision artifacts."
+}

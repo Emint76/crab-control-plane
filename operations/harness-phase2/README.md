@@ -36,6 +36,17 @@ bash operations/harness-phase2/bin/run_phase2_bundle.sh <RUN_ID>
 
 If `<RUN_ID>` is omitted, the bundle generates a UTC timestamp-based id.
 
+## Fixture smoke suite
+
+```bash
+bash operations/harness-phase2/tests/run_fixture_smoke.sh
+```
+
+- checks schema-positive and schema-negative contract fixtures from `control-plane/contracts/schemas/`
+- rejects a KB placement fixture that violates the Phase 2 placement policy
+- rejects admission fixtures with missing source capture evidence
+- proves semantic fail-closed behavior when `placement.artifact_type` is not `source-capture-package`
+
 ## Outputs
 
 Required outputs for each run:
