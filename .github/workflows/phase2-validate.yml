@@ -36,6 +36,9 @@ jobs:
       - name: Run Phase 2 strict check-layer profile
         run: bash operations/harness-phase2/tests/test_check_layer_profile.sh
 
+      - name: Run Phase 2 observability emitter test
+        run: bash operations/harness-phase2/tests/test_observability_emitter.sh
+
       - name: Run Phase 2 bundle
         run: bash operations/harness-phase2/bin/run_phase2_bundle.sh ci-run
 
