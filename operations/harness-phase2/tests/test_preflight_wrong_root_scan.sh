@@ -47,6 +47,21 @@ prepare_case() {
     operations-harness)
       mkdir -p "${repo}/operations/harness"
       ;;
+    root-policy)
+      mkdir -p "${repo}/policy"
+      ;;
+    root-runtime)
+      mkdir -p "${repo}/runtime"
+      ;;
+    shortened-harness-phase2)
+      mkdir -p "${repo}/harness-phase2"
+      ;;
+    state-harness-phase2)
+      mkdir -p "${repo}/state/harness-phase2"
+      ;;
+    state-control-plane-harness-phase2)
+      mkdir -p "${repo}/state/control-plane/harness-phase2"
+      ;;
     phase2-report-outside)
       printf 'stray phase 2 report\n' > "${repo}/docs/PHASE2_REPORT.md"
       ;;
@@ -98,5 +113,10 @@ run_case() {
 run_case clean pass
 run_case root-contracts fail "contracts/"
 run_case operations-harness fail "operations/harness/"
+run_case root-policy fail "policy/"
+run_case root-runtime fail "runtime/"
+run_case shortened-harness-phase2 fail "harness-phase2/"
+run_case state-harness-phase2 fail "state/harness-phase2/"
+run_case state-control-plane-harness-phase2 fail "state/control-plane/harness-phase2/"
 run_case phase2-report-outside fail "docs/PHASE2_REPORT.md"
 run_case validation-report-outside fail "knowledge/kb/validation_report.json"
