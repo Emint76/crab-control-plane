@@ -47,6 +47,16 @@ The strict check-layer profile is the closest repo-native equivalent of the earl
 
 The repo-native scaffold profile is intentionally broader and must not be mistaken for the strict external check layer.
 
+## Strict profile evidence pack
+
+The `check-layer-strict` profile produces a repo-native equivalent of the earlier VPS Phase 2 audit pack:
+
+- `PHASE2_TREE.txt`
+- `PREFLIGHT_RESULT.txt`
+- `SMOKE_OUTPUT.txt`
+- `CREATED_PATHS.txt`
+- `FINAL_REPORT.md`
+
 ## Fixture smoke suite
 
 ```bash
