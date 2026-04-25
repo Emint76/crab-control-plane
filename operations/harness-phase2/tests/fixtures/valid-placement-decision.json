@@ -1,0 +1,10 @@
+{
+  "run_id": "fixture-smoke",
+  "generated_at": "2026-04-25T00:00:00Z",
+  "engine_mode": "scaffold",
+  "evaluation_mode": "static-v1",
+  "decision": "approved",
+  "target_layer": "observability",
+  "target_path": "observability/phase2/fixture-smoke/",
+  "rationale": "Fixture placement decision targets the observability layer used by Phase 2 scaffold artifacts."
+}

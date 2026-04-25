@@ -1,0 +1,7 @@
+{
+  "artifact_id": "fixture-source-capture",
+  "decision": "approve",
+  "rationale": "Fixture reviewer approves the source capture package for KB admission.",
+  "approved_destination": "kb",
+  "reviewer_notes": "Used only by the Phase 2 fixture smoke suite."
+}
