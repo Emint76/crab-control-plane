@@ -6,3 +6,6 @@ operations/harness-phase2/reports/*
 
 operations/harness-phase3/runs/*
 !operations/harness-phase3/runs/.gitkeep
+
+operations/harness-phase4/runs/*
+!operations/harness-phase4/runs/.gitkeep
