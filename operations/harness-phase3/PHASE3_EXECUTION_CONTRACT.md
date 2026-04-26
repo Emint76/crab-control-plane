@@ -80,7 +80,7 @@ Optional or step-dependent directories may exist, but they must remain under the
 
 ## Required canonical outputs
 
-Required always-on outputs are:
+For successful or accepted Phase 3 runs, required canonical outputs are:
 
 ```text
 run_meta.json
@@ -111,6 +111,19 @@ execution_result.json
 ```
 
 Step-dependent artifacts are required only if the corresponding step is reached or succeeds according to the future code contract.
+
+### Early fail-closed output semantics
+
+For early fail-closed runs where Phase 3 cannot freeze upstream input, some input-derived artifacts may be unavailable.
+
+Even in early failure, the runner must still emit, whenever technically possible:
+- `run_meta.json`
+- `report.json`
+- `report.md`
+- `timestamps.json`
+- `exit_code`
+
+Input-derived artifacts such as `input/input.sha256`, `input/runtime_ready_manifest.json`, and `input/runtime_ready.sha256` become mandatory only after the corresponding input-freeze step succeeds or is reached according to the future code contract.
 
 `exit_code` must be owned by the Phase 3 bundle runner only.
 
