@@ -35,7 +35,7 @@ This repo defines how the system should be structured across six layers:
 | Phase 2 strict check layer | `operations/harness-phase2/bin/run_phase2_check_layer.sh` | external check layer; no render, no runtime-ready, no handoff |
 | Phase 2 repo-native scaffold | `operations/harness-phase2/bin/run_phase2_bundle.sh` | validates, renders scaffold decisions, runtime-ready package, conformance, report, handoff readiness |
 | Phase 3 execution surface | `operations/harness-phase3/bin/run_phase3_bundle.sh` | target surface to be hardened into canonical execution owner |
-| Phase 4 wrapper | not yet implemented here | future thin wrapper over Phase 3 only |
+| Phase 4 wrapper | not yet implemented here | future thin wrapper over Phase 3 only; contract: `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md` |
 
 Phase 2 is upstream check/render/handoff preparation. It does not perform live runtime execution.
 
@@ -44,6 +44,8 @@ Phase 3 is the planned canonical execution owner surface. Its next hardening wor
 The detailed Phase 3 target contract is defined in `operations/harness-phase3/PHASE3_EXECUTION_CONTRACT.md`.
 
 Phase 4 must not own canonical execution outputs. It should remain a thin wrapper over Phase 3.
+
+The detailed Phase 4 wrapper contract is defined in `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`.
 
 ## What belongs elsewhere
 
