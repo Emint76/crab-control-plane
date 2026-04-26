@@ -240,6 +240,9 @@ Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `ex
 ## Acceptance criteria for future hardening
 
 - Phase 3 runner enforces canonical run-dir containment.
+- Phase 3 runner rejects invalid `RUN_ID` values before creating run artifacts.
+- Phase 3 runner proves run-dir containment through `checks/run_dir_invariants.json`.
+- `run_meta.json` records canonical run-dir identity without host-specific absolute paths.
 - Phase 3 runner freezes all upstream input.
 - Phase 3 runner writes all canonical evidence under `runs/<RUN_ID>/`.
 - Phase 3 runner owns `exit_code`.

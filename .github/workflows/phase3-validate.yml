@@ -1,0 +1,28 @@
+name: phase3-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  phase3-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Phase 2 requirements
+        run: pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Compile Phase 3 scripts
+        run: python -m compileall operations/harness-phase3/bin
+
+      - name: Run Phase 3 run-dir invariant test
+        run: bash operations/harness-phase3/tests/test_run_dir_invariants.sh
