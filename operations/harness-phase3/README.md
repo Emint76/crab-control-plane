@@ -72,6 +72,27 @@ Relevant check artifacts include:
 - `execution_result.json` exists only if `emit_execution_result.py` was actually reached.
 - Reporting stays tolerant of early failures and still emits the final report surface.
 
+## Canonical reporting
+
+`report.json` and `report.md` are canonical Phase 3 execution reports.
+
+`report.json` includes:
+
+- identity
+- input_refs
+- target
+- step_summary
+- details
+- blockers
+- canonical_outputs
+- runtime_statement
+
+Open Phase 3 hardening debts are tracked in:
+
+```text
+operations/harness-phase3/UNRESOLVED.md
+```
+
 ## Run directory invariants
 
 - Phase 3 writes canonical evidence only under `operations/harness-phase3/runs/<RUN_ID>/`.

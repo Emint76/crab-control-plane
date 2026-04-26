@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -31,6 +32,29 @@ TIMESTAMP_FIELDS = [
     ("post_apply_validation_completed_at", "post_apply_validation_completed_at"),
 ]
 
+STEP_KEYS = [
+    "run_dir_invariants",
+    "freeze_input",
+    "freeze_input_hash",
+    "freeze_intake_validation",
+    "execution_target_validation",
+    "pre_apply_validation",
+    "runtime_ready_reverify",
+    "materialize_staging",
+    "execute_apply",
+    "declared_scope_evidence",
+    "post_apply_validation",
+    "execution_result",
+]
+
+RUNTIME_STATEMENT = {
+    "live_openclaw_runtime_mutation": False,
+    "plugin_changes": False,
+    "gateway_channel_changes": False,
+    "model_auth_token_config_changes": False,
+    "phase4_wrapper_execution": False,
+}
+
 
 def now_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -38,6 +62,32 @@ def now_utc() -> str:
 
 def normalize_text(value: str) -> str:
     return " ".join(value.split()) or "detail unavailable"
+
+
+def is_unsafe_host_path(value: str) -> bool:
+    if value.startswith("/"):
+        return True
+    if re.match(r"^[A-Za-z]:[\\/]", value):
+        return True
+    if "\\" in value:
+        return True
+    return any(token in value for token in ("/tmp/", "/home/", "/Users/", "/mnt/"))
+
+
+def safe_report_value(value: Any) -> Any:
+    if isinstance(value, str):
+        return "[redacted-host-path]" if is_unsafe_host_path(value) else value
+    if isinstance(value, dict):
+        return {key: safe_report_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [safe_report_value(item) for item in value]
+    return value
+
+
+def md_value(value: Any) -> str:
+    if value is None:
+        return "unknown"
+    return str(value)
 
 
 def read_json_object(path: Path) -> dict[str, Any]:
@@ -241,8 +291,9 @@ def main() -> int:
             blockers.update(item for item in parsed["blockers"] if item)
 
         overall_status = "pass" if all(parsed["status"] == "pass" for parsed in parsed_steps.values()) else "fail"
+        step_summary = {name: parsed["status"] for name, parsed in parsed_steps.items()}
         summary = {
-            **{name: parsed["status"] for name, parsed in parsed_steps.items()},
+            **step_summary,
             "phase2_run_ref": run_meta_payload.get("phase2_run_ref"),
             "phase2_runtime_ready_ref": run_meta_payload.get("phase2_runtime_ready_ref"),
             "target_runtime": run_meta_payload.get("target_runtime"),
@@ -252,32 +303,67 @@ def main() -> int:
             "approval_ref": run_meta_payload.get("approval_ref"),
         }
         details = {name: parsed["detail"] for name, parsed in parsed_steps.items()}
+        canonical_run_dir = f"operations/harness-phase3/runs/{report_run_id}"
+        write_surface = f"{canonical_run_dir}/"
 
-        report_payload = {
+        report_payload = safe_report_value({
+            "phase": "phase3",
+            "profile": "canonical-execution-owner",
+            "report_kind": "canonical-execution-report",
             "run_id": report_run_id,
             "generated_at": now_utc(),
-            "engine_mode": "scaffold",
+            "canonical_run_dir": canonical_run_dir,
+            "write_surface": write_surface,
+            "engine_mode": run_meta_payload.get("engine_mode", "scaffold"),
             "execution_mode": run_meta_payload.get("execution_mode", "staged-only"),
             "overall_status": overall_status,
+            "input_refs": {
+                "phase2_run_ref": run_meta_payload.get("phase2_run_ref"),
+                "phase2_runtime_ready_ref": run_meta_payload.get("phase2_runtime_ready_ref"),
+            },
+            "target": {
+                "target_runtime": run_meta_payload.get("target_runtime"),
+                "target_kind": run_meta_payload.get("target_kind"),
+                "target_ref": run_meta_payload.get("target_ref"),
+                "apply_mode": run_meta_payload.get("apply_mode"),
+                "approval_ref": run_meta_payload.get("approval_ref"),
+            },
+            "step_summary": step_summary,
             "summary": summary,
             "details": details,
             "blockers": sorted(blockers),
-        }
+            "canonical_outputs": {
+                "report_json": f"{canonical_run_dir}/report.json",
+                "report_md": f"{canonical_run_dir}/report.md",
+                "timestamps_json": f"{canonical_run_dir}/timestamps.json",
+                "exit_code": f"{canonical_run_dir}/exit_code",
+            },
+            "runtime_statement": RUNTIME_STATEMENT,
+        })
 
         report_md = "\n".join(
             [
-                "# Run",
+                "# Phase 3 canonical execution report",
+                "",
+                "## Identity",
                 f"- run_id: `{report_run_id}`",
+                "- profile: `canonical-execution-owner`",
+                "- report_kind: `canonical-execution-report`",
+                f"- canonical_run_dir: `{canonical_run_dir}`",
                 f"- overall_status: `{overall_status}`",
                 "",
-                "## Target",
-                f"- target_runtime: `{summary['target_runtime']}`",
-                f"- target_kind: `{summary['target_kind']}`",
-                f"- target_ref: `{summary['target_ref']}`",
-                f"- apply_mode: `{summary['apply_mode']}`",
-                f"- approval_ref: `{summary['approval_ref']}`",
+                "## Input references",
+                f"- phase2_run_ref: `{md_value(summary['phase2_run_ref'])}`",
+                f"- phase2_runtime_ready_ref: `{md_value(summary['phase2_runtime_ready_ref'])}`",
                 "",
-                "## Step Summary",
+                "## Target",
+                f"- target_runtime: `{md_value(summary['target_runtime'])}`",
+                f"- target_kind: `{md_value(summary['target_kind'])}`",
+                f"- target_ref: `{md_value(summary['target_ref'])}`",
+                f"- apply_mode: `{md_value(summary['apply_mode'])}`",
+                f"- approval_ref: `{md_value(summary['approval_ref'])}`",
+                "",
+                "## Step summary",
                 f"- run_dir_invariants: `{summary['run_dir_invariants']}`",
                 f"- freeze_input: `{summary['freeze_input']}`",
                 f"- freeze_input_hash: `{summary['freeze_input_hash']}`",
@@ -294,50 +380,93 @@ def main() -> int:
                 "## Blockers",
                 *([f"- {item}" for item in sorted(blockers)] if blockers else ["- none"]),
                 "",
+                "## Runtime statement",
+                "- No live OpenClaw runtime mutation was performed.",
+                "- No plugin, gateway, channel, model, auth, token, or config changes were performed.",
+                "- Phase 4 wrapper execution was not performed.",
+                "",
             ]
         )
     except Exception as exc:  # noqa: BLE001
-        report_payload = {
+        canonical_run_dir = f"operations/harness-phase3/runs/{report_run_id}"
+        write_surface = f"{canonical_run_dir}/"
+        step_summary = {name: "unknown" for name in STEP_KEYS}
+        summary = {
+            **step_summary,
+            "phase2_run_ref": None,
+            "phase2_runtime_ready_ref": None,
+            "target_runtime": None,
+            "target_kind": None,
+            "target_ref": None,
+            "apply_mode": None,
+            "approval_ref": None,
+        }
+        report_payload = safe_report_value({
+            "phase": "phase3",
+            "profile": "canonical-execution-owner",
+            "report_kind": "canonical-execution-report",
             "run_id": report_run_id,
             "generated_at": now_utc(),
+            "canonical_run_dir": canonical_run_dir,
+            "write_surface": write_surface,
             "engine_mode": "scaffold",
             "execution_mode": "staged-only",
             "overall_status": "fail",
-            "summary": {
-                "run_dir_invariants": "unknown",
-                "freeze_input": "unknown",
-                "freeze_input_hash": "unknown",
-                "freeze_intake_validation": "unknown",
-                "execution_target_validation": "unknown",
-                "pre_apply_validation": "unknown",
-                "runtime_ready_reverify": "unknown",
-                "materialize_staging": "unknown",
-                "execute_apply": "unknown",
-                "declared_scope_evidence": "unknown",
-                "post_apply_validation": "unknown",
-                "execution_result": "unknown",
+            "input_refs": {
                 "phase2_run_ref": None,
                 "phase2_runtime_ready_ref": None,
+            },
+            "target": {
                 "target_runtime": None,
                 "target_kind": None,
                 "target_ref": None,
                 "apply_mode": None,
                 "approval_ref": None,
             },
+            "step_summary": step_summary,
+            "summary": summary,
             "details": {"report": normalize_text(f"unhandled exception: {exc}")},
             "blockers": ["report_emitter_unhandled_exception"],
-        }
+            "canonical_outputs": {
+                "report_json": f"{canonical_run_dir}/report.json",
+                "report_md": f"{canonical_run_dir}/report.md",
+                "timestamps_json": f"{canonical_run_dir}/timestamps.json",
+                "exit_code": f"{canonical_run_dir}/exit_code",
+            },
+            "runtime_statement": RUNTIME_STATEMENT,
+        })
         report_md = "\n".join(
             [
-                "# Run",
+                "# Phase 3 canonical execution report",
+                "",
+                "## Identity",
                 f"- run_id: `{report_run_id}`",
+                "- profile: `canonical-execution-owner`",
+                "- report_kind: `canonical-execution-report`",
+                f"- canonical_run_dir: `{canonical_run_dir}`",
                 "- overall_status: `fail`",
                 "",
-                "## Step Summary",
+                "## Input references",
+                "- phase2_run_ref: `unknown`",
+                "- phase2_runtime_ready_ref: `unknown`",
+                "",
+                "## Target",
+                "- target_runtime: `unknown`",
+                "- target_kind: `unknown`",
+                "- target_ref: `unknown`",
+                "- apply_mode: `unknown`",
+                "- approval_ref: `unknown`",
+                "",
+                "## Step summary",
                 "- report emitter hit an unhandled exception.",
                 "",
                 "## Blockers",
                 "- report_emitter_unhandled_exception",
+                "",
+                "## Runtime statement",
+                "- No live OpenClaw runtime mutation was performed.",
+                "- No plugin, gateway, channel, model, auth, token, or config changes were performed.",
+                "- Phase 4 wrapper execution was not performed.",
                 "",
             ]
         )
