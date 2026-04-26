@@ -55,6 +55,12 @@ Phase 2 `runtime-ready/` is upstream package input only.
 
 `execution_target.json` is an external target contract. Phase 3 must freeze it before relying on it.
 
+The execution target schema contract is:
+
+```text
+operations/harness-phase3/contracts/execution_target.schema.json
+```
+
 `run_id` must identify the canonical Phase 3 run directory.
 
 ## Canonical run directory
@@ -188,6 +194,10 @@ Failure must still produce `exit_code` and final report whenever technically pos
 
 Phase 3 validates the frozen execution target before pre-apply validation, staging, apply, or execution result emission.
 
+Execution target validation has two layers:
+1. schema validation against `operations/harness-phase3/contracts/execution_target.schema.json`;
+2. semantic validation for canonical `target_ref`, write-surface, and unsafe path rules.
+
 Invalid execution target semantics must fail closed and must not reach staging/apply.
 
 ## Write-surface rules
@@ -265,6 +275,7 @@ operations/harness-phase3/UNRESOLVED.md
 - Phase 3 runner proves run-dir containment through `checks/run_dir_invariants.json`.
 - `run_meta.json` records canonical run-dir identity without host-specific absolute paths.
 - Phase 3 runner freezes all upstream input.
+- Phase 3 runner validates frozen `input/execution_target.json` against `operations/harness-phase3/contracts/execution_target.schema.json` before semantic checks.
 - Phase 3 runner writes all canonical evidence under `runs/<RUN_ID>/`.
 - Phase 3 runner owns `exit_code`.
 - Phase 3 runner emits `report.json` and `report.md`.

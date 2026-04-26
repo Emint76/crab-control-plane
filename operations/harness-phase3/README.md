@@ -66,6 +66,7 @@ Relevant check artifacts include:
 - `phase3_staging` is the only allowed `target_kind` in this scaffold.
 - For validated runs, the only canonical target is `operations/harness-phase3/runs/<RUN_ID>/staging/runtime-ready-applied`.
 - Phase 3 validates the frozen execution target before pre-apply validation, staging, apply, or execution result emission.
+- Phase 3 validates frozen `input/execution_target.json` against `operations/harness-phase3/contracts/execution_target.schema.json` before semantic target validation.
 - Invalid execution target semantics fail closed and do not reach staging/apply.
 - `run_phase3_bundle.sh` is the only owner of `exit_code`.
 - `emit_phase3_report.py` never writes `exit_code`.

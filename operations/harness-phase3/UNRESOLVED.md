@@ -2,17 +2,12 @@
 
 ## execution_target schema contract
 
-Status: open.
+Status: closed.
 
-Current state:
-- `operations/harness-phase3/bin/validate_execution_target.py` performs hand-written semantic validation.
-- This is acceptable for the current fail-closed hardening step.
+Resolved by:
+- `operations/harness-phase3/contracts/execution_target.schema.json`
+- schema validation in `operations/harness-phase3/bin/validate_execution_target.py`
+- `operations/harness-phase3/tests/test_execution_target_schema_contract.sh`
 
-Target state:
-- Add explicit `execution_target.schema.json` or equivalent contract coverage.
-- Validate frozen `input/execution_target.json` against that schema before semantic checks.
-- Keep semantic checks for canonical target_ref, write-surface, and unsafe path rules.
-
-Reason:
-- Phase 3 is the canonical execution owner.
-- Execution target validation should eventually be contract-backed, not only code-backed.
+Current note:
+- Semantic checks remain in code because run-specific canonical `target_ref`, write-surface, and unsafe path rules are not pure schema concerns.
