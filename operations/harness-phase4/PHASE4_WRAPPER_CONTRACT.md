@@ -91,7 +91,7 @@ Operator identity is wrapper metadata, not execution ownership.
 
 ## Outputs
 
-Allowed future Phase 4 outputs should be wrapper-only.
+Allowed Phase 4 outputs are wrapper-only.
 
 Preferred wrapper run surface:
 
@@ -106,6 +106,7 @@ wrapper_meta.json
 preflight.json
 phase3_invocation.json
 wrapper_summary.md
+wrapper_exit_code
 ```
 
 These files must only point to Phase 3 canonical outputs, not duplicate them.
@@ -130,7 +131,7 @@ The preferred contract is to avoid names that compete with Phase 3.
 
 ## Write-surface rules
 
-Allowed future Phase 4 write surface:
+Allowed Phase 4 write surface:
 
 ```text
 operations/harness-phase4/runs/<WRAPPER_RUN_ID>/
@@ -177,14 +178,13 @@ Phase 4 must not mask Phase 3 failure as wrapper success.
 
 ## Non-goals
 
-- No Phase 4 implementation in this PR.
 - No Phase 3 behavior changes.
 - No Phase 2 behavior changes.
 - No live runtime writes.
 - No deployment or migration.
 - No plugin/gateway/channel/model/auth/token/config changes.
 
-## Acceptance criteria for future implementation
+## Acceptance criteria
 
 - Phase 4 wrapper invokes Phase 3 and does not bypass it.
 - Phase 4 wrapper has its own wrapper metadata surface only.
@@ -193,3 +193,4 @@ Phase 4 must not mask Phase 3 failure as wrapper success.
 - Phase 4 wrapper records Phase 3 canonical run directory and report paths.
 - Phase 4 wrapper fails closed on missing Phase 3 report or invalid inputs.
 - Phase 4 has dedicated tests proving it does not write Phase 3 canonical outputs directly.
+- Phase 4 has dedicated CI for the wrapper test.
