@@ -34,12 +34,12 @@ This repo defines how the system should be structured across six layers:
 |---|---|---|
 | Phase 2 strict check layer | `operations/harness-phase2/bin/run_phase2_check_layer.sh` | external check layer; no render, no runtime-ready, no handoff |
 | Phase 2 repo-native scaffold | `operations/harness-phase2/bin/run_phase2_bundle.sh` | validates, renders scaffold decisions, runtime-ready package, conformance, report, handoff readiness |
-| Phase 3 execution surface | `operations/harness-phase3/bin/run_phase3_bundle.sh` | target surface to be hardened into canonical execution owner |
+| Phase 3 execution surface | `operations/harness-phase3/bin/run_phase3_bundle.sh` | canonical execution owner surface; hardened with run-dir invariants, fail-closed behavior, execution target validation, canonical reporting, and CI |
 | Phase 4 wrapper | not yet implemented here | future thin wrapper over Phase 3 only; contract: `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md` |
 
 Phase 2 is upstream check/render/handoff preparation. It does not perform live runtime execution.
 
-Phase 3 is the planned canonical execution owner surface. Its next hardening work must focus on canonical run evidence, execution ownership, fail-closed behavior, and CI.
+Phase 3 is the repo-native canonical execution owner surface. It owns canonical run evidence, fail-closed execution behavior, canonical reports, final exit status, and dedicated CI within the repo-native harness boundary.
 
 The detailed Phase 3 target contract is defined in `operations/harness-phase3/PHASE3_EXECUTION_CONTRACT.md`.
 
@@ -56,8 +56,7 @@ The detailed Phase 4 wrapper contract is defined in `operations/harness-phase4/P
 
 ## Recommended next steps
 
-1. Keep Phase 2 strict/scaffold profiles green in CI.
-2. Harden Phase 3 into the canonical execution owner.
-3. Add dedicated Phase 3 CI.
-4. Define Phase 4 only as a thin wrapper over Phase 3.
-5. Continue to keep live runtime state, secrets, and instance-specific config out of this repo.
+1. Keep Phase 2 and Phase 3 CI green.
+2. Implement Phase 4 only as a thin wrapper over Phase 3, according to `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`.
+3. Later close the Phase 3 `execution_target.schema.json` debt tracked in `operations/harness-phase3/UNRESOLVED.md`.
+4. Continue to keep live runtime state, secrets, and instance-specific config out of this repo.
