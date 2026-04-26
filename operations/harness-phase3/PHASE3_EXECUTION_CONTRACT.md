@@ -117,7 +117,7 @@ checks/post_apply_validation.json
 execution_result.json
 ```
 
-Step-dependent artifacts are required only if the corresponding step is reached or succeeds according to the future code contract.
+Step-dependent artifacts are required only if the corresponding step is reached or succeeds according to the Phase 3 runner contract.
 
 ### Early fail-closed output semantics
 
@@ -130,7 +130,7 @@ Even in early failure, the runner must still emit, whenever technically possible
 - `timestamps.json`
 - `exit_code`
 
-Input-derived artifacts such as `input/input.sha256`, `input/runtime_ready_manifest.json`, and `input/runtime_ready.sha256` become mandatory only after the corresponding input-freeze step succeeds or is reached according to the future code contract.
+Input-derived artifacts such as `input/input.sha256`, `input/runtime_ready_manifest.json`, and `input/runtime_ready.sha256` become mandatory only after the corresponding input-freeze step succeeds or is reached according to the Phase 3 runner contract.
 
 `exit_code` must be owned by the Phase 3 bundle runner only.
 
@@ -255,7 +255,7 @@ Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `ex
 - No live OpenClaw runtime mutation.
 - No deploy/migration implementation.
 - No remote execution.
-- No Phase 4 wrapper implementation.
+- No Phase 4 behavior inside Phase 3.
 - No model/auth/token/config changes.
 - No plugin/gateway/channel changes.
 - No replacement of Phase 2.
@@ -268,7 +268,7 @@ Open Phase 3 hardening debts are tracked in:
 operations/harness-phase3/UNRESOLVED.md
 ```
 
-## Acceptance criteria for future hardening
+## Acceptance criteria for current hardening
 
 - Phase 3 runner enforces canonical run-dir containment.
 - Phase 3 runner rejects invalid `RUN_ID` values before creating run artifacts.

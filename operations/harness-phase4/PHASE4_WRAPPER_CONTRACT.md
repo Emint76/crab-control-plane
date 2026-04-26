@@ -76,7 +76,7 @@ If Phase 4 and Phase 3 disagree, Phase 3 canonical report and `exit_code` win.
 
 ## Inputs
 
-Minimum future Phase 4 inputs are:
+Minimum Phase 4 inputs are:
 
 ```text
 --phase2-run-dir operations/harness-phase2/runs/<PHASE2_RUN_ID>

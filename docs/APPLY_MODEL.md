@@ -45,11 +45,11 @@ This runtime-ready package is a special Phase 2 output, not a placement artifact
 
 Phase 2 render output is upstream input only.
 
-Phase 3 is the intended canonical execution owner. Phase 2 `runtime-ready/` is not itself an execution target and does not prove runtime execution.
+Phase 3 is the repo-native canonical execution owner. Phase 2 `runtime-ready/` is upstream package input only and does not prove runtime execution.
 
 ## Live runtime policy
 
 - live runtime mutation is forbidden in Phase 2
 - render output is run-scoped only
-- a later execution owner may consume the rendered package
+- Phase 3 may consume the rendered package inside the repo-native harness boundary
 - Phase 2 does not implement full execution, migration, or deployment behavior
