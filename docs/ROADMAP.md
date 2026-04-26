@@ -20,25 +20,29 @@ Includes:
 - sample observability JSONL emitter
 - CI coverage for Phase 2
 
-## Current next work
+### Phase 3 — repo-native canonical execution owner
+Status: hardened.
 
-### Phase 3 — canonical execution owner
-Status: next hardening target.
-
-Goal:
-- own canonical execution run directory
-- freeze Phase 2 handoff input
-- validate execution target
-- own apply/staging boundary
-- emit canonical execution evidence
-- own final report and exit status
-- add dedicated Phase 3 CI
+Includes:
+- canonical run-dir invariants
+- input freeze and provenance
+- execution target schema and semantic validation
+- fail-closed evidence behavior
+- canonical reporting
+- dedicated Phase 3 CI
 
 ### Phase 4 — thin wrapper over Phase 3
-Status: future.
+Status: implemented as wrapper-only.
 
-Goal:
-- package operator invocation
-- perform wrapper preflight
-- invoke Phase 3
-- never own canonical execution outputs
+Includes:
+- wrapper preflight
+- Phase 3 invocation
+- wrapper-only metadata surface
+- Phase 3 exit status propagation
+- dedicated Phase 4 CI
+
+## Current next work
+
+- Keep Phase 2, Phase 3, and Phase 4 CI green.
+- Continue to keep live runtime state, secrets, and instance-specific config out of this repo.
+- Treat deploy and live OpenClaw integration as separate explicitly contracted work.

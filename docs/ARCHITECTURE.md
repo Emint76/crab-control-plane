@@ -17,7 +17,8 @@ The repository is a versioned control surface for policies, contracts, schemas, 
 | KB | Sanctioned knowledge store |
 | Observability | Execution evidence, logs, evals, and reports |
 | `operations/harness-phase2/` | Phase 2 strict check-layer and repo-native scaffold surfaces |
-| `operations/harness-phase3/` | Phase 3 execution surface to be hardened into canonical execution owner |
+| `operations/harness-phase3/` | Phase 3 repo-native canonical execution owner surface |
+| `operations/harness-phase4/` | Phase 4 thin wrapper over Phase 3 |
 
 ## Architectural separation
 
@@ -70,11 +71,11 @@ Execution in the Phase 2 repo-native scaffold profile means:
 4. machine-readable decisions are rendered
 5. a runtime-ready output package is rendered into the run scope
 
-A later execution owner may consume the rendered output package, but that owner is outside Phase 2 live mutation scope.
+Phase 3 consumes the rendered output package inside the repo-native harness boundary, but that remains outside Phase 2 live mutation scope.
 
-## Phase 3 target role
+## Phase 3 role
 
-Phase 3 is intended to become the canonical execution owner.
+Phase 3 is the repo-native canonical execution owner.
 
 Canonical execution ownership means:
 - Phase 3 owns the canonical execution run directory.
@@ -83,13 +84,11 @@ Canonical execution ownership means:
 - Phase 3 must not be bypassed by Phase 4.
 - Phase 3 must not write live runtime state unless explicitly allowed by a later contract.
 
-This is a planned target role. Phase 3 still needs hardening before it should be treated as the fully canonical execution owner.
+## Phase 4 role
 
-## Phase 4 target role
+Phase 4 is the thin wrapper over Phase 3.
 
-Phase 4 is intended only as a thin wrapper over Phase 3.
-
-It may package operator invocation, run preflight checks, and call Phase 3, but it must not own canonical execution outputs.
+It packages operator invocation, runs wrapper preflight checks, and calls Phase 3, but it must not own canonical execution outputs.
 
 ## Source of truth
 
@@ -101,6 +100,7 @@ It may package operator invocation, run preflight checks, and call Phase 3, but 
 | Operational workflow model | `operations/notion/` |
 | Phase 2 strict/scaffold surfaces | `operations/harness-phase2/` |
 | Phase 3 execution surface | `operations/harness-phase3/` |
+| Phase 4 wrapper surface | `operations/harness-phase4/` |
 | Semantic note conventions | `knowledge/obsidian/` |
 | KB layout | `knowledge/kb/` |
 | Observability model | `observability/` |
@@ -112,8 +112,8 @@ It may package operator invocation, run preflight checks, and call Phase 3, but 
 - Phase 2 does not perform deploy logic or runtime migration
 - Phase 2 does not perform live runtime writes
 - Phase 2 is not a full decision engine
-- Phase 3 is not claimed to be fully hardened yet
-- Phase 4 is not implemented here
+- Phase 3 is not a live runtime deployment or migration engine
+- Phase 4 is not a canonical execution owner
 
 ## Controlled apply model
 
@@ -134,5 +134,5 @@ This repository is intended to support later extensions such as:
 - stronger validators
 - richer policy checks
 - more detailed render plans
-- execution-owner handoff for rendered packages
+- bounded wrapper and operator-invocation refinements
 - bounded evolution proposals based on observability feedback

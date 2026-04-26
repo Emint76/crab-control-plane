@@ -57,5 +57,4 @@ The detailed Phase 4 wrapper contract is defined in `operations/harness-phase4/P
 ## Recommended next steps
 
 1. Keep Phase 2, Phase 3, and Phase 4 CI green.
-2. Later close the Phase 3 `execution_target.schema.json` debt tracked in `operations/harness-phase3/UNRESOLVED.md`.
-3. Continue to keep live runtime state, secrets, and instance-specific config out of this repo.
+2. Continue to keep live runtime state, secrets, and instance-specific config out of this repo.
