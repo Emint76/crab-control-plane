@@ -41,6 +41,8 @@ Phase 2 is upstream check/render/handoff preparation. It does not perform live r
 
 Phase 3 is the planned canonical execution owner surface. Its next hardening work must focus on canonical run evidence, execution ownership, fail-closed behavior, and CI.
 
+The detailed Phase 3 target contract is defined in `operations/harness-phase3/PHASE3_EXECUTION_CONTRACT.md`.
+
 Phase 4 must not own canonical execution outputs. It should remain a thin wrapper over Phase 3.
 
 ## What belongs elsewhere
