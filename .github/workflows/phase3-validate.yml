@@ -29,3 +29,6 @@ jobs:
 
       - name: Run Phase 3 fail-closed/evidence test
         run: bash operations/harness-phase3/tests/test_fail_closed_and_evidence.sh
+
+      - name: Run Phase 3 report shape test
+        run: bash operations/harness-phase3/tests/test_report_shape.sh

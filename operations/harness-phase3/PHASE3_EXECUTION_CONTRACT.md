@@ -130,6 +130,10 @@ Input-derived artifacts such as `input/input.sha256`, `input/runtime_ready_manif
 
 Reports must not own or overwrite `exit_code`.
 
+`report.json` and `report.md` are canonical Phase 3 execution reports.
+
+`report.json` must include canonical identity, input refs, target, step summary, details, blockers, canonical outputs, and runtime statement.
+
 ## Input freeze requirements
 
 Phase 3 must freeze:
@@ -244,6 +248,14 @@ Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `ex
 - No plugin/gateway/channel changes.
 - No replacement of Phase 2.
 
+## Unresolved hardening debt
+
+Open Phase 3 hardening debts are tracked in:
+
+```text
+operations/harness-phase3/UNRESOLVED.md
+```
+
 ## Acceptance criteria for future hardening
 
 - Phase 3 runner enforces canonical run-dir containment.
@@ -254,6 +266,7 @@ Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `ex
 - Phase 3 runner writes all canonical evidence under `runs/<RUN_ID>/`.
 - Phase 3 runner owns `exit_code`.
 - Phase 3 runner emits `report.json` and `report.md`.
+- Phase 3 report includes canonical identity, input refs, target, step summary, blockers, canonical outputs, and runtime statement.
 - Phase 3 runner fails closed on invalid input, hash mismatch, invalid target, write-surface violation, or missing reached-step artifacts.
 - Phase 3 has dedicated CI.
 - Phase 4, when added, invokes Phase 3 and does not create canonical outputs.
