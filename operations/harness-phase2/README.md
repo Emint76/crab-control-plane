@@ -2,9 +2,12 @@
 
 ## Purpose
 
-`operations/harness-phase2/` provides the Phase 2 scaffold-only mechanical validate/apply surface for `crab-control-plane`.
+`operations/harness-phase2/` provides the Phase 2 repo-native check/render surface for `crab-control-plane`.
 
-It validates contracts and policy, then renders machine-readable scaffold decisions and a runtime-ready package into a run-scoped output directory.
+It contains two profiles:
+
+- `check-layer-strict`: audit-only validation profile.
+- `repo-native-scaffold`: scaffold-only package/handoff preparation profile for Phase 3 intake.
 
 ## Responsibilities
 
