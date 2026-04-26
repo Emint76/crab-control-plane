@@ -6,14 +6,9 @@ PHASE3_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PHASE3_ROOT}/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
 
-if [[ -z "${PHASE3_PYTHON_BIN:-}" ]]; then
-  if command -v python >/dev/null 2>&1; then
-    export PHASE3_PYTHON_BIN="python"
-  elif [[ -x "/c/Program Files/LibreOffice/program/python.exe" ]]; then
-    export PHASE3_PYTHON_BIN="/c/Program Files/LibreOffice/program/python.exe"
-  fi
-fi
-PYTHON_BIN="${PHASE3_PYTHON_BIN:-python}"
+PHASE3_PYTHON_BIN="${PHASE3_PYTHON_BIN:-python}"
+export PHASE3_PYTHON_BIN
+PYTHON_BIN="${PHASE3_PYTHON_BIN}"
 export PHASE2_PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON_BIN}}"
 
 PHASE2_RUN_ID="phase3-run-dir-invariants-phase2-input"

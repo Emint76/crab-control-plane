@@ -101,6 +101,7 @@ input/execution_target.json
 input/runtime_ready_manifest.json
 input/runtime_ready.sha256
 checks/freeze_intake_validation.json
+checks/execution_target_validation.json
 checks/pre_apply_validation.json
 checks/runtime_ready_reverify.json
 staging/runtime-ready-applied/
@@ -180,6 +181,10 @@ Phase 3 staging/apply boundary must be explicit and auditable.
 | Attempted write outside allowed run directory | fail closed |
 
 Failure must still produce `exit_code` and final report whenever technically possible.
+
+Phase 3 validates the frozen execution target before pre-apply validation, staging, apply, or execution result emission.
+
+Invalid execution target semantics must fail closed and must not reach staging/apply.
 
 ## Write-surface rules
 

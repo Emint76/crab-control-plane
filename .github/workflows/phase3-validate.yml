@@ -26,3 +26,6 @@ jobs:
 
       - name: Run Phase 3 run-dir invariant test
         run: bash operations/harness-phase3/tests/test_run_dir_invariants.sh
+
+      - name: Run Phase 3 fail-closed/evidence test
+        run: bash operations/harness-phase3/tests/test_fail_closed_and_evidence.sh

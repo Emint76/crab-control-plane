@@ -50,11 +50,23 @@ Required always-on outputs:
 
 Step-specific artifacts are emitted only if the bundle reaches the corresponding step.
 
+Relevant check artifacts include:
+
+- `checks/run_dir_invariants.json`
+- `checks/freeze_intake_validation.json`
+- `checks/execution_target_validation.json`
+- `checks/pre_apply_validation.json`
+- `checks/runtime_ready_reverify.json`
+- `checks/declared_scope_evidence.json`
+- `checks/post_apply_validation.json`
+
 ## Key Invariants
 
 - Phase 2 `runtime-ready/` stays package-only and is never treated as an execution target.
 - `phase3_staging` is the only allowed `target_kind` in this scaffold.
 - For validated runs, the only canonical target is `operations/harness-phase3/runs/<RUN_ID>/staging/runtime-ready-applied`.
+- Phase 3 validates the frozen execution target before pre-apply validation, staging, apply, or execution result emission.
+- Invalid execution target semantics fail closed and do not reach staging/apply.
 - `run_phase3_bundle.sh` is the only owner of `exit_code`.
 - `emit_phase3_report.py` never writes `exit_code`.
 - `execution_result.json` exists only if `emit_execution_result.py` was actually reached.
