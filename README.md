@@ -37,6 +37,12 @@ This repo defines how the system should be structured across six layers:
 | Phase 3 execution surface | `operations/harness-phase3/bin/run_phase3_bundle.sh` | canonical execution owner surface; hardened with run-dir invariants, fail-closed behavior, execution target validation, canonical reporting, and CI |
 | Phase 4 wrapper | `operations/harness-phase4/bin/run_phase4_wrapper.sh` | thin wrapper over Phase 3; does not own canonical execution outputs; contract: `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md` |
 
+Phase 2 has two profiles, not two separate phases:
+- `check-layer-strict` is the audit-only profile.
+- `repo-native-scaffold` is the package/handoff profile for Phase 3 intake.
+
+`handoff_ready.json` means ready for Phase 3 intake only, not live-runtime-ready, deploy-ready, or launch-ready.
+
 Phase 2 is upstream check/render/handoff preparation. It does not perform live runtime execution.
 
 Phase 3 is the repo-native canonical execution owner surface. It owns canonical run evidence, fail-closed execution behavior, canonical reports, final exit status, and dedicated CI within the repo-native harness boundary.

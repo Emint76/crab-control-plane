@@ -47,6 +47,8 @@ Phase 2 render output is upstream input only.
 
 Phase 3 is the repo-native canonical execution owner. Phase 2 `runtime-ready/` is upstream package input only and does not prove runtime execution.
 
+`handoff_ready.json` means ready for Phase 3 intake only. It does not mean live-runtime-ready, deploy-ready, or launch-ready.
+
 ## Live runtime policy
 
 - live runtime mutation is forbidden in Phase 2
