@@ -314,6 +314,12 @@ def is_unsafe_host_path(value: str) -> bool:
     return any(token in value for token in ("/tmp/", "/var/", "/home/", "/Users/", "/mnt/"))
 
 
+def safe_metadata_value(value: object) -> object:
+    if isinstance(value, str) and is_unsafe_host_path(value):
+        return None
+    return value
+
+
 repo_root = Path(sys.argv[1]).resolve(strict=False)
 run_id = sys.argv[2]
 phase2_run_dir_text = sys.argv[3]
@@ -344,12 +350,12 @@ payload = {
     "write_surface": f"operations/harness-phase3/runs/{run_id}/",
     "phase2_run_ref": phase2_run_ref,
     "phase2_runtime_ready_ref": phase2_runtime_ready_ref,
-    "target_runtime": target_payload.get("target_runtime"),
-    "target_kind": target_payload.get("target_kind"),
-    "target_ref": target_payload.get("target_ref"),
-    "apply_mode": target_payload.get("apply_mode"),
-    "approval_ref": target_payload.get("approval_ref"),
-    "invoked_by": target_payload.get("invoked_by"),
+    "target_runtime": safe_metadata_value(target_payload.get("target_runtime")),
+    "target_kind": safe_metadata_value(target_payload.get("target_kind")),
+    "target_ref": safe_metadata_value(target_payload.get("target_ref")),
+    "apply_mode": safe_metadata_value(target_payload.get("apply_mode")),
+    "approval_ref": safe_metadata_value(target_payload.get("approval_ref")),
+    "invoked_by": safe_metadata_value(target_payload.get("invoked_by")),
 }
 for field_name, field_value in iter_string_fields(payload):
     if is_unsafe_host_path(field_value):
@@ -389,6 +395,12 @@ fi
 
 if [[ "${BLOCKING_FAILURE}" -eq 0 ]]; then
   if ! run_python_step "freeze_intake_validation" "${PHASE3_ROOT}/bin/validate_frozen_intake.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+    BLOCKING_FAILURE=1
+  fi
+fi
+
+if [[ "${BLOCKING_FAILURE}" -eq 0 ]]; then
+  if ! run_python_step "execution_target_validation" "${PHASE3_ROOT}/bin/validate_execution_target.py" "${REPO_ROOT}" "${RUN_DIR}"; then
     BLOCKING_FAILURE=1
   fi
 fi
@@ -490,6 +502,7 @@ require_artifact_if_success "freeze_input" "${INPUT_DIR}/runtime_ready_manifest.
 require_artifact_if_success "freeze_input" "${INPUT_DIR}/runtime_ready.sha256"
 require_artifact_if_success "freeze_input_hash" "${INPUT_DIR}/input.sha256"
 require_artifact_if_reached "freeze_intake_validation" "${CHECKS_DIR}/freeze_intake_validation.json"
+require_artifact_if_reached "execution_target_validation" "${CHECKS_DIR}/execution_target_validation.json"
 require_artifact_if_reached "pre_apply_validation" "${CHECKS_DIR}/pre_apply_validation.json"
 require_artifact_if_reached "runtime_ready_reverify" "${CHECKS_DIR}/runtime_ready_reverify.json"
 require_artifact_if_success "materialize_staging" "${RUN_DIR}/staging/runtime-ready-applied"
