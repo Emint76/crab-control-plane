@@ -16,7 +16,8 @@ The repository is a versioned control surface for policies, contracts, schemas, 
 | Obsidian | Semantic note plane |
 | KB | Sanctioned knowledge store |
 | Observability | Execution evidence, logs, evals, and reports |
-| `operations/harness-phase2/` | Scaffold-only mechanical validate/apply surface |
+| `operations/harness-phase2/` | Phase 2 strict check-layer and repo-native scaffold surfaces |
+| `operations/harness-phase3/` | Phase 3 execution surface to be hardened into canonical execution owner |
 
 ## Architectural separation
 
@@ -48,31 +49,47 @@ The repository is the source of truth for:
 ### Observability plane
 `observability/` models execution evidence and future reports, not runtime mutation.
 
-## Mechanical control surface
+## Phase 2 profiles
 
-Phase 2 introduces a scaffold-only mechanical control surface under `operations/harness-phase2/`.
+Phase 2 contains two explicit profiles:
+- check-layer-strict: strict external check layer, closest repo-native equivalent of the earlier VPS Phase 2 harness.
+- repo-native-scaffold: broader repo-native scaffold that validates, renders decision artifacts, renders runtime-ready package, runs conformance, emits reports, and produces handoff readiness.
 
-This surface is machine-runnable, but intentionally narrow:
-- wrong-root preflight
-- contract schema validation
-- policy validation
-- controlled apply plan rendering
-- run-scoped output rendering only
+The strict check-layer profile performs external checks only. It does not render decision artifacts, `runtime-ready/`, reports, or handoff readiness.
 
-Phase 2 validates and renders only. It does not write to a live runtime instance.
+The repo-native scaffold profile validates and renders only. It does not write to a live runtime instance.
 
 ## Execution flow
 
 `task_packet -> validation -> policy checks -> scaffold decisions -> apply_plan render -> runtime-ready package render`
 
-Execution in Phase 2 means:
+Execution in the Phase 2 repo-native scaffold profile means:
 1. preflight checks verify the repo shape and detect obvious wrong-root hazards
 2. contract schemas and examples are validated
 3. policy consistency is checked against runtime templates
 4. machine-readable decisions are rendered
 5. a runtime-ready output package is rendered into the run scope
 
-A later execution owner may consume the rendered output package, but that owner is outside PR-1 and outside Phase 2 live mutation scope.
+A later execution owner may consume the rendered output package, but that owner is outside Phase 2 live mutation scope.
+
+## Phase 3 target role
+
+Phase 3 is intended to become the canonical execution owner.
+
+Canonical execution ownership means:
+- Phase 3 owns the canonical execution run directory.
+- Phase 3 owns execution evidence, logs, checks, reports, timestamps, and final exit status.
+- Phase 3 consumes Phase 2 handoff/runtime-ready package as upstream input.
+- Phase 3 must not be bypassed by Phase 4.
+- Phase 3 must not write live runtime state unless explicitly allowed by a later contract.
+
+This is a planned target role. Phase 3 still needs hardening before it should be treated as the fully canonical execution owner.
+
+## Phase 4 target role
+
+Phase 4 is intended only as a thin wrapper over Phase 3.
+
+It may package operator invocation, run preflight checks, and call Phase 3, but it must not own canonical execution outputs.
 
 ## Source of truth
 
@@ -82,7 +99,8 @@ A later execution owner may consume the rendered output package, but that owner 
 | Runtime templates | `control-plane/runtime/` |
 | Contracts and schemas | `control-plane/contracts/` |
 | Operational workflow model | `operations/notion/` |
-| Phase 2 scaffold surface | `operations/harness-phase2/` |
+| Phase 2 strict/scaffold surfaces | `operations/harness-phase2/` |
+| Phase 3 execution surface | `operations/harness-phase3/` |
 | Semantic note conventions | `knowledge/obsidian/` |
 | KB layout | `knowledge/kb/` |
 | Observability model | `observability/` |
@@ -94,11 +112,12 @@ A later execution owner may consume the rendered output package, but that owner 
 - Phase 2 does not perform deploy logic or runtime migration
 - Phase 2 does not perform live runtime writes
 - Phase 2 is not a full decision engine
-- Phase 2 does not redesign Phase 3 or Phase 4 concepts
+- Phase 3 is not claimed to be fully hardened yet
+- Phase 4 is not implemented here
 
 ## Controlled apply model
 
-Controlled apply in PR-1 is render-only.
+Controlled apply in the Phase 2 repo-native scaffold profile is render-only.
 
 Phase 2 produces:
 - `validation_report.json`

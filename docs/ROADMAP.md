@@ -1,22 +1,44 @@
 # ROADMAP
 
-## Phase 1
-Control plane skeleton and basic repo discipline
+## Current completed surface
 
-## Phase 2
-Contracts and schemas for task packets and result packets
+### Phase 1 — control-plane skeleton
+Status: complete.
 
-## Phase 3
-Notion operational workflow model
+### Phase 2 — repo-native check/render/handoff preparation
+Status: hardened.
 
-## Phase 4
-Obsidian semantic note conventions
+Includes:
+- strict external check-layer profile
+- repo-native scaffold profile
+- wrong-root preflight
+- contract validation
+- policy validation
+- fixture smoke
+- standalone schema / placement / admission tools
+- strict evidence pack
+- sample observability JSONL emitter
+- CI coverage for Phase 2
 
-## Phase 5
-KB placement and admission discipline
+## Current next work
 
-## Phase 6
-Observability baseline
+### Phase 3 — canonical execution owner
+Status: next hardening target.
 
-## Phase 7
-External evolution loop
+Goal:
+- own canonical execution run directory
+- freeze Phase 2 handoff input
+- validate execution target
+- own apply/staging boundary
+- emit canonical execution evidence
+- own final report and exit status
+- add dedicated Phase 3 CI
+
+### Phase 4 — thin wrapper over Phase 3
+Status: future.
+
+Goal:
+- package operator invocation
+- perform wrapper preflight
+- invoke Phase 3
+- never own canonical execution outputs
