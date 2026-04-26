@@ -240,7 +240,7 @@ Phase 3 consumes Phase 2 outputs as frozen upstream input.
 
 ## Relationship to Phase 4
 
-Phase 4 is future thin wrapper only.
+Phase 4 is the thin wrapper over Phase 3.
 
 Phase 4 may package operator invocation, run wrapper preflight, and call Phase 3.
 
@@ -282,4 +282,4 @@ operations/harness-phase3/UNRESOLVED.md
 - Phase 3 report includes canonical identity, input refs, target, step summary, blockers, canonical outputs, and runtime statement.
 - Phase 3 runner fails closed on invalid input, hash mismatch, invalid target, write-surface violation, or missing reached-step artifacts.
 - Phase 3 has dedicated CI.
-- Phase 4, when added, invokes Phase 3 and does not create canonical outputs.
+- Phase 4 invokes Phase 3 and does not create canonical outputs.

@@ -6,7 +6,7 @@
 
 It consumes a completed Phase 2 handoff, freezes an externally supplied execution target contract, reverifies the upstream runtime-ready package, materializes one canonical Phase 3-owned staging target, performs a deterministic scaffold apply, and emits one canonical Phase 3 evidence surface.
 
-The current implementation is not yet fully hardened as canonical execution owner. The contract defines the target semantics for the next hardening PRs.
+The current implementation is hardened as the repo-native canonical execution owner within the harness boundary. Remaining known hardening debts, if any, are tracked in UNRESOLVED.md.
 
 ## Contract
 
