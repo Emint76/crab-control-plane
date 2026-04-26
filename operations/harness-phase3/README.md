@@ -66,6 +66,7 @@ Step-specific artifacts are emitted only if the bundle reaches the corresponding
 - `RUN_ID` must match `^[A-Za-z0-9._-]+$`.
 - Path traversal and absolute run dirs are rejected.
 - `run_meta.json.run_id` must match the basename of the canonical run directory.
+- Phase 3 run metadata must not contain host-specific absolute paths; Phase 2 input and execution target references must be repo-contained before they are recorded.
 - `checks/run_dir_invariants.json` records the invariant verdict.
 
 ## Entrypoint

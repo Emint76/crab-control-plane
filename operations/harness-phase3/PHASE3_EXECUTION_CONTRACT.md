@@ -207,6 +207,8 @@ Phase 3 may write only its own run directory.
 
 Phase 3 must not mutate Phase 2 run directories.
 
+Phase 3 run metadata must not contain host-specific absolute paths; Phase 2 input and execution target references must be repo-contained before they are recorded.
+
 ## Relationship to Phase 2
 
 Phase 2 produces eligibility and package surfaces.

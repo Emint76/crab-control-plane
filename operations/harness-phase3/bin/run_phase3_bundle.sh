@@ -80,6 +80,52 @@ if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
   exit 1
 fi
 
+validate_input_refs() {
+  "${PYTHON_BIN}" - "${REPO_ROOT}" "${PHASE2_RUN_DIR}" "${EXECUTION_TARGET_JSON}" <<'PY'
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+
+def resolve_user_path(repo_root: Path, path_text: str) -> Path:
+    path = Path(path_text).expanduser()
+    if path.is_absolute():
+        return path.resolve(strict=False)
+    return (repo_root / path).resolve(strict=False)
+
+
+repo_root = Path(sys.argv[1]).resolve(strict=False)
+phase2_run_dir = resolve_user_path(repo_root, sys.argv[2])
+execution_target_json = resolve_user_path(repo_root, sys.argv[3])
+phase2_runs_root = (repo_root / "operations" / "harness-phase2" / "runs").resolve(strict=False)
+
+try:
+    phase2_rel = phase2_run_dir.relative_to(phase2_runs_root)
+except ValueError:
+    print("FAIL --phase2-run-dir must resolve under operations/harness-phase2/runs/", file=sys.stderr)
+    raise SystemExit(1)
+
+if len(phase2_rel.parts) != 1:
+    print("FAIL --phase2-run-dir must identify one Phase 2 run directory", file=sys.stderr)
+    raise SystemExit(1)
+
+try:
+    execution_target_json.relative_to(repo_root)
+except ValueError:
+    print("FAIL --execution-target-json must resolve inside the repository", file=sys.stderr)
+    raise SystemExit(1)
+
+print(phase2_run_dir)
+print(execution_target_json)
+PY
+}
+
+VALIDATED_INPUT_REFS="$(validate_input_refs)" || exit 2
+VALIDATED_INPUT_REFS="${VALIDATED_INPUT_REFS//$'\r'/}"
+PHASE2_RUN_DIR="${VALIDATED_INPUT_REFS%%$'\n'*}"
+EXECUTION_TARGET_JSON="${VALIDATED_INPUT_REFS#*$'\n'}"
+
 verify_run_dir_invariants() {
   local write_report="${1:-false}"
   "${PYTHON_BIN}" - "${REPO_ROOT}" "${PHASE3_ROOT}" "${RUN_ID}" "${RUN_DIR}" "${write_report}" <<'PY'
@@ -222,12 +268,15 @@ require_artifact_if_success() {
 STARTED_AT="$(now_utc)"
 write_state "started_at" "${STARTED_AT}"
 
-if ! "${PYTHON_BIN}" - "${REPO_ROOT}" "${RUN_ID}" "${PHASE2_RUN_DIR}" "${EXECUTION_TARGET_JSON}" "${STARTED_AT}" > "${RUN_DIR}/run_meta.json" <<'PY'
+RUN_META_TMP="${RUN_DIR}/run_meta.json.tmp"
+if ! "${PYTHON_BIN}" - "${REPO_ROOT}" "${RUN_ID}" "${PHASE2_RUN_DIR}" "${EXECUTION_TARGET_JSON}" "${STARTED_AT}" > "${RUN_META_TMP}" <<'PY'
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def as_repo_ref(repo_root: Path, path_text: str) -> str:
@@ -240,6 +289,29 @@ def as_repo_ref(repo_root: Path, path_text: str) -> str:
         return path.relative_to(repo_root.resolve(strict=False)).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def iter_string_fields(value: Any, prefix: str = ""):
+    if isinstance(value, str):
+        yield prefix, value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            child = str(key) if not prefix else f"{prefix}.{key}"
+            yield from iter_string_fields(item, child)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            child = f"{prefix}[{index}]"
+            yield from iter_string_fields(item, child)
+
+
+def is_unsafe_host_path(value: str) -> bool:
+    if value.startswith("/"):
+        return True
+    if re.match(r"^[A-Za-z]:[\\/]", value):
+        return True
+    if "\\" in value:
+        return True
+    return any(token in value for token in ("/tmp/", "/var/", "/home/", "/Users/", "/mnt/"))
 
 
 repo_root = Path(sys.argv[1]).resolve(strict=False)
@@ -279,13 +351,19 @@ payload = {
     "approval_ref": target_payload.get("approval_ref"),
     "invoked_by": target_payload.get("invoked_by"),
 }
+for field_name, field_value in iter_string_fields(payload):
+    if is_unsafe_host_path(field_value):
+        print(f"FAIL run_meta unsafe absolute path: {field_name}", file=sys.stderr)
+        raise SystemExit(1)
 json.dump(payload, sys.stdout, indent=2)
 sys.stdout.write("\n")
 PY
 then
   echo "FAIL unable to write initial run_meta.json" >&2
+  rm -f "${RUN_META_TMP}"
   exit 1
 fi
+mv "${RUN_META_TMP}" "${RUN_DIR}/run_meta.json"
 
 run_python_step() {
   local step_key="$1"
