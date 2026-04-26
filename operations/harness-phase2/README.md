@@ -47,6 +47,12 @@ The strict check-layer profile is the closest repo-native equivalent of the earl
 
 The repo-native scaffold profile is intentionally broader and must not be mistaken for the strict external check layer.
 
+## Run directory invariants
+
+Phase 2 validates `RUN_ID` and canonical run-dir containment before creating run artifacts.
+
+Both Phase 2 profiles emit `checks/run_dir_invariants.json` for valid runs.
+
 ## Strict profile evidence pack
 
 The `check-layer-strict` profile produces a repo-native equivalent of the earlier VPS Phase 2 audit pack:
@@ -92,6 +98,7 @@ python operations/harness-phase2/bin/emit_observability_record.py <repo-root> <r
 
 - `run_meta.json`
 - `exit_code`
+- `checks/run_dir_invariants.json`
 - `checks/wrong_root_preflight.txt`
 - `checks/contracts_validation.json`
 - `checks/policy_validation.json`

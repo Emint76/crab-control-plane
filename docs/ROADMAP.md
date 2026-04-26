@@ -11,6 +11,7 @@ Status: hardened.
 Includes:
 - strict external check-layer profile
 - repo-native scaffold profile
+- run-id and run-dir containment invariants
 - wrong-root preflight
 - contract validation
 - policy validation
