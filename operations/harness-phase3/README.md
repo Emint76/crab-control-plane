@@ -6,7 +6,7 @@
 
 It consumes a completed Phase 2 handoff, freezes an externally supplied execution target contract, reverifies the upstream runtime-ready package, materializes one canonical Phase 3-owned staging target, performs a deterministic scaffold apply, and emits one canonical Phase 3 evidence surface.
 
-The current implementation is not yet fully hardened as canonical execution owner. The contract defines the target semantics for the next hardening PRs.
+The current implementation is hardened as the repo-native canonical execution owner within the harness boundary. Remaining known hardening debts, if any, are tracked in UNRESOLVED.md.
 
 ## Contract
 
@@ -66,6 +66,7 @@ Relevant check artifacts include:
 - `phase3_staging` is the only allowed `target_kind` in this scaffold.
 - For validated runs, the only canonical target is `operations/harness-phase3/runs/<RUN_ID>/staging/runtime-ready-applied`.
 - Phase 3 validates the frozen execution target before pre-apply validation, staging, apply, or execution result emission.
+- Phase 3 validates frozen `input/execution_target.json` against `operations/harness-phase3/contracts/execution_target.schema.json` before semantic target validation.
 - Invalid execution target semantics fail closed and do not reach staging/apply.
 - `run_phase3_bundle.sh` is the only owner of `exit_code`.
 - `emit_phase3_report.py` never writes `exit_code`.

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operations/harness-phase3/contracts/execution_target.schema.json",
+  "title": "Phase 3 execution target contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "target_runtime",
+    "target_kind",
+    "target_ref",
+    "apply_mode",
+    "approval_ref"
+  ],
+  "properties": {
+    "target_runtime": {
+      "type": "string",
+      "const": "openclaw"
+    },
+    "target_kind": {
+      "type": "string",
+      "const": "phase3_staging"
+    },
+    "target_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "apply_mode": {
+      "type": "string",
+      "const": "staged"
+    },
+    "approval_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "invoked_by": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
