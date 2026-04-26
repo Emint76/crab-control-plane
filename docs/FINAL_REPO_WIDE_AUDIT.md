@@ -21,6 +21,7 @@
 ## Closed hardening items
 
 - Phase 2 profile split and external check-layer hardening.
+- Phase 2 run-id and run-dir containment invariants.
 - Phase 2 fixture smoke and standalone schema/policy/admission checks.
 - Phase 2 sample observability emitter under approved Phase 2 reports surface.
 - Phase 3 execution contract.
