@@ -2,13 +2,23 @@
 
 ## Purpose
 
-`operations/harness-phase3/` provides the repo-native Phase 3 scaffold execution owner for `crab-control-plane`.
+`operations/harness-phase3/` is the repo-native Phase 3 execution surface. Its target role is canonical execution owner.
 
 It consumes a completed Phase 2 handoff, freezes an externally supplied execution target contract, reverifies the upstream runtime-ready package, materializes one canonical Phase 3-owned staging target, performs a deterministic scaffold apply, and emits one canonical Phase 3 evidence surface.
 
+The current implementation is not yet fully hardened as canonical execution owner. The contract defines the target semantics for the next hardening PRs.
+
+## Contract
+
+The Phase 3 target execution contract is defined in:
+
+```text
+operations/harness-phase3/PHASE3_EXECUTION_CONTRACT.md
+```
+
 ## Scope
 
-- scaffold execution owner only
+- repo-native execution surface targeting canonical execution ownership
 - canonical repo-native staging target only
 - external `execution_target.json` is frozen as provided
 - Phase 2 `runtime-ready/` remains an upstream package only
