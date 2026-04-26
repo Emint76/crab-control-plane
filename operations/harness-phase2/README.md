@@ -47,6 +47,19 @@ The strict check-layer profile is the closest repo-native equivalent of the earl
 
 The repo-native scaffold profile is intentionally broader and must not be mistaken for the strict external check layer.
 
+## Which Phase 2 profile should I run?
+
+Phase 2 has two profiles. They are profiles of the same phase, not separate phases.
+
+| Need | Run | Why |
+|---|---|---|
+| Check repo hygiene, contracts, policies, wrong-root hazards, and fixture smoke without rendering a package | `check-layer-strict` | Audit-only profile. It does not render `runtime-ready/`, does not produce handoff readiness, and does not prepare execution input. |
+| Prepare a repo-native package for Phase 3 intake | `repo-native-scaffold` | Package/handoff profile. It produces decisions, `apply_plan.json`, `output/runtime-ready/`, conformance, reports, and `handoff_ready.json`. |
+| Prove canonical execution ownership | Phase 3 | Phase 3 owns execution evidence, canonical reports, and final exit status. |
+| Provide an operator-facing wrapper | Phase 4 | Phase 4 wraps Phase 3 and does not own canonical execution outputs. |
+
+`handoff_ready.json` means ready for Phase 3 intake only. It does not mean live-runtime-ready, deploy-ready, or launch-ready.
+
 ## Run directory invariants
 
 Phase 2 validates `RUN_ID` and canonical run-dir containment before creating run artifacts.

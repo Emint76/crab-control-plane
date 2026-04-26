@@ -11,6 +11,10 @@
 ## Confirmed boundaries
 
 - Phase 2 does not perform live runtime execution.
+- Phase 2 has two profiles, not two separate phases.
+- `check-layer-strict` is audit-only and does not render `runtime-ready/`.
+- `repo-native-scaffold` prepares package/handoff outputs for Phase 3 intake.
+- `handoff_ready.json` means ready for Phase 3 intake only, not live-runtime-ready, deploy-ready, or launch-ready.
 - Phase 3 owns canonical repo-native execution evidence under `operations/harness-phase3/runs/<RUN_ID>/`.
 - Phase 4 does not own canonical execution outputs.
 - Phase 4 writes wrapper-only metadata under `operations/harness-phase4/runs/<WRAPPER_RUN_ID>/`.
