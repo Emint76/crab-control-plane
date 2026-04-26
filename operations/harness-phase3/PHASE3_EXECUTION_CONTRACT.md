@@ -207,6 +207,8 @@ Phase 3 may write only its own run directory.
 
 Phase 3 must not mutate Phase 2 run directories.
 
+Phase 3 run metadata must not contain host-specific absolute paths; Phase 2 input and execution target references must be repo-contained before they are recorded.
+
 ## Relationship to Phase 2
 
 Phase 2 produces eligibility and package surfaces.
@@ -240,6 +242,9 @@ Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `ex
 ## Acceptance criteria for future hardening
 
 - Phase 3 runner enforces canonical run-dir containment.
+- Phase 3 runner rejects invalid `RUN_ID` values before creating run artifacts.
+- Phase 3 runner proves run-dir containment through `checks/run_dir_invariants.json`.
+- `run_meta.json` records canonical run-dir identity without host-specific absolute paths.
 - Phase 3 runner freezes all upstream input.
 - Phase 3 runner writes all canonical evidence under `runs/<RUN_ID>/`.
 - Phase 3 runner owns `exit_code`.

@@ -95,6 +95,29 @@ def parse_check_artifact(run_dir: Path, state: dict[str, str], step_key: str, ar
     return {"status": status_value, "detail": f"status={status_value}", "blockers": blockers}
 
 
+def parse_run_dir_invariants(run_dir: Path) -> dict[str, Any]:
+    artifact_id = "run_dir_invariants"
+    path = run_dir / "checks" / "run_dir_invariants.json"
+    if not path.is_file():
+        return {"status": "unknown", "detail": "run-dir invariant check artifact missing", "blockers": [f"missing_artifact:{artifact_id}"]}
+    try:
+        payload = read_json_object(path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return {"status": "unknown", "detail": normalize_text(f"invalid artifact: {exc}"), "blockers": [f"invalid_artifact:{artifact_id}"]}
+    status_value = payload.get("status")
+    violations = payload.get("violations")
+    if status_value not in {"pass", "fail"} or not isinstance(violations, list):
+        return {"status": "unknown", "detail": "artifact missing valid status/violations fields", "blockers": [f"invalid_artifact:{artifact_id}"]}
+    normalized_violations = sorted(item for item in violations if isinstance(item, str) and item)
+    blockers = [f"run_dir_invariant:{item}" for item in normalized_violations]
+    if status_value == "fail" and not blockers:
+        blockers.append("run_dir_invariant_failed")
+    detail = f"status={status_value}"
+    if normalized_violations:
+        detail = f"{detail}; violations={','.join(normalized_violations)}"
+    return {"status": status_value, "detail": detail, "blockers": blockers}
+
+
 def parse_non_artifact_step(state: dict[str, str], step_key: str, *, success_condition: bool, success_detail: str, fail_detail: str) -> dict[str, Any]:
     exit_key = f"{step_key}_exit_status"
     if exit_key not in state:
@@ -159,6 +182,7 @@ def main() -> int:
         report_run_id = run_meta["run_id"]
         run_meta_payload = run_meta["payload"]
 
+        run_dir_invariants = parse_run_dir_invariants(run_dir)
         freeze_input = parse_non_artifact_step(
             state,
             "freeze_input",
@@ -197,6 +221,7 @@ def main() -> int:
         execution_result = parse_execution_result(run_dir, state)
 
         parsed_steps = {
+            "run_dir_invariants": run_dir_invariants,
             "freeze_input": freeze_input,
             "freeze_input_hash": freeze_input_hash,
             "freeze_intake_validation": freeze_intake_validation,
@@ -249,6 +274,7 @@ def main() -> int:
                 f"- approval_ref: `{summary['approval_ref']}`",
                 "",
                 "## Step Summary",
+                f"- run_dir_invariants: `{summary['run_dir_invariants']}`",
                 f"- freeze_input: `{summary['freeze_input']}`",
                 f"- freeze_input_hash: `{summary['freeze_input_hash']}`",
                 f"- freeze_intake_validation: `{summary['freeze_intake_validation']}`",
@@ -273,6 +299,7 @@ def main() -> int:
             "execution_mode": "staged-only",
             "overall_status": "fail",
             "summary": {
+                "run_dir_invariants": "unknown",
                 "freeze_input": "unknown",
                 "freeze_input_hash": "unknown",
                 "freeze_intake_validation": "unknown",

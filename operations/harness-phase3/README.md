@@ -60,6 +60,15 @@ Step-specific artifacts are emitted only if the bundle reaches the corresponding
 - `execution_result.json` exists only if `emit_execution_result.py` was actually reached.
 - Reporting stays tolerant of early failures and still emits the final report surface.
 
+## Run directory invariants
+
+- Phase 3 writes canonical evidence only under `operations/harness-phase3/runs/<RUN_ID>/`.
+- `RUN_ID` must match `^[A-Za-z0-9._-]+$`.
+- Path traversal and absolute run dirs are rejected.
+- `run_meta.json.run_id` must match the basename of the canonical run directory.
+- Phase 3 run metadata must not contain host-specific absolute paths; Phase 2 input and execution target references must be repo-contained before they are recorded.
+- `checks/run_dir_invariants.json` records the invariant verdict.
+
 ## Entrypoint
 
 Run the Phase 3 bundle with:
