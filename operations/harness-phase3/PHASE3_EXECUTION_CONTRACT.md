@@ -234,6 +234,8 @@ Phase 4 is future thin wrapper only.
 
 Phase 4 may package operator invocation, run wrapper preflight, and call Phase 3.
 
+The Phase 4 wrapper contract is defined in `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`.
+
 Phase 4 must not own canonical outputs.
 
 Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `execution_result.json` for the same execution.
