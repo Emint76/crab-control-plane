@@ -35,9 +35,11 @@
 - Phase 3 execution target schema contract.
 - Phase 4 wrapper contract.
 - Phase 4 wrapper implementation.
+- repo-native smoke-e2e path for Phase 2 -> Phase 3 -> Phase 4.
 
 ## Remaining known non-blocking debt
 
 - Phase 4 wrapper implementation embeds Python inside a shell script; this may later be split into a small Python module for readability.
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
+- live-runtime integration boundary and runtime adapter remain future work.
