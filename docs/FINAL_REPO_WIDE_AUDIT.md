@@ -39,6 +39,7 @@
 - repo-native smoke-e2e path for Phase 2 -> Phase 3 -> Phase 4.
 - repo-native smoke-e2e CI workflow.
 - Crab-safe harness invocation wrapper.
+- Orchestration wrapper canonical run-dir containment proof.
 
 ## Remaining known non-blocking debt
 
@@ -46,4 +47,3 @@
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
 - live-runtime integration boundary and runtime adapter remain future work.
-- Orchestration wrapper containment proof hardening: add explicit canonical path / realpath containment proof for `operations/harness-orchestration/runs/<RUN_ID>/`, matching Phase 2/Phase 3-style invariant evidence.

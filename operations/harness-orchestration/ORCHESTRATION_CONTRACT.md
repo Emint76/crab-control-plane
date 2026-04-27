@@ -18,10 +18,12 @@ bash operations/harness-orchestration/bin/run_repo_native_smoke.sh
 ## Allowed behavior
 
 - verify repository-relative paths exist
+- verify canonical run-dir containment before writing wrapper evidence
 - run the existing repo-native smoke path
 - prefer `make smoke-e2e` when `make` is available
 - fall back to `bash operations/harness-e2e/tests/test_smoke_e2e.sh` when `make` is unavailable
 - write wrapper-only evidence under `operations/harness-orchestration/runs/<RUN_ID>/`
+- emit `run_dir_invariants.json` for successful wrapper runs
 - preserve the underlying smoke exit status
 - print a concise success/failure summary
 
@@ -73,6 +75,7 @@ Allowed wrapper outputs:
 ```text
 operations/harness-orchestration/runs/<RUN_ID>/orchestration_meta.json
 operations/harness-orchestration/runs/<RUN_ID>/orchestration_summary.md
+operations/harness-orchestration/runs/<RUN_ID>/run_dir_invariants.json
 operations/harness-orchestration/runs/<RUN_ID>/underlying_command.txt
 operations/harness-orchestration/runs/<RUN_ID>/underlying_exit_code
 ```
@@ -141,9 +144,9 @@ The orchestration wrapper does not own Phase 4 behavior.
 - no real external source ingestion
 - no real KB write-back
 
-## Known non-blocking hardening debt
+## Closed hardening items
 
-- Orchestration wrapper containment proof hardening: the current wrapper relies primarily on strict `RUN_ID` validation for write-surface safety. Later hardening should add explicit canonical path / realpath containment proof for `operations/harness-orchestration/runs/<RUN_ID>/`, matching Phase 2/Phase 3-style invariant evidence.
+- Orchestration wrapper containment proof hardening is closed by explicit canonical run-dir containment verification and `run_dir_invariants.json`.
 
 ## Acceptance criteria
 

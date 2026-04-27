@@ -79,6 +79,7 @@ bash operations/harness-orchestration/bin/run_repo_native_smoke.sh --run-id "${R
 
 assert_file "${RUN_DIR}/orchestration_meta.json"
 assert_file "${RUN_DIR}/orchestration_summary.md"
+assert_file "${RUN_DIR}/run_dir_invariants.json"
 assert_file "${RUN_DIR}/underlying_command.txt"
 assert_file "${RUN_DIR}/underlying_exit_code"
 [[ "$(tr -d '\r\n' < "${RUN_DIR}/underlying_exit_code")" == "0" ]] || fail "underlying_exit_code must be 0"
@@ -88,7 +89,21 @@ assert_absent "${RUN_DIR}/report.md"
 assert_absent "${RUN_DIR}/exit_code"
 assert_absent "${RUN_DIR}/execution_result.json"
 
-"${PYTHON_BIN}" - "${RUN_DIR}/orchestration_meta.json" "${RUN_DIR}/underlying_command.txt" <<'PY'
+assert_no_host_paths() {
+  local path="$1"
+  ! grep -Fq "/mnt/" "${path}" || fail "host-specific path leaked into ${path}: /mnt/"
+  ! grep -Fq "/home/" "${path}" || fail "host-specific path leaked into ${path}: /home/"
+  ! grep -Fq 'C:\' "${path}" || fail "host-specific path leaked into ${path}: C:\\"
+}
+
+assert_no_host_paths "${RUN_DIR}/orchestration_meta.json"
+assert_no_host_paths "${RUN_DIR}/run_dir_invariants.json"
+assert_no_host_paths "${RUN_DIR}/orchestration_summary.md"
+
+"${PYTHON_BIN}" - \
+  "${RUN_DIR}/orchestration_meta.json" \
+  "${RUN_DIR}/run_dir_invariants.json" \
+  "${RUN_DIR}/underlying_command.txt" <<'PY'
 from __future__ import annotations
 
 import json
@@ -96,9 +111,14 @@ import sys
 from pathlib import Path
 
 meta = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
-underlying_command = Path(sys.argv[2]).read_text(encoding="utf-8").strip()
+invariants = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8-sig"))
+underlying_command = Path(sys.argv[3]).read_text(encoding="utf-8").strip()
+canonical_run_dir = "operations/harness-orchestration/runs/orchestration-wrapper-valid"
 
 assert meta["profile"] == "crab-safe-repo-native-smoke", meta
+assert meta["canonical_run_dir"] == canonical_run_dir, meta
+assert meta["run_dir_identity_verified"] is True, meta
+assert meta["write_surface_verified"] is True, meta
 assert meta["live_openclaw_runtime_mutation"] is False, meta
 assert meta["deploy_or_migration"] is False, meta
 assert meta["runtime_adapter_behavior"] is False, meta
@@ -109,6 +129,13 @@ assert underlying_command in {
     "bash operations/harness-e2e/tests/test_smoke_e2e.sh",
 }, underlying_command
 assert meta["underlying_path"] == underlying_command, meta
+
+assert invariants["status"] == "pass", invariants
+assert invariants["run_id"] == "orchestration-wrapper-valid", invariants
+assert invariants["canonical_run_dir"] == canonical_run_dir, invariants
+assert invariants["run_dir_identity_verified"] is True, invariants
+assert invariants["write_surface_verified"] is True, invariants
+assert invariants["violations"] == [], invariants
 PY
 
 invalid_run_ids=(
