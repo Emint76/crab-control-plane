@@ -20,10 +20,9 @@ elif command -v python >/dev/null 2>&1; then
   PYTHON_BIN="python"
 elif command -v python3 >/dev/null 2>&1; then
   PYTHON_BIN="python3"
-elif [[ -x "/c/Program Files/LibreOffice/program/python.exe" ]]; then
-  PYTHON_BIN="/c/Program Files/LibreOffice/program/python.exe"
 else
-  PYTHON_BIN="python"
+  echo "FAIL python runtime not found; set E2E_PYTHON_BIN or install python/python3" >&2
+  exit 1
 fi
 export PHASE2_PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON_BIN}}"
 export PHASE3_PYTHON_BIN="${PHASE3_PYTHON_BIN:-${PYTHON_BIN}}"
