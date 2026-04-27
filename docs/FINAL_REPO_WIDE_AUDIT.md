@@ -18,6 +18,7 @@
 - Phase 3 owns canonical repo-native execution evidence under `operations/harness-phase3/runs/<RUN_ID>/`.
 - Phase 4 does not own canonical execution outputs.
 - Phase 4 writes wrapper-only metadata under `operations/harness-phase4/runs/<WRAPPER_RUN_ID>/`.
+- The orchestration wrapper is not a new phase, not a deploy layer, and not a runtime adapter.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -37,6 +38,7 @@
 - Phase 4 wrapper implementation.
 - repo-native smoke-e2e path for Phase 2 -> Phase 3 -> Phase 4.
 - repo-native smoke-e2e CI workflow.
+- Crab-safe harness invocation wrapper.
 
 ## Remaining known non-blocking debt
 
@@ -44,3 +46,4 @@
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
 - live-runtime integration boundary and runtime adapter remain future work.
+- Orchestration wrapper containment proof hardening: add explicit canonical path / realpath containment proof for `operations/harness-orchestration/runs/<RUN_ID>/`, matching Phase 2/Phase 3-style invariant evidence.
