@@ -1,0 +1,25 @@
+name: orchestration-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  orchestration-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Phase 2 requirements
+        run: pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Run orchestration wrapper test
+        run: bash operations/harness-orchestration/tests/test_orchestration_wrapper.sh

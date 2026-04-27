@@ -13,6 +13,14 @@ It is not a production OpenClaw deployment package.
 - `make phase3-ci`
 - `make phase4-ci`
 
+Agent-safe wrapper:
+
+```bash
+bash operations/harness-orchestration/bin/run_repo_native_smoke.sh
+```
+
+This is the approved wrapper for Crab to invoke the repo-native smoke path.
+
 ## One-command smoke
 
 ```bash
@@ -70,6 +78,7 @@ Ignored generated surfaces:
 - `operations/harness-phase2/reports/`
 - `operations/harness-phase3/runs/`
 - `operations/harness-phase4/runs/`
+- `operations/harness-orchestration/runs/`
 
 ## Safe cleanup
 

@@ -79,6 +79,18 @@ bash operations/harness-e2e/tests/test_smoke_e2e.sh
 
 For setup and current runnable status, see `INSTALLABILITY.md`.
 
+## Crab-safe invocation
+
+Crab should not call Phase 2, Phase 3, or Phase 4 runners directly.
+
+The approved agent-safe entrypoint is:
+
+```bash
+bash operations/harness-orchestration/bin/run_repo_native_smoke.sh
+```
+
+This wrapper runs the existing repo-native smoke path and does not perform live OpenClaw runtime mutation, deploy, migration, runtime adapter behavior, real source ingestion, or real KB write-back.
+
 ## What belongs elsewhere
 
 - Live runtime state does **not** belong here
