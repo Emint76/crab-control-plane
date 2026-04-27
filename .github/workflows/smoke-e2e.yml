@@ -1,0 +1,25 @@
+name: smoke-e2e
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  smoke-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Phase 2 requirements
+        run: pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Run repo-native smoke e2e
+        run: make smoke-e2e

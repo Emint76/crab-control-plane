@@ -36,6 +36,7 @@
 - Phase 4 wrapper contract.
 - Phase 4 wrapper implementation.
 - repo-native smoke-e2e path for Phase 2 -> Phase 3 -> Phase 4.
+- repo-native smoke-e2e CI workflow.
 
 ## Remaining known non-blocking debt
 

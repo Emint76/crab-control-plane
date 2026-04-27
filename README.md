@@ -69,6 +69,8 @@ Phase 2 repo-native-scaffold -> Phase 3 canonical execution owner -> Phase 4 thi
 
 It does not perform live OpenClaw runtime mutation, deploy, migration, or production install.
 
+The same smoke path is covered in CI by the `smoke-e2e` workflow.
+
 Direct fallback command for environments where `make` is unavailable:
 
 ```bash
