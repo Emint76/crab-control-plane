@@ -53,6 +53,30 @@ Phase 4 must not own canonical execution outputs. It remains a thin wrapper over
 
 The detailed Phase 4 wrapper contract is defined in `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`.
 
+## One-command repo-native smoke
+
+Run:
+
+```bash
+make smoke-e2e
+```
+
+This proves the repo-native path:
+
+```text
+Phase 2 repo-native-scaffold -> Phase 3 canonical execution owner -> Phase 4 thin wrapper
+```
+
+It does not perform live OpenClaw runtime mutation, deploy, migration, or production install.
+
+Direct fallback command for environments where `make` is unavailable:
+
+```bash
+bash operations/harness-e2e/tests/test_smoke_e2e.sh
+```
+
+For setup and current runnable status, see `INSTALLABILITY.md`.
+
 ## What belongs elsewhere
 
 - Live runtime state does **not** belong here
