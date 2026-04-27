@@ -91,6 +91,14 @@ bash operations/harness-orchestration/bin/run_repo_native_smoke.sh
 
 This wrapper runs the existing repo-native smoke path and does not perform live OpenClaw runtime mutation, deploy, migration, runtime adapter behavior, real source ingestion, or real KB write-back.
 
+## OpenClaw integration boundary
+
+Future OpenClaw integration is governed by `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
+
+The current repository does not implement live OpenClaw mutation, deploy, migration, runtime adapter behavior, real source ingestion, or real KB write-back.
+
+The next permitted integration step is dry-run boundary work only.
+
 ## What belongs elsewhere
 
 - Live runtime state does **not** belong here
