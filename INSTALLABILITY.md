@@ -70,6 +70,8 @@ It stages into repo-local generated run directories only.
 - secrets/config management
 - runtime adapter
 
+Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
+
 ## Generated artifacts
 
 Ignored generated surfaces:
