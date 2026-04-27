@@ -141,6 +141,10 @@ The orchestration wrapper does not own Phase 4 behavior.
 - no real external source ingestion
 - no real KB write-back
 
+## Known non-blocking hardening debt
+
+- Orchestration wrapper containment proof hardening: the current wrapper relies primarily on strict `RUN_ID` validation for write-surface safety. Later hardening should add explicit canonical path / realpath containment proof for `operations/harness-orchestration/runs/<RUN_ID>/`, matching Phase 2/Phase 3-style invariant evidence.
+
 ## Acceptance criteria
 
 - one approved Crab-safe entrypoint exists
