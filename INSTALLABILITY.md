@@ -21,6 +21,8 @@ make smoke-e2e
 
 This runs Phase 2 `repo-native-scaffold` into Phase 3 canonical execution through the Phase 4 thin wrapper on a controlled repo-local fixture.
 
+The `make smoke-e2e` path is also covered by the GitHub Actions workflow `smoke-e2e`.
+
 Direct fallback command for environments where `make` is unavailable:
 
 ```bash
