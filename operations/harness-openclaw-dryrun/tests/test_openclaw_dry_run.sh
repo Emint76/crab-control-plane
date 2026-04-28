@@ -41,6 +41,7 @@ TARGET_RUN_DIR="${PHASE4_ROOT}/runs/${TARGET_RUN_ID}"
 VALID_RUN_DIR="${RUNS_ROOT}/${VALID_RUN_ID}"
 MISSING_REPORT_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${MISSING_REPORT_PHASE3_RUN_ID}"
 REPORT_FAIL_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${REPORT_FAIL_PHASE3_RUN_ID}"
+PLACEMENT_PLAN_SCHEMA="${DRYRUN_ROOT}/schemas/proposed_openclaw_placement_plan.schema.json"
 
 fail() {
   echo "FAIL $*" >&2
@@ -166,6 +167,7 @@ assert_file "${VALID_RUN_DIR}/exit_code"
 assert_file "${VALID_RUN_DIR}/checks/run_dir_invariants.json"
 assert_file "${VALID_RUN_DIR}/checks/input_refs_validation.json"
 assert_file "${VALID_RUN_DIR}/checks/no_live_write_validation.json"
+assert_file "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json"
 assert_file_text_equals "${VALID_RUN_DIR}/exit_code" "0"
 
 for evidence_file in \
@@ -176,7 +178,8 @@ for evidence_file in \
   "${VALID_RUN_DIR}/dry_run_report.json" \
   "${VALID_RUN_DIR}/checks/run_dir_invariants.json" \
   "${VALID_RUN_DIR}/checks/input_refs_validation.json" \
-  "${VALID_RUN_DIR}/checks/no_live_write_validation.json"; do
+  "${VALID_RUN_DIR}/checks/no_live_write_validation.json" \
+  "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json"; do
   assert_no_host_paths "${evidence_file}"
 done
 
@@ -186,12 +189,17 @@ done
   "${VALID_RUN_DIR}/dry_run_report.json" \
   "${VALID_RUN_DIR}/checks/run_dir_invariants.json" \
   "${VALID_RUN_DIR}/checks/input_refs_validation.json" \
-  "${VALID_RUN_DIR}/checks/no_live_write_validation.json" <<'PY'
+  "${VALID_RUN_DIR}/checks/no_live_write_validation.json" \
+  "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json" \
+  "${PLACEMENT_PLAN_SCHEMA}" \
+  "${VALID_RUN_DIR}/invalid_plan_missing_write_mode.json" <<'PY'
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
+
+import jsonschema
 
 adapter_meta = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
 placement_plan = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8-sig"))
@@ -199,6 +207,9 @@ dry_run_report = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8-sig"))
 run_dir_invariants = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8-sig"))
 input_refs_validation = json.loads(Path(sys.argv[5]).read_text(encoding="utf-8-sig"))
 no_live_write_validation = json.loads(Path(sys.argv[6]).read_text(encoding="utf-8-sig"))
+proposed_plan_schema_validation = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8-sig"))
+schema = json.loads(Path(sys.argv[8]).read_text(encoding="utf-8-sig"))
+invalid_plan_path = Path(sys.argv[9])
 
 assert adapter_meta["dry_run_only"] is True, adapter_meta
 assert adapter_meta["live_writes_performed"] is False, adapter_meta
@@ -218,6 +229,33 @@ assert dry_run_report["live_writes_performed"] is False, dry_run_report
 assert run_dir_invariants["status"] == "pass", run_dir_invariants
 assert input_refs_validation["status"] == "pass", input_refs_validation
 assert no_live_write_validation["status"] == "pass", no_live_write_validation
+assert proposed_plan_schema_validation["status"] == "pass", proposed_plan_schema_validation
+assert proposed_plan_schema_validation["violations"] == [], proposed_plan_schema_validation
+assert dry_run_report["checks"]["proposed_plan_schema_validation"] == "pass", dry_run_report
+
+jsonschema.Draft202012Validator.check_schema(schema)
+jsonschema.validate(instance=placement_plan, schema=schema)
+
+invalid_plan = dict(placement_plan)
+invalid_plan["proposed_writes"] = [dict(item) for item in placement_plan["proposed_writes"]]
+if invalid_plan["proposed_writes"]:
+    invalid_plan["proposed_writes"][0].pop("write_mode", None)
+else:
+    invalid_plan["proposed_writes"] = [
+        {
+            "source": "operations/harness-phase3/runs/smoke-e2e-phase3/staging/runtime-ready-applied/synthetic.json",
+            "target": "declared-openclaw-target:synthetic.json",
+            "reason": "synthetic invalid placement plan for schema negative test",
+        }
+    ]
+invalid_plan_path.write_text(json.dumps(invalid_plan, indent=2) + "\n", encoding="utf-8")
+
+try:
+    jsonschema.validate(instance=invalid_plan, schema=schema)
+except jsonschema.ValidationError:
+    pass
+else:
+    raise AssertionError("invalid placement plan unexpectedly passed schema validation")
 PY
 
 invalid_run_ids=(

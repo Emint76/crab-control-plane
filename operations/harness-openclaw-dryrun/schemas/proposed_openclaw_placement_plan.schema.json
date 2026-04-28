@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-dryrun/proposed_openclaw_placement_plan.schema.json",
+  "title": "OpenClaw Dry-Run Proposed Placement Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "target_runtime",
+    "source_phase3_run_dir",
+    "proposed_writes",
+    "live_writes_performed"
+  ],
+  "properties": {
+    "status": {
+      "const": "dry-run"
+    },
+    "target_runtime": {
+      "const": "openclaw"
+    },
+    "source_phase3_run_dir": {
+      "type": "string",
+      "pattern": "^operations/harness-phase3/runs/[A-Za-z0-9._-]+$"
+    },
+    "proposed_writes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "target",
+          "write_mode",
+          "reason"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^operations/harness-phase3/runs/[A-Za-z0-9._-]+/staging/runtime-ready-applied(?!.*(?:/mnt/|/home/))(/[^\\\\\\n\\r]+)?$"
+          },
+          "target": {
+            "type": "string",
+            "pattern": "^declared-openclaw-target:(?!/)(?!.*(?:/mnt/|/home/))[^\\\\\\n\\r]+$"
+          },
+          "write_mode": {
+            "const": "proposed-only"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "live_writes_performed": {
+      "const": false
+    }
+  }
+}

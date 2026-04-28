@@ -110,6 +110,7 @@ Output files:
 - `checks/run_dir_invariants.json`
 - `checks/input_refs_validation.json`
 - `checks/no_live_write_validation.json`
+- `checks/proposed_plan_schema_validation.json`
 
 ## Forbidden outputs
 
@@ -138,6 +139,10 @@ Generated artifacts under this path must be gitignored except `.gitkeep`.
 The skeleton creates generated artifacts only under the approved dry-run run directory.
 
 ## Proposed placement plan
+
+The proposed placement plan is governed by:
+
+`operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json`
 
 Proposed placement evidence is machine-readable and follows this conceptual shape:
 
@@ -169,6 +174,7 @@ Adapter evidence must prove:
 - input refs are repo-relative
 - output refs are under dry-run run dir
 - proposed placements are proposed-only
+- proposed placement plan validates against the JSON Schema
 - exit status is explicit
 
 ## Run directory invariants
@@ -249,7 +255,7 @@ Adapter implementation must fail non-zero if:
 - dry-run run-dir invariants exist
 - no-live-write validation exists
 - input refs validation exists
-- proposed placement plan is machine-readable
+- proposed placement plan schema remains enforced by tests and CI
 - tests cover positive and negative cases
 - CI validates dry-run behavior
 - docs confirm no live writes
