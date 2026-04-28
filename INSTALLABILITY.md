@@ -78,12 +78,17 @@ It stages into repo-local generated run directories only.
 - migration
 - real external source ingestion
 - real KB write-back
+- local overlay implementation
 - secrets/config management
+- disposable workspace apply
+- live runtime apply
 - live runtime adapter
 
 Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
 
 The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+
+Local-only overlay expectations are defined in `docs/LOCAL_OVERLAY_CONTRACT.md`.
 
 ## Generated artifacts
 
@@ -110,5 +115,6 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
 - tooling hardening: ruff/shellcheck/pytest
 - artifact validation
 - OpenClaw dry-run adapter validation
-- local overlay contract
 - disposable workspace contract
+- controlled disposable apply
+- no-secret-leakage validation

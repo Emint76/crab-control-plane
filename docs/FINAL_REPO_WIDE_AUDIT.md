@@ -46,13 +46,14 @@
 - OpenClaw dry-run adapter contract.
 - OpenClaw dry-run adapter skeleton.
 - OpenClaw dry-run placement plan schema validation.
+- Local overlay contract.
 
 ## Remaining known non-blocking debt
 
 - Phase 4 wrapper implementation embeds Python inside a shell script; this may later be split into a small Python module for readability.
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
-- Disposable OpenClaw workspace contract, local overlay contract, and live-runtime adapter remain future work.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
-- Local overlay contract.
 - Disposable OpenClaw workspace contract.
+- Controlled disposable apply.
+- Live-runtime adapter remains future work.

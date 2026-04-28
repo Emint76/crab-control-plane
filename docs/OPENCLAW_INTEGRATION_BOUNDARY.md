@@ -73,6 +73,8 @@ Example local paths:
 
 These paths are examples only and are not canonical Git contents.
 
+The local overlay boundary is defined in `docs/LOCAL_OVERLAY_CONTRACT.md`.
+
 ## Runtime target assumptions
 
 The repo may later target a local OpenClaw checkout or containerized OpenClaw runtime, but this repository must not vendor, fork, or mutate OpenClaw runtime code as part of the boundary.
@@ -206,8 +208,9 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 
 ## Next possible PRs
 
-1. openclaw-dry-run-adapter-contract - defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`
+1. openclaw-dry-run-adapter-contract - defined
 2. openclaw-dry-run-adapter-skeleton - implemented
-3. disposable-openclaw-workspace-contract
-4. local-overlay-contract
-5. controlled-disposable-apply
+3. openclaw-placement-plan-schema - implemented
+4. local-overlay-contract - defined in `docs/LOCAL_OVERLAY_CONTRACT.md`
+5. disposable-openclaw-workspace-contract
+6. controlled-disposable-apply
