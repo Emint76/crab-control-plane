@@ -72,6 +72,8 @@ It stages into repo-local generated run directories only.
 
 Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
 
+The OpenClaw dry-run adapter is not implemented yet. Its future boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+
 ## Generated artifacts
 
 Ignored generated surfaces:

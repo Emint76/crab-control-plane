@@ -78,6 +78,8 @@ The repo may later target a local OpenClaw checkout or containerized OpenClaw ru
 
 ## Dry-run adapter boundary
 
+The future dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+
 A future dry-run adapter may:
 
 - read Phase 3 staging output
@@ -203,7 +205,7 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 
 ## Next possible PRs
 
-1. openclaw-dry-run-adapter-contract
+1. openclaw-dry-run-adapter-contract - defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`
 2. openclaw-dry-run-adapter-skeleton
 3. disposable-openclaw-workspace-contract
 4. local-overlay-contract

@@ -95,6 +95,10 @@ This wrapper runs the existing repo-native smoke path and does not perform live 
 
 Future OpenClaw integration is governed by `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
 
+The future dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+
+This contract is documentation-only and does not implement an adapter.
+
 The current repository does not implement live OpenClaw mutation, deploy, migration, runtime adapter behavior, real source ingestion, or real KB write-back.
 
 The next permitted integration step is dry-run boundary work only.
