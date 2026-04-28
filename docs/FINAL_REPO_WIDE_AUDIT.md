@@ -42,6 +42,7 @@
 - Crab-safe harness invocation wrapper.
 - Orchestration wrapper canonical run-dir containment proof.
 - OpenClaw integration boundary document.
+- OpenClaw dry-run adapter contract.
 
 ## Remaining known non-blocking debt
 
@@ -49,4 +50,4 @@
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
 - live-runtime integration boundary and runtime adapter remain future work.
-- Future OpenClaw dry-run adapter contract and implementation.
+- Future OpenClaw dry-run adapter implementation.
