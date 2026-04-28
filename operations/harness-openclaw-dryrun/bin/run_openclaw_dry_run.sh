@@ -122,6 +122,9 @@ runs_root = dryrun_root / "runs"
 run_dir = runs_root / run_id
 checks_dir = run_dir / "checks"
 canonical_run_dir = f"operations/harness-openclaw-dryrun/runs/{run_id}"
+schema_ref = "operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json"
+schema_path = repo_root / schema_ref
+proposed_plan_ref = f"{canonical_run_dir}/proposed_openclaw_placement_plan.json"
 run_dir_created = False
 
 
@@ -268,6 +271,32 @@ def proposed_writes_for(phase3_ref: str, staging_dir: Path, staging_ref: str) ->
     return proposed
 
 
+def validate_proposed_plan_schema(proposed_plan: dict[str, Any]) -> dict[str, Any]:
+    try:
+        import jsonschema
+    except ImportError:
+        fail("jsonschema is required; install operations/harness-phase2/requirements.txt")
+
+    schema = load_json(schema_path, "proposed placement plan schema")
+    try:
+        jsonschema.Draft202012Validator.check_schema(schema)
+    except jsonschema.exceptions.SchemaError as exc:
+        fail(f"proposed placement plan schema is invalid: {exc.message}")
+
+    validator = jsonschema.Draft202012Validator(schema)
+    violations = sorted(error.message for error in validator.iter_errors(proposed_plan))
+    payload = {
+        "status": "fail" if violations else "pass",
+        "schema": schema_ref,
+        "validated_file": proposed_plan_ref,
+        "violations": violations,
+    }
+    if violations:
+        write_json(checks_dir / "proposed_plan_schema_validation.json", payload)
+        fail("proposed placement plan schema validation failed")
+    return payload
+
+
 def main() -> int:
     global run_dir_created
 
@@ -339,6 +368,9 @@ def main() -> int:
         "proposed_writes": proposed_writes,
         "live_writes_performed": False,
     }
+    proposed_plan_path = run_dir / "proposed_openclaw_placement_plan.json"
+    write_json(proposed_plan_path, proposed_plan)
+    proposed_plan_schema_validation = validate_proposed_plan_schema(proposed_plan)
     input_refs_validation = {
         "status": "pass",
         "phase3_run_dir_verified": True,
@@ -364,6 +396,7 @@ def main() -> int:
             "run_dir_invariants": "pass",
             "input_refs_validation": "pass",
             "no_live_write_validation": "pass",
+            "proposed_plan_schema_validation": "pass",
         },
     }
     dry_run_report_md = f"""# OpenClaw dry-run adapter report
@@ -384,11 +417,11 @@ No real KB write-back was performed.
 
     write_json(run_dir / "adapter_meta.json", adapter_meta)
     write_json(run_dir / "input_refs.json", input_refs)
-    write_json(run_dir / "proposed_openclaw_placement_plan.json", proposed_plan)
     write_json(run_dir / "dry_run_report.json", dry_run_report)
     write_json(checks_dir / "run_dir_invariants.json", run_dir_invariants)
     write_json(checks_dir / "input_refs_validation.json", input_refs_validation)
     write_json(checks_dir / "no_live_write_validation.json", no_live_write_validation)
+    write_json(checks_dir / "proposed_plan_schema_validation.json", proposed_plan_schema_validation)
     write_text(run_dir / "dry_run_report.md", dry_run_report_md)
     write_text(run_dir / "exit_code", "0\n")
 

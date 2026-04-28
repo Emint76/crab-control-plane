@@ -105,9 +105,11 @@ bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
   --run-id <DRY_RUN_ID>
 ```
 
-The current repository does not implement live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
+The dry-run proposed placement plan is validated against:
 
-It is dry-run only and does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, real source ingestion, or real KB write-back.
+`operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json`
+
+The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.
 

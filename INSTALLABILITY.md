@@ -30,6 +30,7 @@ bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
 ```
 
 This requires existing Phase 3 repo-native evidence and performs dry-run evidence generation only.
+The generated `proposed_openclaw_placement_plan.json` is validated against the dry-run placement plan schema.
 
 ## One-command smoke
 
@@ -93,6 +94,7 @@ Ignored generated surfaces:
 - `operations/harness-phase3/runs/`
 - `operations/harness-phase4/runs/`
 - `operations/harness-orchestration/runs/`
+- `operations/harness-openclaw-dryrun/runs/`
 
 ## Safe cleanup
 
