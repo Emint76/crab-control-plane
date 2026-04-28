@@ -97,9 +97,19 @@ Future OpenClaw integration is governed by `docs/OPENCLAW_INTEGRATION_BOUNDARY.m
 
 The future dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 
-This contract is documentation-only and does not implement an adapter.
+The OpenClaw dry-run adapter skeleton is available at:
 
-The current repository does not implement live OpenClaw mutation, deploy, migration, runtime adapter behavior, real source ingestion, or real KB write-back.
+```bash
+bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
+  --phase3-run-dir operations/harness-phase3/runs/<RUN_ID> \
+  --run-id <DRY_RUN_ID>
+```
+
+The current repository does not implement live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
+
+It is dry-run only and does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, real source ingestion, or real KB write-back.
+
+It is not approved for Crab invocation yet.
 
 The next permitted integration step is dry-run boundary work only.
 

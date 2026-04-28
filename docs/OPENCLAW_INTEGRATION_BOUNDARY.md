@@ -11,10 +11,11 @@ This document defines the boundary between the repo-native crab-control-plane ha
 - repo-native Phase 4 thin wrapper
 - smoke-e2e CI
 - Crab-safe orchestration wrapper
+- OpenClaw dry-run adapter skeleton
 
 ## What this document does not implement
 
-This document does not implement runtime integration, deploy, migration, adapter behavior, real source ingestion, real KB write-back, or live OpenClaw mutation.
+This document does not implement runtime integration, deploy, migration, disposable workspace apply, live adapter behavior, real source ingestion, real KB write-back, or live OpenClaw mutation.
 
 ## Boundary model
 
@@ -78,9 +79,9 @@ The repo may later target a local OpenClaw checkout or containerized OpenClaw ru
 
 ## Dry-run adapter boundary
 
-The future dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+The dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 
-A future dry-run adapter may:
+The dry-run adapter skeleton may:
 
 - read Phase 3 staging output
 - read Phase 3 reports
@@ -89,7 +90,7 @@ A future dry-run adapter may:
 - produce a proposed OpenClaw placement plan
 - write only repo-local dry-run evidence
 
-A future dry-run adapter must not:
+The dry-run adapter skeleton must not:
 
 - write to OpenClaw state
 - write to OpenClaw workspace
@@ -117,13 +118,13 @@ All secrets, tokens, endpoint credentials, bot identities, channel IDs, model cr
 
 ## Write-surface rules
 
-Allowed repo write surfaces for future dry-run only:
+Allowed repo write surfaces for dry-run only:
 
 ```text
 operations/harness-openclaw-dryrun/runs/<RUN_ID>/
 ```
 
-This PR does not create that directory.
+The dry-run adapter skeleton writes repo-local dry-run evidence under this directory.
 
 Forbidden write surfaces:
 
@@ -147,7 +148,7 @@ A future adapter must produce evidence such as:
 - `exit_code`
 - `checks/run_dir_invariants.json`
 
-This PR does not implement those artifacts.
+The dry-run adapter skeleton emits these dry-run evidence artifacts.
 
 ## Promotion gates
 
@@ -197,7 +198,7 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 - no live OpenClaw runtime mutation
 - no production deploy
 - no migration
-- no runtime adapter implementation
+- no disposable or live runtime adapter implementation
 - no real external source ingestion
 - no real KB write-back
 - no secrets, tokens, or instance identity in Git
@@ -206,7 +207,7 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 ## Next possible PRs
 
 1. openclaw-dry-run-adapter-contract - defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`
-2. openclaw-dry-run-adapter-skeleton
+2. openclaw-dry-run-adapter-skeleton - implemented
 3. disposable-openclaw-workspace-contract
 4. local-overlay-contract
 5. controlled-disposable-apply
