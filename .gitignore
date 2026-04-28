@@ -12,3 +12,6 @@ operations/harness-phase4/runs/*
 
 operations/harness-orchestration/runs/*
 !operations/harness-orchestration/runs/.gitkeep
+
+operations/harness-openclaw-dryrun/runs/*
+!operations/harness-openclaw-dryrun/runs/.gitkeep

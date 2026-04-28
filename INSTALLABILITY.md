@@ -21,6 +21,16 @@ bash operations/harness-orchestration/bin/run_repo_native_smoke.sh
 
 This is the approved wrapper for Crab to invoke the repo-native smoke path.
 
+OpenClaw dry-run adapter skeleton:
+
+```bash
+bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
+  --phase3-run-dir operations/harness-phase3/runs/<RUN_ID> \
+  --run-id <DRY_RUN_ID>
+```
+
+This requires existing Phase 3 repo-native evidence and performs dry-run evidence generation only.
+
 ## One-command smoke
 
 ```bash
@@ -68,11 +78,11 @@ It stages into repo-local generated run directories only.
 - real external source ingestion
 - real KB write-back
 - secrets/config management
-- runtime adapter
+- live runtime adapter
 
 Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
 
-The OpenClaw dry-run adapter is not implemented yet. Its future boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 
 ## Generated artifacts
 
@@ -97,5 +107,6 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
 
 - tooling hardening: ruff/shellcheck/pytest
 - artifact validation
-- live-runtime integration boundary doc
-- runtime adapter design
+- OpenClaw dry-run adapter validation
+- local overlay contract
+- disposable workspace contract

@@ -8,12 +8,13 @@ It must not mutate OpenClaw runtime, workspace, state, KB, memory, secrets, or l
 
 ## Status
 
-This is a contract-only document.
-No adapter implementation is included in this PR.
+The initial dry-run adapter skeleton is implemented.
+It remains dry-run only.
+It is not approved for Crab invocation yet.
 
 ## Scope
 
-Allowed future scope:
+Allowed scope:
 
 ```text
 repo-native Phase 2/3 evidence -> proposed OpenClaw placement plan -> dry-run evidence only
@@ -25,26 +26,26 @@ Forbidden scope:
 repo-native evidence -> live OpenClaw writes
 ```
 
-## Approved future entrypoint
+## Approved entrypoint
 
-Reserved future entrypoint:
+Approved dry-run skeleton entrypoint:
 
 ```bash
 bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh --phase3-run-dir <PHASE3_RUN_DIR> --run-id <RUN_ID>
 ```
 
-This command is reserved for future implementation and is not available yet.
+This command is available for repo-native dry-run evidence generation only.
 
 ## Inputs
 
-Future adapter inputs may include:
+Adapter inputs may include:
 
 ```text
 --phase3-run-dir operations/harness-phase3/runs/<RUN_ID>
 --run-id <SAFE_RUN_ID>
 ```
 
-Optional future input:
+Optional input:
 
 ```text
 --phase2-run-dir operations/harness-phase2/runs/<RUN_ID>
@@ -61,7 +62,7 @@ Validation requirements:
 
 ## Allowed reads
 
-The future adapter may read these repo-local inputs only if they exist:
+The adapter may read these repo-local inputs only if they exist:
 
 - `operations/harness-phase3/runs/<RUN_ID>/run_meta.json`
 - `operations/harness-phase3/runs/<RUN_ID>/report.json`
@@ -75,7 +76,7 @@ The future adapter may read these repo-local inputs only if they exist:
 
 ## Forbidden reads
 
-The future adapter must not read:
+The adapter must not read:
 
 - `.env`
 - secrets files
@@ -92,13 +93,13 @@ The future adapter must not read:
 
 ## Allowed outputs
 
-The future adapter may write only under:
+The adapter may write only under:
 
 ```text
 operations/harness-openclaw-dryrun/runs/<RUN_ID>/
 ```
 
-Future output files:
+Output files:
 
 - `adapter_meta.json`
 - `input_refs.json`
@@ -112,7 +113,7 @@ Future output files:
 
 ## Forbidden outputs
 
-The future adapter must not write:
+The adapter must not write:
 
 - OpenClaw state
 - OpenClaw workspace
@@ -126,7 +127,7 @@ The future adapter must not write:
 
 ## Write surface
 
-The only approved write surface for the future dry-run adapter is:
+The only approved write surface for the dry-run adapter is:
 
 ```text
 operations/harness-openclaw-dryrun/runs/<RUN_ID>/
@@ -134,11 +135,11 @@ operations/harness-openclaw-dryrun/runs/<RUN_ID>/
 
 Generated artifacts under this path must be gitignored except `.gitkeep`.
 
-This PR does not create an adapter implementation, implementation directories, run directories, or generated artifacts.
+The skeleton creates generated artifacts only under the approved dry-run run directory.
 
 ## Proposed placement plan
 
-Future proposed placement evidence should be machine-readable and conceptually follow this shape:
+Proposed placement evidence is machine-readable and follows this conceptual shape:
 
 ```json
 {
@@ -157,11 +158,11 @@ Future proposed placement evidence should be machine-readable and conceptually f
 }
 ```
 
-The actual schema may be introduced in a future PR.
+The schema may be expanded in a future PR.
 
 ## Evidence requirements
 
-Future adapter evidence must prove:
+Adapter evidence must prove:
 
 - no live writes were performed
 - no secrets were read
@@ -172,7 +173,7 @@ Future adapter evidence must prove:
 
 ## Run directory invariants
 
-The future adapter must include Phase 2/3-style invariant evidence:
+The adapter must include Phase 2/3-style invariant evidence:
 
 ```text
 checks/run_dir_invariants.json
@@ -218,7 +219,7 @@ This contract does not define disposable apply yet.
 
 ## Failure behavior
 
-Future adapter implementation must fail non-zero if:
+Adapter implementation must fail non-zero if:
 
 - invalid run id
 - Phase 3 input missing
@@ -230,7 +231,7 @@ Future adapter implementation must fail non-zero if:
 
 ## Non-goals
 
-- no adapter implementation in this PR
+- no adapter behavior beyond the dry-run skeleton in this PR
 - no OpenClaw runtime mutation
 - no deploy
 - no migration
@@ -242,7 +243,7 @@ Future adapter implementation must fail non-zero if:
 - no Phase 2/3/4 behavior changes
 - no Crab invocation approval yet
 
-## Acceptance criteria for future implementation
+## Acceptance criteria for future expansion
 
 - adapter implementation exists
 - dry-run run-dir invariants exist
