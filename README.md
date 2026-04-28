@@ -109,6 +109,10 @@ The dry-run proposed placement plan is validated against:
 
 `operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json`
 
+Local-only secrets, identity, credentials, endpoint config, and instance-specific runtime config are governed by `docs/LOCAL_OVERLAY_CONTRACT.md`.
+
+The local overlay must stay outside Git.
+
 The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.
