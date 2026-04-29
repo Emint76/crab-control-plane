@@ -117,6 +117,10 @@ Disposable local OpenClaw workspace/state rules are governed by `docs/DISPOSABLE
 
 Disposable workspace/state remains contract-only. The repository still does not implement controlled apply, live runtime apply, deploy, migration, or OpenClaw workspace/state writes.
 
+Controlled disposable apply rules are governed by `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
+
+Controlled disposable apply remains contract-only. The repository still does not implement controlled apply or OpenClaw workspace/state writes.
+
 The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.

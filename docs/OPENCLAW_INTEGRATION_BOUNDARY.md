@@ -105,6 +105,7 @@ The dry-run adapter skeleton must not:
 ## Disposable workspace boundary
 
 The disposable OpenClaw workspace/state boundary is defined in `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`.
+The controlled disposable apply contract is defined in `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
 
 The first non-dry-run integration target must be a disposable local OpenClaw workspace/state, not a real personal agent instance.
 
@@ -215,4 +216,5 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 3. openclaw-placement-plan-schema - implemented
 4. local-overlay-contract - defined in `docs/LOCAL_OVERLAY_CONTRACT.md`
 5. disposable-openclaw-workspace-contract - defined in `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`
-6. controlled-disposable-apply
+6. controlled-disposable-apply-contract - defined in `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`
+7. controlled-disposable-apply

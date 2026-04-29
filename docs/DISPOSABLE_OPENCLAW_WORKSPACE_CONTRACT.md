@@ -173,7 +173,9 @@ Disposable workspace apply may later consume those plans, but only after a separ
 ## Relationship to controlled disposable apply
 
 Controlled disposable apply is the next possible implementation stage after this contract.
+The controlled disposable apply boundary is defined in `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
 This document does not authorize or implement controlled apply.
+The disposable workspace/state contract alone does not authorize apply.
 
 ## Relationship to live runtime apply
 
