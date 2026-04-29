@@ -103,6 +103,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -125,6 +126,8 @@ canonical_run_dir = f"operations/harness-openclaw-dryrun/runs/{run_id}"
 schema_ref = "operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json"
 schema_path = repo_root / schema_ref
 proposed_plan_ref = f"{canonical_run_dir}/proposed_openclaw_placement_plan.json"
+safety_validator_ref = "operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh"
+safety_validator_path = repo_root / safety_validator_ref
 run_dir_created = False
 
 
@@ -297,6 +300,55 @@ def validate_proposed_plan_schema(proposed_plan: dict[str, Any]) -> dict[str, An
     return payload
 
 
+def validate_no_secret_leakage() -> dict[str, Any]:
+    completed = subprocess.run(
+        [
+            "bash",
+            str(safety_validator_path),
+            "--evidence-dir",
+            canonical_run_dir,
+        ],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        payload = {
+            "status": "fail",
+            "evidence_dir": canonical_run_dir,
+            "files_scanned": 0,
+            "violations": [
+                {
+                    "type": "validator_execution",
+                    "path": None,
+                    "detail": "no-secret-leakage validator did not emit JSON",
+                }
+            ],
+        }
+
+    if not isinstance(payload, dict):
+        payload = {
+            "status": "fail",
+            "evidence_dir": canonical_run_dir,
+            "files_scanned": 0,
+            "violations": [
+                {
+                    "type": "validator_execution",
+                    "path": None,
+                    "detail": "no-secret-leakage validator emitted non-object JSON",
+                }
+            ],
+        }
+
+    write_json(checks_dir / "no_secret_leakage_validation.json", payload)
+    if completed.returncode != 0 or payload.get("status") != "pass":
+        fail("no-secret-leakage validation failed")
+    return payload
+
+
 def main() -> int:
     global run_dir_created
 
@@ -387,6 +439,17 @@ def main() -> int:
         "secrets_read": False,
         "violations": [],
     }
+    write_json(run_dir / "adapter_meta.json", adapter_meta)
+    write_json(run_dir / "input_refs.json", input_refs)
+    write_json(checks_dir / "run_dir_invariants.json", run_dir_invariants)
+    write_json(checks_dir / "input_refs_validation.json", input_refs_validation)
+    write_json(checks_dir / "no_live_write_validation.json", no_live_write_validation)
+    write_json(checks_dir / "proposed_plan_schema_validation.json", proposed_plan_schema_validation)
+
+    no_secret_leakage_validation = validate_no_secret_leakage()
+    if no_secret_leakage_validation.get("status") != "pass":
+        fail("no-secret-leakage validation failed")
+
     dry_run_report = {
         "overall_status": "pass",
         "dry_run_only": True,
@@ -397,6 +460,7 @@ def main() -> int:
             "input_refs_validation": "pass",
             "no_live_write_validation": "pass",
             "proposed_plan_schema_validation": "pass",
+            "no_secret_leakage_validation": "pass",
         },
     }
     dry_run_report_md = f"""# OpenClaw dry-run adapter report
@@ -415,13 +479,7 @@ No deploy or migration was performed.
 No real KB write-back was performed.
 """
 
-    write_json(run_dir / "adapter_meta.json", adapter_meta)
-    write_json(run_dir / "input_refs.json", input_refs)
     write_json(run_dir / "dry_run_report.json", dry_run_report)
-    write_json(checks_dir / "run_dir_invariants.json", run_dir_invariants)
-    write_json(checks_dir / "input_refs_validation.json", input_refs_validation)
-    write_json(checks_dir / "no_live_write_validation.json", no_live_write_validation)
-    write_json(checks_dir / "proposed_plan_schema_validation.json", proposed_plan_schema_validation)
     write_text(run_dir / "dry_run_report.md", dry_run_report_md)
     write_text(run_dir / "exit_code", "0\n")
 

@@ -111,6 +111,7 @@ Output files:
 - `checks/input_refs_validation.json`
 - `checks/no_live_write_validation.json`
 - `checks/proposed_plan_schema_validation.json`
+- `checks/no_secret_leakage_validation.json`
 
 ## Forbidden outputs
 
@@ -175,6 +176,7 @@ Adapter evidence must prove:
 - output refs are under dry-run run dir
 - proposed placements are proposed-only
 - proposed placement plan validates against the JSON Schema
+- repo-local dry-run evidence passes no-secret-leakage validation
 - exit status is explicit
 
 ## Run directory invariants

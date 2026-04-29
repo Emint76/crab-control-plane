@@ -41,6 +41,13 @@ bash operations/harness-openclaw-target-validation/bin/validate_disposable_targe
   --approved-root <ABSOLUTE_PATH>
 ```
 
+No-secret-leakage validator:
+
+```bash
+bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh \
+  --evidence-dir operations/harness-openclaw-dryrun/runs/<RUN_ID>
+```
+
 ## One-command smoke
 
 ```bash
@@ -132,4 +139,3 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
 - artifact validation
 - OpenClaw dry-run adapter validation
 - controlled disposable apply implementation
-- no-secret-leakage validation

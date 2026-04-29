@@ -88,6 +88,8 @@ Before future apply can start, all must be true:
 
 Disposable target path validation may be implemented by `operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh`.
 This validation exists now as a validation-only surface and does not authorize apply.
+No-secret-leakage validation for repo-local dry-run evidence is implemented by `operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh`.
+This validation remains required before future apply and does not authorize apply.
 
 ## Required validations before apply
 
