@@ -86,6 +86,9 @@ Before future apply can start, all must be true:
 - human review approves the exact target
 - no live runtime target is used
 
+Disposable target path validation may be implemented by `operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh`.
+This validation exists now as a validation-only surface and does not authorize apply.
+
 ## Required validations before apply
 
 Future implementation must validate:

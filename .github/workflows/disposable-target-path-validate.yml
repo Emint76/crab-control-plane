@@ -1,0 +1,17 @@
+name: disposable-target-path-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  disposable-target-path-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run disposable target path validation test
+        run: bash operations/harness-openclaw-target-validation/tests/test_disposable_target_path_validation.sh

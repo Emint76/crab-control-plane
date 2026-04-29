@@ -121,6 +121,17 @@ Controlled disposable apply rules are governed by `docs/CONTROLLED_DISPOSABLE_AP
 
 Controlled disposable apply remains contract-only. The repository still does not implement controlled apply or OpenClaw workspace/state writes.
 
+Disposable target path validation is available at:
+
+```bash
+bash operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh \
+  --target-type workspace \
+  --target-path <ABSOLUTE_PATH> \
+  --approved-root <ABSOLUTE_PATH>
+```
+
+This is validation only. It does not implement apply or OpenClaw writes.
+
 The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.
