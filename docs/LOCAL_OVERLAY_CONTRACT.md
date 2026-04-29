@@ -132,7 +132,9 @@ It only reads repo-native Phase 2/3 evidence and writes repo-local dry-run evide
 
 ## Relationship to disposable workspace apply
 
+The disposable workspace/state boundary is defined in `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`.
 Disposable workspace apply may later consume local overlay selectors or config, but only after a separate disposable workspace contract and apply contract exist.
+The local overlay contract may describe where disposable workspace/state paths are declared, but it does not implement disposable workspace creation or apply.
 
 ## Relationship to live runtime apply
 
