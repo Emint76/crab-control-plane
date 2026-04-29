@@ -1,0 +1,25 @@
+name: controlled-disposable-apply-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  controlled-disposable-apply-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Phase 2 requirements
+        run: pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Run controlled disposable apply test
+        run: bash operations/harness-openclaw-disposable-apply/tests/test_controlled_disposable_apply.sh

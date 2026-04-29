@@ -12,10 +12,12 @@ This document defines the boundary between the repo-native crab-control-plane ha
 - smoke-e2e CI
 - Crab-safe orchestration wrapper
 - OpenClaw dry-run adapter skeleton
+- controlled disposable apply skeleton
 
 ## What this document does not implement
 
-This document does not implement runtime integration, deploy, migration, disposable workspace apply, live adapter behavior, real source ingestion, real KB write-back, or live OpenClaw mutation.
+This document does not implement runtime integration, deploy, migration, live adapter behavior, real source ingestion, real KB write-back, or live OpenClaw mutation.
+The current controlled disposable apply skeleton remains local-only and disposable-only.
 
 ## Boundary model
 
@@ -32,7 +34,7 @@ repo-native harness output
 | Mode | Meaning | Status |
 | --- | --- | --- |
 | `dry-run` | inspect repo-native output and produce a proposed OpenClaw placement plan without writing to OpenClaw | allowed future first step |
-| `disposable-workspace-apply` | apply only to disposable local OpenClaw workspace/state created for testing | future gated step |
+| `disposable-workspace-apply` | apply only to disposable local OpenClaw workspace/state created for testing | initial local-only skeleton implemented |
 | `live-runtime-apply` | write to a real running OpenClaw instance | explicitly not implemented and forbidden until separate contract |
 
 ## Forbidden behavior
@@ -123,13 +125,15 @@ All secrets, tokens, endpoint credentials, bot identities, channel IDs, model cr
 
 ## Write-surface rules
 
-Allowed repo write surfaces for dry-run only:
+Allowed repo write surfaces:
 
 ```text
 operations/harness-openclaw-dryrun/runs/<RUN_ID>/
+operations/harness-openclaw-disposable-apply/runs/<RUN_ID>/
 ```
 
 The dry-run adapter skeleton writes repo-local dry-run evidence under this directory.
+The controlled disposable apply skeleton writes repo-local apply evidence under its generated run directory.
 
 Forbidden write surfaces:
 
@@ -203,7 +207,7 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 - no live OpenClaw runtime mutation
 - no production deploy
 - no migration
-- no disposable or live runtime adapter implementation
+- no disposable apply beyond the initial skeleton and no live runtime adapter implementation
 - no real external source ingestion
 - no real KB write-back
 - no secrets, tokens, or instance identity in Git
@@ -217,4 +221,5 @@ Crab may only use approved wrappers. Future OpenClaw integration commands must b
 4. local-overlay-contract - defined in `docs/LOCAL_OVERLAY_CONTRACT.md`
 5. disposable-openclaw-workspace-contract - defined in `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`
 6. controlled-disposable-apply-contract - defined in `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`
-7. controlled-disposable-apply
+7. controlled-disposable-apply-skeleton - implemented
+8. controlled-disposable-apply expansion beyond initial skeleton

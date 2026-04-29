@@ -48,6 +48,19 @@ bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakag
   --evidence-dir operations/harness-openclaw-dryrun/runs/<RUN_ID>
 ```
 
+Controlled disposable apply skeleton:
+
+```bash
+bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh \
+  --dry-run-run-dir operations/harness-openclaw-dryrun/runs/<RUN_ID> \
+  --workspace-target <ABSOLUTE_PATH> \
+  --workspace-approved-root <ABSOLUTE_PATH> \
+  --state-target <ABSOLUTE_PATH> \
+  --state-approved-root <ABSOLUTE_PATH> \
+  --approval-label <NONEMPTY_TEXT> \
+  --run-id <RUN_ID>
+```
+
 ## One-command smoke
 
 ```bash
@@ -97,8 +110,7 @@ It stages into repo-local generated run directories only.
 - local overlay implementation
 - secrets/config management
 - disposable workspace implementation
-- disposable workspace apply
-- controlled disposable apply
+- controlled disposable apply beyond the initial skeleton
 - live runtime apply
 - OpenClaw workspace/state writes
 - live runtime adapter
@@ -123,6 +135,7 @@ Ignored generated surfaces:
 - `operations/harness-phase4/runs/`
 - `operations/harness-orchestration/runs/`
 - `operations/harness-openclaw-dryrun/runs/`
+- `operations/harness-openclaw-disposable-apply/runs/`
 
 ## Safe cleanup
 
@@ -138,4 +151,4 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
 - tooling hardening: ruff/shellcheck/pytest
 - artifact validation
 - OpenClaw dry-run adapter validation
-- controlled disposable apply implementation
+- controlled disposable apply expansion beyond initial skeleton
