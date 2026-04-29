@@ -161,6 +161,9 @@ Future implementation must prove:
 - no real bot/channel IDs in reports unless explicitly redacted
 - no host-private paths leaked into committed docs
 
+Repo-local dry-run evidence has a dedicated no-secret-leakage validator surface at `operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh`.
+This validator is validation-only and does not authorize disposable apply or OpenClaw writes.
+
 ## Relationship to local overlay
 
 The disposable workspace contract depends on `docs/LOCAL_OVERLAY_CONTRACT.md`.

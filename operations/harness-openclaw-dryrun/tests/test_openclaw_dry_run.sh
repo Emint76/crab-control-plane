@@ -168,6 +168,7 @@ assert_file "${VALID_RUN_DIR}/checks/run_dir_invariants.json"
 assert_file "${VALID_RUN_DIR}/checks/input_refs_validation.json"
 assert_file "${VALID_RUN_DIR}/checks/no_live_write_validation.json"
 assert_file "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json"
+assert_file "${VALID_RUN_DIR}/checks/no_secret_leakage_validation.json"
 assert_file_text_equals "${VALID_RUN_DIR}/exit_code" "0"
 
 for evidence_file in \
@@ -179,7 +180,8 @@ for evidence_file in \
   "${VALID_RUN_DIR}/checks/run_dir_invariants.json" \
   "${VALID_RUN_DIR}/checks/input_refs_validation.json" \
   "${VALID_RUN_DIR}/checks/no_live_write_validation.json" \
-  "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json"; do
+  "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json" \
+  "${VALID_RUN_DIR}/checks/no_secret_leakage_validation.json"; do
   assert_no_host_paths "${evidence_file}"
 done
 
@@ -191,6 +193,7 @@ done
   "${VALID_RUN_DIR}/checks/input_refs_validation.json" \
   "${VALID_RUN_DIR}/checks/no_live_write_validation.json" \
   "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json" \
+  "${VALID_RUN_DIR}/checks/no_secret_leakage_validation.json" \
   "${PLACEMENT_PLAN_SCHEMA}" \
   "${VALID_RUN_DIR}/invalid_plan_missing_write_mode.json" <<'PY'
 from __future__ import annotations
@@ -208,8 +211,9 @@ run_dir_invariants = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8-sig"
 input_refs_validation = json.loads(Path(sys.argv[5]).read_text(encoding="utf-8-sig"))
 no_live_write_validation = json.loads(Path(sys.argv[6]).read_text(encoding="utf-8-sig"))
 proposed_plan_schema_validation = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8-sig"))
-schema = json.loads(Path(sys.argv[8]).read_text(encoding="utf-8-sig"))
-invalid_plan_path = Path(sys.argv[9])
+no_secret_leakage_validation = json.loads(Path(sys.argv[8]).read_text(encoding="utf-8-sig"))
+schema = json.loads(Path(sys.argv[9]).read_text(encoding="utf-8-sig"))
+invalid_plan_path = Path(sys.argv[10])
 
 assert adapter_meta["dry_run_only"] is True, adapter_meta
 assert adapter_meta["live_writes_performed"] is False, adapter_meta
@@ -231,7 +235,10 @@ assert input_refs_validation["status"] == "pass", input_refs_validation
 assert no_live_write_validation["status"] == "pass", no_live_write_validation
 assert proposed_plan_schema_validation["status"] == "pass", proposed_plan_schema_validation
 assert proposed_plan_schema_validation["violations"] == [], proposed_plan_schema_validation
+assert no_secret_leakage_validation["status"] == "pass", no_secret_leakage_validation
+assert no_secret_leakage_validation["violations"] == [], no_secret_leakage_validation
 assert dry_run_report["checks"]["proposed_plan_schema_validation"] == "pass", dry_run_report
+assert dry_run_report["checks"]["no_secret_leakage_validation"] == "pass", dry_run_report
 
 jsonschema.Draft202012Validator.check_schema(schema)
 jsonschema.validate(instance=placement_plan, schema=schema)

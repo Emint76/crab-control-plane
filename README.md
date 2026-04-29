@@ -132,11 +132,21 @@ bash operations/harness-openclaw-target-validation/bin/validate_disposable_targe
 
 This is validation only. It does not implement apply or OpenClaw writes.
 
+No-secret-leakage validation is available at:
+
+```bash
+bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh \
+  --evidence-dir operations/harness-openclaw-dryrun/runs/<RUN_ID>
+```
+
+This is validation only. It does not implement apply or OpenClaw writes.
+
 The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.
 
-The next permitted integration step is dry-run boundary work only.
+The current repo supports dry-run evidence generation and safety validation only.
+Disposable apply and live runtime apply remain unimplemented.
 
 ## What belongs elsewhere
 

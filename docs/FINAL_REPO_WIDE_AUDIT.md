@@ -50,6 +50,7 @@
 - Disposable OpenClaw workspace contract.
 - Controlled disposable apply contract.
 - Disposable target path validation.
+- No-secret-leakage validation.
 
 ## Remaining known non-blocking debt
 
@@ -58,5 +59,4 @@
 - Installability/deploy packaging remains a separate future workstream.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
 - Controlled disposable apply implementation.
-- No-secret-leakage validation.
 - Live-runtime adapter remains future work.
