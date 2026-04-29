@@ -113,6 +113,10 @@ Local-only secrets, identity, credentials, endpoint config, and instance-specifi
 
 The local overlay must stay outside Git.
 
+Disposable local OpenClaw workspace/state rules are governed by `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`.
+
+Disposable workspace/state remains contract-only. The repository still does not implement controlled apply, live runtime apply, deploy, migration, or OpenClaw workspace/state writes.
+
 The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.

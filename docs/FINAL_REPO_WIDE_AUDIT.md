@@ -47,6 +47,7 @@
 - OpenClaw dry-run adapter skeleton.
 - OpenClaw dry-run placement plan schema validation.
 - Local overlay contract.
+- Disposable OpenClaw workspace contract.
 
 ## Remaining known non-blocking debt
 
@@ -54,6 +55,7 @@
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
-- Disposable OpenClaw workspace contract.
 - Controlled disposable apply.
+- No-secret-leakage validation.
+- Disposable target path validation.
 - Live-runtime adapter remains future work.
