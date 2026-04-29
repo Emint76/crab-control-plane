@@ -19,8 +19,9 @@
 - Phase 4 does not own canonical execution outputs.
 - Phase 4 writes wrapper-only metadata under `operations/harness-phase4/runs/<WRAPPER_RUN_ID>/`.
 - The orchestration wrapper is not a new phase, not a deploy layer, and not a runtime adapter.
-- OpenClaw integration is currently dry-run-only; live runtime mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, and real KB write-back are not implemented.
+- OpenClaw integration is currently local-only and disposable-only for apply-like behavior; live runtime mutation, deploy, migration, live runtime adapter behavior, real source ingestion, and real KB write-back are not implemented.
 - The OpenClaw dry-run adapter skeleton produces repo-local dry-run evidence only and is not approved for Crab invocation yet.
+- The controlled disposable apply skeleton is local-only, disposable-only, and is not approved for Crab invocation yet.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -51,6 +52,7 @@
 - Controlled disposable apply contract.
 - Disposable target path validation.
 - No-secret-leakage validation.
+- Controlled disposable apply skeleton.
 
 ## Remaining known non-blocking debt
 
@@ -58,5 +60,5 @@
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
-- Controlled disposable apply implementation.
+- Controlled disposable apply expansion beyond initial skeleton.
 - Live-runtime adapter remains future work.

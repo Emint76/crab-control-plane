@@ -115,11 +115,25 @@ The local overlay must stay outside Git.
 
 Disposable local OpenClaw workspace/state rules are governed by `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`.
 
-Disposable workspace/state remains contract-only. The repository still does not implement controlled apply, live runtime apply, deploy, migration, or OpenClaw workspace/state writes.
+Disposable workspace/state remains local-only and explicitly disposable. The repository still does not implement live runtime apply, deploy, migration, or writes to real OpenClaw workspace/state.
 
 Controlled disposable apply rules are governed by `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
 
-Controlled disposable apply remains contract-only. The repository still does not implement controlled apply or OpenClaw workspace/state writes.
+Controlled disposable apply skeleton is available at:
+
+```bash
+bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh \
+  --dry-run-run-dir operations/harness-openclaw-dryrun/runs/<RUN_ID> \
+  --workspace-target <ABSOLUTE_PATH> \
+  --workspace-approved-root <ABSOLUTE_PATH> \
+  --state-target <ABSOLUTE_PATH> \
+  --state-approved-root <ABSOLUTE_PATH> \
+  --approval-label <NONEMPTY_TEXT> \
+  --run-id <RUN_ID>
+```
+
+This is local-only and disposable-only.
+It does not authorize live runtime apply or Crab invocation.
 
 Disposable target path validation is available at:
 
@@ -141,12 +155,12 @@ bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakag
 
 This is validation only. It does not implement apply or OpenClaw writes.
 
-The current repository remains dry-run only for OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, disposable workspace apply, live runtime adapter behavior, real source ingestion, or real KB write-back.
+The current repository remains local-only and disposable-only for apply-like OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, live runtime adapter behavior, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.
 
-The current repo supports dry-run evidence generation and safety validation only.
-Disposable apply and live runtime apply remain unimplemented.
+The current repo supports dry-run evidence generation, safety validation, and the initial controlled disposable apply skeleton only.
+Live runtime apply remains unimplemented.
 
 ## What belongs elsewhere
 

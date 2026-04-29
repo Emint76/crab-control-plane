@@ -15,3 +15,6 @@ operations/harness-orchestration/runs/*
 
 operations/harness-openclaw-dryrun/runs/*
 !operations/harness-openclaw-dryrun/runs/.gitkeep
+
+operations/harness-openclaw-disposable-apply/runs/*
+!operations/harness-openclaw-disposable-apply/runs/.gitkeep

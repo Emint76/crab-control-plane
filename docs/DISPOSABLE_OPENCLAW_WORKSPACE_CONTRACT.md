@@ -7,8 +7,8 @@ A disposable workspace/state target is the first permitted non-dry-run target af
 
 ## Status
 
-This is a contract-only document.
-No disposable workspace creation, apply, deploy, migration, OpenClaw mutation, or runtime integration is included in this PR.
+The disposable workspace/state contract is defined, and the initial controlled disposable apply skeleton now exists.
+No disposable workspace creation, deploy, migration, live OpenClaw mutation, or runtime integration is included.
 
 ## Scope
 
@@ -177,9 +177,9 @@ Disposable workspace apply may later consume those plans, but only after a separ
 
 ## Relationship to controlled disposable apply
 
-Controlled disposable apply is the next possible implementation stage after this contract.
+The initial controlled disposable apply skeleton now exists and depends on explicit disposable target validation.
 The controlled disposable apply boundary is defined in `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
-This document does not authorize or implement controlled apply.
+This document does not authorize live runtime apply or Crab invocation.
 The disposable workspace/state contract alone does not authorize apply.
 
 ## Relationship to live runtime apply
@@ -232,7 +232,7 @@ Live runtime apply remains out of scope.
 
 - no disposable workspace implementation
 - no controlled apply implementation
-- no OpenClaw writes
+- no OpenClaw writes outside explicitly disposable local targets
 - no live runtime apply
 - no deploy
 - no migration
