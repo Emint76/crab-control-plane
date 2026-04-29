@@ -49,6 +49,7 @@
 - Local overlay contract.
 - Disposable OpenClaw workspace contract.
 - Controlled disposable apply contract.
+- Disposable target path validation.
 
 ## Remaining known non-blocking debt
 
@@ -58,5 +59,4 @@
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
 - Controlled disposable apply implementation.
 - No-secret-leakage validation.
-- Disposable target path validation.
 - Live-runtime adapter remains future work.

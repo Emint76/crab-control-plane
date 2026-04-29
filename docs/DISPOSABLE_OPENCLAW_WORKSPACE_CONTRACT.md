@@ -33,6 +33,8 @@ It must not contain real tokens, credentials, OAuth state, bot identity, or live
 
 Disposable workspace/state must never point to a real OpenClaw instance used by a personal agent.
 Future scripts must fail closed if the target path appears to be a real agent workspace/state or if the target is not explicitly marked disposable.
+Disposable target marker validation and approved-root containment validation are available through `operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh`.
+This validator is validation-only and does not authorize apply or OpenClaw writes.
 
 ## Example local layout
 

@@ -32,6 +32,15 @@ bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
 This requires existing Phase 3 repo-native evidence and performs dry-run evidence generation only.
 The generated `proposed_openclaw_placement_plan.json` is validated against the dry-run placement plan schema.
 
+Disposable target path validator:
+
+```bash
+bash operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh \
+  --target-type workspace \
+  --target-path <ABSOLUTE_PATH> \
+  --approved-root <ABSOLUTE_PATH>
+```
+
 ## One-command smoke
 
 ```bash
@@ -124,4 +133,3 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
 - OpenClaw dry-run adapter validation
 - controlled disposable apply implementation
 - no-secret-leakage validation
-- disposable target path validation
