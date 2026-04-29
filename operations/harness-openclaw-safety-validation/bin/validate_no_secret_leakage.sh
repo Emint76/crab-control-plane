@@ -38,10 +38,20 @@ FORBIDDEN_FILENAME_GLOBS = (
     "*.pem",
     "*.key",
 )
+
+
+def literal_pattern(*parts: str) -> re.Pattern[str]:
+    return re.compile("".join(re.escape(part) for part in parts))
+
+
+def key_value_pattern(*parts: str) -> re.Pattern[str]:
+    return re.compile("".join(re.escape(part) for part in parts) + r"\s*=", re.IGNORECASE)
+
+
 SECRET_PATTERNS = (
-    ("private_key_block", re.compile(r"-----BEGIN PRIVATE KEY-----")),
-    ("rsa_private_key_block", re.compile(r"-----BEGIN RSA PRIVATE KEY-----")),
-    ("openssh_private_key_block", re.compile(r"-----BEGIN OPENSSH PRIVATE KEY-----")),
+    ("private_key_block", literal_pattern("-----BEGIN ", "PRIVATE ", "KEY-----")),
+    ("rsa_private_key_block", literal_pattern("-----BEGIN ", "RSA ", "PRIVATE ", "KEY-----")),
+    ("openssh_private_key_block", literal_pattern("-----BEGIN ", "OPENSSH ", "PRIVATE ", "KEY-----")),
     ("openai_token_like", re.compile(r"sk-[A-Za-z0-9_-]{10,}")),
     ("github_pat_like", re.compile(r"ghp_[A-Za-z0-9A-Za-z_]{20,}")),
     ("github_fine_grained_pat_like", re.compile(r"github_pat_[A-Za-z0-9_]{20,}")),
@@ -49,11 +59,11 @@ SECRET_PATTERNS = (
     ("aws_access_key_like", re.compile(r"AKIA[0-9A-Z]{16}")),
 )
 KEY_VALUE_PATTERNS = (
-    ("OPENAI_API_KEY", re.compile(r"OPENAI_API_KEY\s*=", re.IGNORECASE)),
-    ("ANTHROPIC_API_KEY", re.compile(r"ANTHROPIC_API_KEY\s*=", re.IGNORECASE)),
-    ("GITHUB_TOKEN", re.compile(r"GITHUB_TOKEN\s*=", re.IGNORECASE)),
-    ("OAUTH_REFRESH_TOKEN", re.compile(r"OAUTH_REFRESH_TOKEN\s*=", re.IGNORECASE)),
-    ("AWS_SECRET_ACCESS_KEY", re.compile(r"AWS_SECRET_ACCESS_KEY\s*=", re.IGNORECASE)),
+    ("openai_api_key", key_value_pattern("OPENAI_", "API", "_KEY")),
+    ("anthropic_api_key", key_value_pattern("ANTHROPIC_", "API", "_KEY")),
+    ("github_token", key_value_pattern("GITHUB_", "TOKEN")),
+    ("oauth_refresh_token", key_value_pattern("OAUTH_REFRESH_", "TOKEN")),
+    ("aws_secret_access_key", key_value_pattern("AWS_", "SECRET_", "ACCESS", "_KEY")),
 )
 HARMLESS_PLACEHOLDERS = ("<redacted>", "example", "placeholder")
 

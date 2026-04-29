@@ -304,7 +304,7 @@ def validate_no_secret_leakage() -> dict[str, Any]:
     completed = subprocess.run(
         [
             "bash",
-            str(safety_validator_path),
+            safety_validator_ref,
             "--evidence-dir",
             canonical_run_dir,
         ],
