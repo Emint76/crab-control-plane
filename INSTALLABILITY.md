@@ -95,6 +95,8 @@ Local-only overlay expectations are defined in `docs/LOCAL_OVERLAY_CONTRACT.md`.
 
 Disposable local OpenClaw workspace/state expectations are defined in `docs/DISPOSABLE_OPENCLAW_WORKSPACE_CONTRACT.md`.
 
+Controlled disposable apply expectations are defined in `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
+
 ## Generated artifacts
 
 Ignored generated surfaces:
@@ -120,6 +122,6 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
 - tooling hardening: ruff/shellcheck/pytest
 - artifact validation
 - OpenClaw dry-run adapter validation
-- controlled disposable apply contract
+- controlled disposable apply implementation
 - no-secret-leakage validation
 - disposable target path validation
