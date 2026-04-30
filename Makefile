@@ -19,3 +19,25 @@ phase3-ci:
 phase4-ci:
 	python -m compileall operations/harness-phase3/bin
 	bash operations/harness-phase4/tests/test_phase4_wrapper.sh
+
+orchestration-ci:
+	bash operations/harness-orchestration/tests/test_orchestration_wrapper.sh
+
+openclaw-dryrun-ci:
+	bash operations/harness-openclaw-dryrun/tests/test_openclaw_dry_run.sh
+
+disposable-target-validation-ci:
+	bash operations/harness-openclaw-target-validation/tests/test_disposable_target_path_validation.sh
+
+no-secret-leakage-ci:
+	bash operations/harness-openclaw-safety-validation/tests/test_no_secret_leakage_validation.sh
+
+controlled-disposable-apply-ci:
+	bash operations/harness-openclaw-disposable-apply/tests/test_controlled_disposable_apply.sh
+
+openclaw-local-ci:
+	$(MAKE) orchestration-ci
+	$(MAKE) openclaw-dryrun-ci
+	$(MAKE) disposable-target-validation-ci
+	$(MAKE) no-secret-leakage-ci
+	$(MAKE) controlled-disposable-apply-ci

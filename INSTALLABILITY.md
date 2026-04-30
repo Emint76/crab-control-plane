@@ -12,6 +12,12 @@ It is not a production OpenClaw deployment package.
 - `make phase2-ci`
 - `make phase3-ci`
 - `make phase4-ci`
+- `make orchestration-ci`
+- `make openclaw-dryrun-ci`
+- `make disposable-target-validation-ci`
+- `make no-secret-leakage-ci`
+- `make controlled-disposable-apply-ci`
+- `make openclaw-local-ci`
 
 Agent-safe wrapper:
 
@@ -143,12 +149,18 @@ Ignored generated surfaces:
 rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
        operations/harness-phase3/runs/smoke-e2e-phase3 \
        operations/harness-phase4/runs/smoke-e2e-wrapper \
-       operations/harness-phase4/runs/smoke-e2e-target
+       operations/harness-phase4/runs/smoke-e2e-target \
+       operations/harness-orchestration/runs/orchestration-wrapper-valid \
+       operations/harness-openclaw-dryrun/runs/openclaw-dryrun-valid \
+       operations/harness-openclaw-disposable-apply/runs/controlled-disposable-apply-valid
 ```
+
+Disposable local workspace/state targets live outside Git and must only be cleaned under explicitly approved disposable roots.
+This document does not provide a generic cleanup command for arbitrary absolute local targets.
 
 ## Next installability work
 
 - tooling hardening: ruff/shellcheck/pytest
 - artifact validation
-- OpenClaw dry-run adapter validation
+- OpenClaw dry-run adapter expansion beyond skeleton
 - controlled disposable apply expansion beyond initial skeleton
