@@ -257,17 +257,50 @@ def verify_run_dir_invariants() -> dict[str, Any]:
     return payload
 
 
+def classified_target_for(relative_source: str) -> tuple[str, str]:
+    pure = PurePosixPath(relative_source)
+    parts = pure.parts
+    if "\\" in relative_source or relative_source.startswith("/") or re.match(r"^[A-Za-z]:[\\/]", relative_source):
+        fail(f"invalid staged target path: {relative_source}")
+    if ".." in parts or "" in parts:
+        fail(f"invalid staged target path: {relative_source}")
+
+    if parts and parts[0] in ("workspace", "state"):
+        target_surface = parts[0]
+        stripped_parts = parts[1:]
+        if not stripped_parts:
+            fail(f"reserved {target_surface}/ prefix must include a target path")
+        target_path = PurePosixPath(*stripped_parts).as_posix()
+    else:
+        target_surface = "workspace"
+        target_path = pure.as_posix()
+
+    if target_path == "" or target_path in (".", ".."):
+        fail(f"invalid stripped target path: {relative_source}")
+    target_pure = PurePosixPath(target_path)
+    if (
+        "\\" in target_path
+        or target_path.startswith("/")
+        or re.match(r"^[A-Za-z]:[\\/]", target_path)
+        or ".." in target_pure.parts
+        or "" in target_pure.parts
+    ):
+        fail(f"invalid stripped target path: {relative_source}")
+    return target_surface, target_path
+
+
 def proposed_writes_for(phase3_ref: str, staging_dir: Path, staging_ref: str) -> list[dict[str, str]]:
     proposed: list[dict[str, str]] = []
     if not staging_dir.exists():
         return proposed
     for source_path in sorted(path for path in staging_dir.rglob("*") if path.is_file()):
         relative_source = source_path.relative_to(staging_dir).as_posix()
+        target_surface, target_path = classified_target_for(relative_source)
         proposed.append(
             {
                 "source": f"{staging_ref}/{relative_source}",
-                "target": f"declared-openclaw-target:{relative_source}",
-                "target_surface": "workspace",
+                "target": f"declared-openclaw-target:{target_path}",
+                "target_surface": target_surface,
                 "write_mode": "proposed-only",
                 "reason": "dry-run placement proposal derived from Phase 3 staging output",
             }

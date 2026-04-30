@@ -96,6 +96,7 @@ cleanup() {
     controlled-disposable-apply-target-outside-root \
     controlled-disposable-apply-target-equal-root \
     controlled-disposable-apply-state-target-write \
+    controlled-disposable-apply-classified-state-target \
     controlled-disposable-apply-empty-approval; do
     safe_rm_generated_dir "${RUNS_ROOT}/${name}" "${RUNS_ROOT}" "${name}"
   done
@@ -104,9 +105,11 @@ cleanup() {
     openclaw-dryrun-missing-plan \
     openclaw-dryrun-report-fail \
     openclaw-dryrun-missing-no-secret \
-    openclaw-dryrun-state-target-write; do
+    openclaw-dryrun-state-target-write \
+    openclaw-dryrun-classified-state-target; do
     safe_rm_generated_dir "${DRYRUN_ROOT}/runs/${name}" "${DRYRUN_ROOT}/runs" "${name}"
   done
+  safe_rm_generated_dir "${PHASE3_ROOT}/runs/openclaw-dryrun-classified-state-target" "${PHASE3_ROOT}/runs" "openclaw-dryrun-classified-state-target"
   safe_rm_generated_dir "${PHASE2_RUN_DIR}" "${PHASE2_ROOT}/runs" "${PHASE2_RUN_ID}"
   safe_rm_generated_dir "${PHASE3_RUN_DIR}" "${PHASE3_ROOT}/runs" "${PHASE3_RUN_ID}"
   safe_rm_generated_dir "${WRAPPER_RUN_DIR}" "${PHASE4_ROOT}/runs" "${WRAPPER_RUN_ID}"
@@ -522,6 +525,164 @@ for action in apply_actions:
 
 assert len(workspace_paths) == apply_report["workspace_write_count"], apply_report
 assert len(state_paths) == apply_report["state_write_count"], apply_report
+assert sorted(cleanup_plan["workspace_paths"]) == sorted(workspace_paths), cleanup_plan
+assert sorted(cleanup_plan["state_paths"]) == sorted(state_paths), cleanup_plan
+assert sorted(rollback_plan["workspace_paths"]) == sorted(workspace_paths), rollback_plan
+assert sorted(rollback_plan["state_paths"]) == sorted(state_paths), rollback_plan
+
+state_files = sorted(path.relative_to(state_target).as_posix() for path in state_target.rglob("*") if path.is_file())
+assert ".crab-disposable-target.json" in state_files, state_files
+for rel_target in state_paths:
+    assert rel_target in state_files, (rel_target, state_files)
+
+def iter_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from iter_strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from iter_strings(item)
+
+for plan in (cleanup_plan, rollback_plan):
+    for text in iter_strings(plan):
+        assert "live runtime target" not in text.lower(), plan
+        assert "production" not in text.lower(), plan
+        if text.startswith("operations/"):
+            assert text.startswith("operations/harness-openclaw-disposable-apply/runs/"), text
+        if text.startswith("/"):
+            resolved = Path(text).resolve()
+            assert (
+                resolved == workspace_target.resolve()
+                or resolved == state_target.resolve()
+                or resolved.is_relative_to(workspace_target.resolve())
+                or resolved.is_relative_to(state_target.resolve())
+            ), text
+PY
+
+CLASSIFIED_PHASE3_RUN_ID="openclaw-dryrun-classified-state-target"
+CLASSIFIED_DRYRUN_ID="openclaw-dryrun-classified-state-target"
+CLASSIFIED_APPLY_RUN_ID="controlled-disposable-apply-classified-state-target"
+CLASSIFIED_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${CLASSIFIED_PHASE3_RUN_ID}"
+
+cp -R "${PHASE3_RUN_DIR}" "${CLASSIFIED_PHASE3_RUN_DIR}"
+rm -rf -- "${CLASSIFIED_PHASE3_RUN_DIR}/staging/runtime-ready-applied"
+mkdir -p \
+  "${CLASSIFIED_PHASE3_RUN_DIR}/staging/runtime-ready-applied/workspace/config" \
+  "${CLASSIFIED_PHASE3_RUN_DIR}/staging/runtime-ready-applied/state/memory"
+printf '{"kind":"classified-workspace"}\n' > "${CLASSIFIED_PHASE3_RUN_DIR}/staging/runtime-ready-applied/workspace/config/settings.json"
+printf '{"kind":"classified-state"}\n' > "${CLASSIFIED_PHASE3_RUN_DIR}/staging/runtime-ready-applied/state/memory/state.json"
+
+bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
+  --phase3-run-dir "operations/harness-phase3/runs/${CLASSIFIED_PHASE3_RUN_ID}" \
+  --phase2-run-dir "operations/harness-phase2/runs/${PHASE2_RUN_ID}" \
+  --run-id "${CLASSIFIED_DRYRUN_ID}"
+
+bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh \
+  --dry-run-run-dir "operations/harness-openclaw-dryrun/runs/${CLASSIFIED_DRYRUN_ID}" \
+  --workspace-target "${WORKSPACE_TARGET}" \
+  --workspace-approved-root "${WORKSPACE_APPROVED_ROOT}" \
+  --state-target "${STATE_TARGET}" \
+  --state-approved-root "${STATE_APPROVED_ROOT}" \
+  --approval-label "test-approved-classified-state-target" \
+  --run-id "${CLASSIFIED_APPLY_RUN_ID}"
+
+assert_file "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}/apply_actions.json"
+assert_file "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}/apply_report.json"
+assert_file "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}/cleanup_plan.json"
+assert_file "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}/rollback_plan.json"
+assert_file "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}/checks/evidence_schema_validation.json"
+assert_file_text_equals "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}/exit_code" "0"
+
+"${PYTHON_BIN}" - \
+  "${RUNS_ROOT}/${CLASSIFIED_APPLY_RUN_ID}" \
+  "${DRYRUN_ROOT}/runs/${CLASSIFIED_DRYRUN_ID}" \
+  "${WORKSPACE_TARGET}" \
+  "${STATE_TARGET}" \
+  "${APPLY_ROOT}/schemas" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import jsonschema
+
+run_dir = Path(sys.argv[1])
+dryrun_dir = Path(sys.argv[2])
+workspace_target = Path(sys.argv[3])
+state_target = Path(sys.argv[4])
+schema_root = Path(sys.argv[5])
+
+def load(path: Path):
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+apply_report = load(run_dir / "apply_report.json")
+apply_actions = load(run_dir / "apply_actions.json")
+placement_plan = load(dryrun_dir / "proposed_openclaw_placement_plan.json")
+cleanup_plan = load(run_dir / "cleanup_plan.json")
+rollback_plan = load(run_dir / "rollback_plan.json")
+evidence_schema_validation = load(run_dir / "checks" / "evidence_schema_validation.json")
+
+schema = load(schema_root / "apply_actions.schema.json")
+jsonschema.Draft202012Validator.check_schema(schema)
+jsonschema.validate(instance=apply_actions, schema=schema)
+
+assert apply_report["overall_status"] == "pass", apply_report
+assert apply_report["workspace_write_count"] >= 1, apply_report
+assert apply_report["state_write_count"] >= 1, apply_report
+assert apply_report["live_runtime_apply"] is False, apply_report
+assert apply_report["checks"]["evidence_schema_validation"] == "pass", apply_report
+assert evidence_schema_validation["status"] == "pass", evidence_schema_validation
+assert evidence_schema_validation["violations"] == [], evidence_schema_validation
+
+workspace_plan_targets = {
+    item["target"].removeprefix("declared-openclaw-target:"): item["source"]
+    for item in placement_plan["proposed_writes"]
+    if item["target_surface"] == "workspace"
+}
+state_plan_targets = {
+    item["target"].removeprefix("declared-openclaw-target:"): item["source"]
+    for item in placement_plan["proposed_writes"]
+    if item["target_surface"] == "state"
+}
+assert workspace_plan_targets, placement_plan
+assert state_plan_targets, placement_plan
+for target in workspace_plan_targets | state_plan_targets:
+    assert not target.startswith("workspace/"), target
+    assert not target.startswith("state/"), target
+
+workspace_paths = []
+state_paths = []
+for action in apply_actions:
+    assert action["target_surface"] in ("workspace", "state"), action
+    assert action["applied"] is True, action
+    if action["target_surface"] == "workspace":
+        assert "workspace_target_path" in action and "state_target_path" not in action, action
+        rel_target = action["workspace_target_path"]
+        selected_root = workspace_target
+        source_map = workspace_plan_targets
+        workspace_paths.append(rel_target)
+    else:
+        assert "state_target_path" in action and "workspace_target_path" not in action, action
+        rel_target = action["state_target_path"]
+        selected_root = state_target
+        source_map = state_plan_targets
+        state_paths.append(rel_target)
+    assert isinstance(rel_target, str) and rel_target, action
+    assert not Path(rel_target).is_absolute(), action
+    assert "\\" not in rel_target, action
+    assert ".." not in Path(rel_target).parts, action
+    assert rel_target in source_map, action
+    copied = selected_root / rel_target
+    assert copied.resolve().is_relative_to(selected_root.resolve()), copied
+    source = Path(source_map[rel_target])
+    assert copied.is_file(), copied
+    assert copied.read_bytes() == source.read_bytes(), (copied, source)
+
+assert workspace_paths, apply_actions
+assert state_paths, apply_actions
 assert sorted(cleanup_plan["workspace_paths"]) == sorted(workspace_paths), cleanup_plan
 assert sorted(cleanup_plan["state_paths"]) == sorted(state_paths), cleanup_plan
 assert sorted(rollback_plan["workspace_paths"]) == sorted(workspace_paths), rollback_plan
