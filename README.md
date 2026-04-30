@@ -139,6 +139,7 @@ bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_
 
 This is local-only and disposable-only.
 It does not authorize live runtime apply or Crab invocation.
+The controlled disposable apply skeleton validates its primary repo-local evidence against JSON Schemas.
 
 Disposable target path validation is available at:
 

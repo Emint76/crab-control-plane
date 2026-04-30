@@ -205,7 +205,8 @@ for evidence_file in \
   checks/run_dir_invariants.json \
   checks/target_path_validation.json \
   checks/no_secret_leakage_validation.json \
-  checks/no_live_runtime_validation.json; do
+  checks/no_live_runtime_validation.json \
+  checks/evidence_schema_validation.json; do
   assert_file "${VALID_RUN_DIR}/${evidence_file}"
 done
 assert_file_text_equals "${VALID_RUN_DIR}/exit_code" "0"
@@ -214,17 +215,21 @@ assert_file_text_equals "${VALID_RUN_DIR}/exit_code" "0"
   "${VALID_RUN_DIR}" \
   "${DRYRUN_RUN_DIR}" \
   "${WORKSPACE_TARGET}" \
-  "${STATE_TARGET}" <<'PY'
+  "${STATE_TARGET}" \
+  "${APPLY_ROOT}/schemas" <<'PY'
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
 
+import jsonschema
+
 run_dir = Path(sys.argv[1])
 dryrun_dir = Path(sys.argv[2])
 workspace_target = Path(sys.argv[3])
 state_target = Path(sys.argv[4])
+schema_root = Path(sys.argv[5])
 
 def load(path: Path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
@@ -234,6 +239,7 @@ run_dir_invariants = load(run_dir / "checks" / "run_dir_invariants.json")
 target_path_validation = load(run_dir / "checks" / "target_path_validation.json")
 no_secret_leakage_validation = load(run_dir / "checks" / "no_secret_leakage_validation.json")
 no_live_runtime_validation = load(run_dir / "checks" / "no_live_runtime_validation.json")
+evidence_schema_validation = load(run_dir / "checks" / "evidence_schema_validation.json")
 apply_report = load(run_dir / "apply_report.json")
 placement_plan = load(dryrun_dir / "proposed_openclaw_placement_plan.json")
 apply_actions = load(run_dir / "apply_actions.json")
@@ -250,6 +256,8 @@ assert run_dir_invariants["status"] == "pass", run_dir_invariants
 assert target_path_validation["status"] == "pass", target_path_validation
 assert no_secret_leakage_validation["status"] == "pass", no_secret_leakage_validation
 assert no_live_runtime_validation["status"] == "pass", no_live_runtime_validation
+assert evidence_schema_validation["status"] == "pass", evidence_schema_validation
+assert evidence_schema_validation["violations"] == [], evidence_schema_validation
 
 assert apply_report["overall_status"] == "pass", apply_report
 assert apply_report["local_only"] is True, apply_report
@@ -257,10 +265,31 @@ assert apply_report["disposable_only"] is True, apply_report
 assert apply_report["live_runtime_apply"] is False, apply_report
 assert apply_report["workspace_write_count"] >= 0, apply_report
 assert apply_report["state_write_count"] == 0, apply_report
+assert apply_report["checks"]["evidence_schema_validation"] == "pass", apply_report
 
 assert target_refs["workspace_target"] == str(workspace_target.resolve()), target_refs
 assert target_refs["state_target"] == str(state_target.resolve()), target_refs
 assert input_refs["dry_run_run_dir"] == "operations/harness-openclaw-dryrun/runs/openclaw-dryrun-valid", input_refs
+
+schema_map = {
+    "apply_meta.json": "apply_meta.schema.json",
+    "apply_report.json": "apply_report.schema.json",
+    "target_refs.json": "target_refs.schema.json",
+    "apply_actions.json": "apply_actions.schema.json",
+}
+validators = {}
+for evidence_name, schema_name in schema_map.items():
+    schema = load(schema_root / schema_name)
+    jsonschema.Draft202012Validator.check_schema(schema)
+    validator = jsonschema.Draft202012Validator(schema)
+    validators[evidence_name] = validator
+    validator.validate(load(run_dir / evidence_name))
+
+invalid_meta = dict(apply_meta)
+invalid_meta.pop("approval_label")
+invalid_meta_path = run_dir / "invalid_apply_meta_missing_approval_label.json"
+invalid_meta_path.write_text(json.dumps(invalid_meta, indent=2) + "\n", encoding="utf-8")
+assert list(validators["apply_meta.json"].iter_errors(invalid_meta)), "invalid apply_meta schema case unexpectedly passed"
 
 proposed_writes = placement_plan["proposed_writes"]
 assert proposed_writes, "expected fixture dry-run plan to contain proposed writes"

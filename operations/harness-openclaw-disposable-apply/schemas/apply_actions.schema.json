@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-disposable-apply/apply_actions.schema.json",
+  "title": "Controlled Disposable Apply Actions",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "source",
+      "workspace_target_path",
+      "applied"
+    ],
+    "properties": {
+      "source": {
+        "type": "string",
+        "pattern": "^operations/[^\\\\\\n\\r]+$",
+        "not": {
+          "pattern": "(^|/)\\.\\.(/|$)"
+        }
+      },
+      "workspace_target_path": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$"
+      },
+      "applied": {
+        "type": "boolean"
+      },
+      "existed_before": {
+        "type": "boolean"
+      },
+      "bytes_copied": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  }
+}
