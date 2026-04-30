@@ -63,6 +63,12 @@ run_dir_created = False
 target_validator_ref = "operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh"
 no_secret_validator_ref = "operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh"
 placement_schema_ref = "operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json"
+evidence_schema_refs = {
+    "apply_meta.json": "operations/harness-openclaw-disposable-apply/schemas/apply_meta.schema.json",
+    "apply_report.json": "operations/harness-openclaw-disposable-apply/schemas/apply_report.schema.json",
+    "target_refs.json": "operations/harness-openclaw-disposable-apply/schemas/target_refs.schema.json",
+    "apply_actions.json": "operations/harness-openclaw-disposable-apply/schemas/apply_actions.schema.json",
+}
 
 
 def fail(message: str) -> None:
@@ -347,6 +353,33 @@ def validate_plan_schema(proposed_plan: dict[str, Any]) -> None:
         fail(f"proposed placement plan schema validation failed: {violations[0].message}")
 
 
+def validate_evidence_schemas() -> dict[str, Any]:
+    try:
+        import jsonschema
+    except ImportError:
+        fail("jsonschema is required; install operations/harness-phase2/requirements.txt")
+
+    violations: list[str] = []
+    for evidence_name, schema_ref in evidence_schema_refs.items():
+        evidence_path = run_dir / evidence_name
+        schema_path = repo_root / schema_ref
+        evidence = load_json(evidence_path, evidence_name)
+        schema = load_json(schema_path, schema_ref)
+        jsonschema.Draft202012Validator.check_schema(schema)
+        validator = jsonschema.Draft202012Validator(schema)
+        for error in sorted(validator.iter_errors(evidence), key=lambda item: list(item.path)):
+            location = "/".join(str(part) for part in error.path) or "<root>"
+            violations.append(f"{evidence_name}:{location}: {error.message}")
+
+    payload = {
+        "status": "pass" if not violations else "fail",
+        "validated": evidence_schema_refs,
+        "violations": violations,
+    }
+    write_json(checks_dir / "evidence_schema_validation.json", payload)
+    return payload
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -498,43 +531,34 @@ def main() -> None:
     state_write_count = 0
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    write_json(
-        run_dir / "apply_meta.json",
-        {
-            "profile": "controlled-disposable-apply",
-            "run_id": run_id,
-            "dry_run_run_dir": dry_run_ref,
-            "canonical_run_dir": canonical_run_dir,
-            "approval_label": str(values["approval_label"]),
-            "local_only": True,
-            "disposable_only": True,
-            "live_runtime_apply": False,
-            "workspace_write_count": workspace_write_count,
-            "state_write_count": state_write_count,
-            "created_at": created_at,
-        },
-    )
-    write_json(
-        run_dir / "input_refs.json",
-        {
-            "dry_run_run_dir": dry_run_ref,
-            "proposed_openclaw_placement_plan": f"{dry_run_ref}/proposed_openclaw_placement_plan.json",
-            "dry_run_report": f"{dry_run_ref}/dry_run_report.json",
-            "proposed_plan_schema_validation": f"{dry_run_ref}/checks/proposed_plan_schema_validation.json",
-            "no_secret_leakage_validation": f"{dry_run_ref}/checks/no_secret_leakage_validation.json",
-            "source_phase3_run_dir": proposed_plan.get("source_phase3_run_dir"),
-        },
-    )
-    write_json(
-        run_dir / "target_refs.json",
-        {
-            "workspace_target": str(workspace_target),
-            "workspace_approved_root": str(Path(str(values["workspace_approved_root"])).resolve(strict=True)),
-            "state_target": str(state_target),
-            "state_approved_root": str(Path(str(values["state_approved_root"])).resolve(strict=True)),
-        },
-    )
-    write_json(run_dir / "cleanup_plan.json", {
+    apply_meta = {
+        "profile": "controlled-disposable-apply",
+        "run_id": run_id,
+        "dry_run_run_dir": dry_run_ref,
+        "canonical_run_dir": canonical_run_dir,
+        "approval_label": str(values["approval_label"]),
+        "local_only": True,
+        "disposable_only": True,
+        "live_runtime_apply": False,
+        "workspace_write_count": workspace_write_count,
+        "state_write_count": state_write_count,
+        "created_at": created_at,
+    }
+    input_refs = {
+        "dry_run_run_dir": dry_run_ref,
+        "proposed_openclaw_placement_plan": f"{dry_run_ref}/proposed_openclaw_placement_plan.json",
+        "dry_run_report": f"{dry_run_ref}/dry_run_report.json",
+        "proposed_plan_schema_validation": f"{dry_run_ref}/checks/proposed_plan_schema_validation.json",
+        "no_secret_leakage_validation": f"{dry_run_ref}/checks/no_secret_leakage_validation.json",
+        "source_phase3_run_dir": proposed_plan.get("source_phase3_run_dir"),
+    }
+    target_refs = {
+        "workspace_target": str(workspace_target),
+        "workspace_approved_root": str(Path(str(values["workspace_approved_root"])).resolve(strict=True)),
+        "state_target": str(state_target),
+        "state_approved_root": str(Path(str(values["state_approved_root"])).resolve(strict=True)),
+    }
+    cleanup_plan = {
         "status": "planned",
         "local_only": True,
         "disposable_only": True,
@@ -542,8 +566,8 @@ def main() -> None:
         "workspace_paths": [action["workspace_target_path"] for action in actions],
         "state_paths": [],
         "must_not_clean_live_runtime": True,
-    })
-    write_json(run_dir / "rollback_plan.json", {
+    }
+    rollback_plan = {
         "status": "planned",
         "local_only": True,
         "disposable_only": True,
@@ -551,24 +575,38 @@ def main() -> None:
         "workspace_paths": [action["workspace_target_path"] for action in actions],
         "state_paths": [],
         "must_remain_inside_disposable_targets": True,
-    })
-    write_json(
-        run_dir / "apply_report.json",
-        {
-            "overall_status": "pass",
-            "local_only": True,
-            "disposable_only": True,
-            "workspace_write_count": workspace_write_count,
-            "state_write_count": state_write_count,
-            "live_runtime_apply": False,
-            "checks": {
-                "run_dir_invariants": "pass",
-                "target_path_validation": target_validation["status"],
-                "no_secret_leakage_validation": no_secret_validation["status"],
-                "no_live_runtime_validation": no_live_runtime_validation["status"],
-            },
+    }
+    apply_report = {
+        "overall_status": "pass",
+        "local_only": True,
+        "disposable_only": True,
+        "workspace_write_count": workspace_write_count,
+        "state_write_count": state_write_count,
+        "live_runtime_apply": False,
+        "checks": {
+            "run_dir_invariants": "pass",
+            "target_path_validation": target_validation["status"],
+            "no_secret_leakage_validation": no_secret_validation["status"],
+            "no_live_runtime_validation": no_live_runtime_validation["status"],
+            "evidence_schema_validation": "pass",
         },
-    )
+    }
+
+    write_json(run_dir / "apply_meta.json", apply_meta)
+    write_json(run_dir / "input_refs.json", input_refs)
+    write_json(run_dir / "target_refs.json", target_refs)
+    write_json(run_dir / "cleanup_plan.json", cleanup_plan)
+    write_json(run_dir / "rollback_plan.json", rollback_plan)
+    write_json(run_dir / "apply_report.json", apply_report)
+
+    evidence_schema_validation = validate_evidence_schemas()
+    if evidence_schema_validation["status"] != "pass":
+        apply_report["overall_status"] = "fail"
+        apply_report["checks"]["evidence_schema_validation"] = "fail"
+        write_json(run_dir / "apply_report.json", apply_report)
+        write_exit_code(1)
+        fail("controlled disposable apply evidence schema validation failed")
+
     write_text(
         run_dir / "apply_report.md",
         "\n".join(

@@ -13,6 +13,7 @@ It is not approved for Crab invocation.
 No OpenClaw mutation outside explicitly disposable local targets, deploy, migration, or live runtime integration is included.
 The initial skeleton validates the disposable state target but may perform zero state writes until placement plans explicitly distinguish state-target writes.
 Local overlay reading is still not implemented.
+The initial skeleton validates its primary repo-local evidence against JSON Schemas.
 
 ## Scope
 
@@ -124,6 +125,7 @@ Implementation must emit evidence such as:
 - `checks/target_path_validation.json`
 - `checks/no_secret_leakage_validation.json`
 - `checks/no_live_runtime_validation.json`
+- `checks/evidence_schema_validation.json`
 
 ## Required evidence after apply
 
@@ -137,6 +139,8 @@ Implementation must emit:
 - `exit_code`
 
 The initial skeleton emits these artifacts under `operations/harness-openclaw-disposable-apply/runs/<RUN_ID>/`.
+It validates `apply_meta.json`, `apply_report.json`, `target_refs.json`, and `apply_actions.json` against JSON Schemas before reporting success.
+This is evidence hardening only; it does not expand apply permissions, authorize state-target write expansion, or approve Crab invocation.
 
 ## Cleanup and rollback expectations
 
@@ -206,7 +210,7 @@ Future implementation must include:
 - no-live-runtime validation
 - cleanup validation
 - rollback validation
-- evidence shape validation
+- evidence shape validation, including JSON Schema validation for primary repo-local evidence
 
 ## Promotion gates
 

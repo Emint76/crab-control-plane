@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-disposable-apply/target_refs.schema.json",
+  "title": "Controlled Disposable Apply Target Refs",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "workspace_target",
+    "workspace_approved_root",
+    "state_target",
+    "state_approved_root"
+  ],
+  "properties": {
+    "workspace_target": {
+      "type": "string",
+      "pattern": "^(\\/[^\\n\\r]*|[A-Za-z]:[\\\\/][^\\n\\r]*)$"
+    },
+    "workspace_approved_root": {
+      "type": "string",
+      "pattern": "^(\\/[^\\n\\r]*|[A-Za-z]:[\\\\/][^\\n\\r]*)$"
+    },
+    "state_target": {
+      "type": "string",
+      "pattern": "^(\\/[^\\n\\r]*|[A-Za-z]:[\\\\/][^\\n\\r]*)$"
+    },
+    "state_approved_root": {
+      "type": "string",
+      "pattern": "^(\\/[^\\n\\r]*|[A-Za-z]:[\\\\/][^\\n\\r]*)$"
+    }
+  }
+}

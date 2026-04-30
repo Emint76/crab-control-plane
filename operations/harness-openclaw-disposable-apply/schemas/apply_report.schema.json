@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-disposable-apply/apply_report.schema.json",
+  "title": "Controlled Disposable Apply Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "overall_status",
+    "local_only",
+    "disposable_only",
+    "workspace_write_count",
+    "state_write_count",
+    "live_runtime_apply",
+    "checks"
+  ],
+  "properties": {
+    "overall_status": {
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "local_only": {
+      "const": true
+    },
+    "disposable_only": {
+      "const": true
+    },
+    "workspace_write_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "state_write_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "live_runtime_apply": {
+      "const": false
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_dir_invariants",
+        "target_path_validation",
+        "no_secret_leakage_validation",
+        "no_live_runtime_validation",
+        "evidence_schema_validation"
+      ],
+      "properties": {
+        "run_dir_invariants": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "target_path_validation": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "no_secret_leakage_validation": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "no_live_runtime_validation": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "evidence_schema_validation": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        }
+      }
+    }
+  }
+}

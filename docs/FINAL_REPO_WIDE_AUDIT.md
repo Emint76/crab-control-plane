@@ -53,6 +53,7 @@
 - Disposable target path validation.
 - No-secret-leakage validation.
 - Controlled disposable apply skeleton.
+- Controlled disposable apply evidence schema validation.
 
 ## Remaining known non-blocking debt
 
