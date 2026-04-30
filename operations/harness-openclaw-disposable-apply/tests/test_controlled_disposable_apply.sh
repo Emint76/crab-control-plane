@@ -237,6 +237,10 @@ no_live_runtime_validation = load(run_dir / "checks" / "no_live_runtime_validati
 apply_report = load(run_dir / "apply_report.json")
 placement_plan = load(dryrun_dir / "proposed_openclaw_placement_plan.json")
 apply_actions = load(run_dir / "apply_actions.json")
+cleanup_plan = load(run_dir / "cleanup_plan.json")
+rollback_plan = load(run_dir / "rollback_plan.json")
+target_refs = load(run_dir / "target_refs.json")
+input_refs = load(run_dir / "input_refs.json")
 
 assert apply_meta["local_only"] is True, apply_meta
 assert apply_meta["disposable_only"] is True, apply_meta
@@ -251,6 +255,12 @@ assert apply_report["overall_status"] == "pass", apply_report
 assert apply_report["local_only"] is True, apply_report
 assert apply_report["disposable_only"] is True, apply_report
 assert apply_report["live_runtime_apply"] is False, apply_report
+assert apply_report["workspace_write_count"] >= 0, apply_report
+assert apply_report["state_write_count"] == 0, apply_report
+
+assert target_refs["workspace_target"] == str(workspace_target.resolve()), target_refs
+assert target_refs["state_target"] == str(state_target.resolve()), target_refs
+assert input_refs["dry_run_run_dir"] == "operations/harness-openclaw-dryrun/runs/openclaw-dryrun-valid", input_refs
 
 proposed_writes = placement_plan["proposed_writes"]
 assert proposed_writes, "expected fixture dry-run plan to contain proposed writes"
@@ -265,14 +275,60 @@ source_by_target = {
 for action in apply_actions:
     rel_target = action["workspace_target_path"]
     assert action["applied"] is True, action
+    assert isinstance(action["source"], str) and action["source"].startswith("operations/"), action
+    assert not Path(action["source"]).is_absolute(), action
+    assert "\\" not in action["source"], action
+    assert ".." not in Path(action["source"]).parts, action
+    assert isinstance(rel_target, str) and rel_target, action
+    assert not Path(rel_target).is_absolute(), action
+    assert "\\" not in rel_target, action
+    assert ".." not in Path(rel_target).parts, action
     assert rel_target in source_by_target, action
     copied = workspace_target / rel_target
+    assert copied.resolve().is_relative_to(workspace_target.resolve()), copied
     source = Path(source_by_target[rel_target])
     assert copied.is_file(), copied
     assert copied.read_bytes() == source.read_bytes(), (copied, source)
 
 state_files = sorted(path.relative_to(state_target).as_posix() for path in state_target.rglob("*") if path.is_file())
 assert state_files == [".crab-disposable-target.json"], state_files
+
+def iter_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from iter_strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from iter_strings(item)
+
+applied_targets = sorted(action["workspace_target_path"] for action in apply_actions)
+assert sorted(cleanup_plan["workspace_paths"]) == applied_targets, cleanup_plan
+assert cleanup_plan["state_paths"] == [], cleanup_plan
+assert cleanup_plan["local_only"] is True, cleanup_plan
+assert cleanup_plan["disposable_only"] is True, cleanup_plan
+assert cleanup_plan["must_not_clean_live_runtime"] is True, cleanup_plan
+assert sorted(rollback_plan["workspace_paths"]) == applied_targets, rollback_plan
+assert rollback_plan["state_paths"] == [], rollback_plan
+assert rollback_plan["local_only"] is True, rollback_plan
+assert rollback_plan["disposable_only"] is True, rollback_plan
+assert rollback_plan["must_remain_inside_disposable_targets"] is True, rollback_plan
+
+for plan in (cleanup_plan, rollback_plan):
+    for text in iter_strings(plan):
+        assert "live runtime target" not in text.lower(), plan
+        assert "production" not in text.lower(), plan
+        if text.startswith("operations/"):
+            assert text.startswith("operations/harness-openclaw-disposable-apply/runs/"), text
+        if text.startswith("/"):
+            resolved = Path(text).resolve()
+            assert (
+                resolved == workspace_target.resolve()
+                or resolved == state_target.resolve()
+                or resolved.is_relative_to(workspace_target.resolve())
+                or resolved.is_relative_to(state_target.resolve())
+            ), text
 PY
 
 clone_dryrun "openclaw-dryrun-missing-plan"

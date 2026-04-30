@@ -36,6 +36,11 @@ This repo defines how the system should be structured across six layers:
 | Phase 2 repo-native scaffold | `operations/harness-phase2/bin/run_phase2_bundle.sh` | validates, renders scaffold decisions, runtime-ready package, conformance, report, handoff readiness |
 | Phase 3 execution surface | `operations/harness-phase3/bin/run_phase3_bundle.sh` | canonical execution owner surface; hardened with run-dir invariants, fail-closed behavior, execution target validation, canonical reporting, and CI |
 | Phase 4 wrapper | `operations/harness-phase4/bin/run_phase4_wrapper.sh` | thin wrapper over Phase 3; does not own canonical execution outputs; contract: `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md` |
+| Crab-safe wrapper | `operations/harness-orchestration/bin/run_repo_native_smoke.sh` | approved wrapper for repo-native smoke only; no OpenClaw writes |
+| OpenClaw dry-run adapter | `operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh` | local-only dry-run evidence; no live writes |
+| Disposable target path validation | `operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh` | validation only |
+| No-secret-leakage validation | `operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh` | validation only |
+| Controlled disposable apply skeleton | `operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh` | local-only, disposable-only initial skeleton |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
