@@ -57,6 +57,7 @@
 - Placement plan workspace/state target semantics.
 - Controlled disposable apply state-target write support inside disposable targets.
 - Dry-run adapter reserved-prefix workspace/state classification.
+- Bounded local disposable target selector layer.
 
 ## Remaining known non-blocking debt
 
@@ -66,4 +67,5 @@
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
 - Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond initial skeleton.
+- Broader local overlay implementation is not done.
 - Live-runtime adapter remains future work.

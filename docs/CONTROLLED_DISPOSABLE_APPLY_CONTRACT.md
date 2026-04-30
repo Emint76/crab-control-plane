@@ -45,6 +45,8 @@ Controlled disposable apply may consume only:
 - explicit human approval record
 
 Local overlay target selectors remain future work and are not read by the initial skeleton.
+A bounded local disposable target selector wrapper may forward non-secret target paths and approval label from an outside-Git selector file.
+This remains local-only, disposable-only, not Crab-approved, and not broad local overlay reading.
 
 ## Forbidden inputs
 
@@ -170,6 +172,7 @@ Controlled disposable apply depends on the dry-run adapter and its evidence.
 Dry-run remains the proposal stage.
 Controlled disposable apply is a later stage and must not redefine dry-run semantics.
 The initial skeleton consumes dry-run evidence and re-runs no-secret-leakage validation before any apply-like copy.
+It may be invoked directly with explicit target CLI args or through the bounded local target selector wrapper.
 
 ## Relationship to placement plan schema
 

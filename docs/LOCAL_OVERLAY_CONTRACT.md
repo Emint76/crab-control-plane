@@ -136,6 +136,9 @@ The disposable workspace/state boundary is defined in `docs/DISPOSABLE_OPENCLAW_
 Disposable workspace apply may later consume local overlay selectors or config, but only after a separate disposable workspace contract and apply contract exist.
 The local overlay contract may describe where disposable workspace/state paths are declared, but it does not implement disposable workspace creation or apply.
 
+A narrow local disposable target selector may exist outside Git for non-secret target-path selection only.
+This does not authorize broader overlay reading, secrets/config ingestion, or live runtime apply.
+
 ## Relationship to live runtime apply
 
 Live runtime apply remains forbidden and out of scope.
