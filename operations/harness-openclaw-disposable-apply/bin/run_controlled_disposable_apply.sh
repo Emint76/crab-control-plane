@@ -450,6 +450,11 @@ def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path)
             fail("proposed_writes items must be objects")
         if item.get("write_mode") != "proposed-only":
             fail("proposed write_mode must be proposed-only")
+        target_surface = item.get("target_surface")
+        if target_surface not in ("workspace", "state"):
+            fail("proposed target_surface must be workspace or state")
+        if target_surface == "state":
+            fail("state-target writes are not implemented in the initial controlled disposable apply skeleton")
         target = item.get("target")
         source = item.get("source")
         if not isinstance(target, str) or not target.startswith("declared-openclaw-target:"):
@@ -472,6 +477,7 @@ def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path)
         actions.append(
             {
                 "source": source,
+                "target_surface": "workspace",
                 "workspace_target_path": target_rel.as_posix(),
                 "applied": True,
                 "existed_before": existed_before,

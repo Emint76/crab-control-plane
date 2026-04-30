@@ -95,6 +95,7 @@ cleanup() {
     controlled-disposable-apply-state-not-disposable \
     controlled-disposable-apply-target-outside-root \
     controlled-disposable-apply-target-equal-root \
+    controlled-disposable-apply-state-target-write \
     controlled-disposable-apply-empty-approval; do
     safe_rm_generated_dir "${RUNS_ROOT}/${name}" "${RUNS_ROOT}" "${name}"
   done
@@ -102,7 +103,8 @@ cleanup() {
     "${DRYRUN_ID}" \
     openclaw-dryrun-missing-plan \
     openclaw-dryrun-report-fail \
-    openclaw-dryrun-missing-no-secret; do
+    openclaw-dryrun-missing-no-secret \
+    openclaw-dryrun-state-target-write; do
     safe_rm_generated_dir "${DRYRUN_ROOT}/runs/${name}" "${DRYRUN_ROOT}/runs" "${name}"
   done
   safe_rm_generated_dir "${PHASE2_RUN_DIR}" "${PHASE2_ROOT}/runs" "${PHASE2_RUN_ID}"
@@ -293,6 +295,8 @@ assert list(validators["apply_meta.json"].iter_errors(invalid_meta)), "invalid a
 
 proposed_writes = placement_plan["proposed_writes"]
 assert proposed_writes, "expected fixture dry-run plan to contain proposed writes"
+for proposed_write in proposed_writes:
+    assert proposed_write["target_surface"] == "workspace", proposed_write
 assert apply_report["workspace_write_count"] == len(proposed_writes), apply_report
 assert apply_report["state_write_count"] == 0, apply_report
 assert len(apply_actions) == len(proposed_writes), apply_actions
@@ -304,6 +308,7 @@ source_by_target = {
 for action in apply_actions:
     rel_target = action["workspace_target_path"]
     assert action["applied"] is True, action
+    assert action["target_surface"] == "workspace", action
     assert isinstance(action["source"], str) and action["source"].startswith("operations/"), action
     assert not Path(action["source"]).is_absolute(), action
     assert "\\" not in action["source"], action
@@ -378,6 +383,20 @@ PY
 clone_dryrun "openclaw-dryrun-missing-no-secret"
 rm -f "${DRYRUN_ROOT}/runs/openclaw-dryrun-missing-no-secret/checks/no_secret_leakage_validation.json"
 
+clone_dryrun "openclaw-dryrun-state-target-write"
+"${PYTHON_BIN}" - "${DRYRUN_ROOT}/runs/openclaw-dryrun-state-target-write/proposed_openclaw_placement_plan.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+payload = json.loads(path.read_text(encoding="utf-8-sig"))
+if not payload["proposed_writes"]:
+    raise SystemExit("expected proposed writes for state-target negative case")
+payload["proposed_writes"][0]["target_surface"] = "state"
+path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+PY
+
 BAD_WORKSPACE_TARGET="${WORKSPACE_APPROVED_ROOT}/workspace-not-disposable"
 BAD_STATE_TARGET="${STATE_APPROVED_ROOT}/state-not-disposable"
 OUTSIDE_WORKSPACE_ROOT="${TMP_ROOT}/outside-workspace-root"
@@ -440,6 +459,18 @@ run_apply_expect_fail "missing-no-secret-check" \
   --state-approved-root "${STATE_APPROVED_ROOT}" \
   --approval-label "test-approved" \
   --run-id "controlled-disposable-apply-missing-no-secret"
+
+run_apply_expect_fail "state-target-write-fails-closed" \
+  --dry-run-run-dir "operations/harness-openclaw-dryrun/runs/openclaw-dryrun-state-target-write" \
+  --workspace-target "${WORKSPACE_TARGET}" \
+  --workspace-approved-root "${WORKSPACE_APPROVED_ROOT}" \
+  --state-target "${STATE_TARGET}" \
+  --state-approved-root "${STATE_APPROVED_ROOT}" \
+  --approval-label "test-approved" \
+  --run-id "controlled-disposable-apply-state-target-write"
+
+state_files_after_state_negative="$(find "${STATE_TARGET}" -type f -printf '%P\n' | sort)"
+[[ "${state_files_after_state_negative}" == ".crab-disposable-target.json" ]] || fail "state-target negative case wrote to state target"
 
 run_apply_expect_fail "workspace-target-not-disposable" \
   --dry-run-run-dir "operations/harness-openclaw-dryrun/runs/${DRYRUN_ID}" \

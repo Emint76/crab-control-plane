@@ -54,6 +54,7 @@
 - No-secret-leakage validation.
 - Controlled disposable apply skeleton.
 - Controlled disposable apply evidence schema validation.
+- Placement plan workspace/state target semantics.
 
 ## Remaining known non-blocking debt
 
@@ -62,4 +63,5 @@
 - Installability/deploy packaging remains a separate future workstream.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
 - Controlled disposable apply expansion beyond initial skeleton.
+- Future state-target write expansion.
 - Live-runtime adapter remains future work.

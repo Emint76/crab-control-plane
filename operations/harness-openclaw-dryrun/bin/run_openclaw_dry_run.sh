@@ -267,6 +267,7 @@ def proposed_writes_for(phase3_ref: str, staging_dir: Path, staging_ref: str) ->
             {
                 "source": f"{staging_ref}/{relative_source}",
                 "target": f"declared-openclaw-target:{relative_source}",
+                "target_surface": "workspace",
                 "write_mode": "proposed-only",
                 "reason": "dry-run placement proposal derived from Phase 3 staging output",
             }
