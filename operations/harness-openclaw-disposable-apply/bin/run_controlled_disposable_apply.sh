@@ -439,7 +439,7 @@ def validate_source_ref(raw: str) -> Path:
     return source_path
 
 
-def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path) -> list[dict[str, Any]]:
+def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path, state_target: Path) -> list[dict[str, Any]]:
     proposed_writes = proposed_plan.get("proposed_writes")
     if not isinstance(proposed_writes, list):
         fail("proposed_writes must be an array")
@@ -453,8 +453,6 @@ def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path)
         target_surface = item.get("target_surface")
         if target_surface not in ("workspace", "state"):
             fail("proposed target_surface must be workspace or state")
-        if target_surface == "state":
-            fail("state-target writes are not implemented in the initial controlled disposable apply skeleton")
         target = item.get("target")
         source = item.get("source")
         if not isinstance(target, str) or not target.startswith("declared-openclaw-target:"):
@@ -465,11 +463,13 @@ def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path)
         source_path = validate_source_ref(source)
         target_rel_text = target.removeprefix("declared-openclaw-target:")
         target_rel = validate_target_relative_path(target_rel_text)
-        destination = (workspace_target / Path(*target_rel.parts)).resolve(strict=False)
+        selected_root = workspace_target if target_surface == "workspace" else state_target
+        target_path_key = "workspace_target_path" if target_surface == "workspace" else "state_target_path"
+        destination = (selected_root / Path(*target_rel.parts)).resolve(strict=False)
         try:
-            destination.relative_to(workspace_target)
+            destination.relative_to(selected_root)
         except ValueError:
-            fail("proposed workspace destination escapes workspace target")
+            fail(f"proposed {target_surface} destination escapes {target_surface} target")
 
         existed_before = destination.exists()
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -477,8 +477,8 @@ def apply_proposed_writes(proposed_plan: dict[str, Any], workspace_target: Path)
         actions.append(
             {
                 "source": source,
-                "target_surface": "workspace",
-                "workspace_target_path": target_rel.as_posix(),
+                "target_surface": target_surface,
+                target_path_key: target_rel.as_posix(),
                 "applied": True,
                 "existed_before": existed_before,
                 "bytes_copied": destination.stat().st_size,
@@ -524,7 +524,7 @@ def main() -> None:
     }
     write_json(run_dir / "pre_apply_snapshot.json", pre_snapshot)
 
-    actions = apply_proposed_writes(proposed_plan, workspace_target)
+    actions = apply_proposed_writes(proposed_plan, workspace_target, state_target)
     write_json(run_dir / "apply_actions.json", actions)
 
     post_snapshot = {
@@ -533,8 +533,10 @@ def main() -> None:
     }
     write_json(run_dir / "post_apply_snapshot.json", post_snapshot)
 
-    workspace_write_count = len(actions)
-    state_write_count = 0
+    workspace_paths = [action["workspace_target_path"] for action in actions if action["target_surface"] == "workspace"]
+    state_paths = [action["state_target_path"] for action in actions if action["target_surface"] == "state"]
+    workspace_write_count = len(workspace_paths)
+    state_write_count = len(state_paths)
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     apply_meta = {
@@ -569,8 +571,8 @@ def main() -> None:
         "local_only": True,
         "disposable_only": True,
         "cleanup_scope": "inside explicitly disposable targets only",
-        "workspace_paths": [action["workspace_target_path"] for action in actions],
-        "state_paths": [],
+        "workspace_paths": workspace_paths,
+        "state_paths": state_paths,
         "must_not_clean_live_runtime": True,
     }
     rollback_plan = {
@@ -578,8 +580,8 @@ def main() -> None:
         "local_only": True,
         "disposable_only": True,
         "rollback_basis": "pre_apply_snapshot.json",
-        "workspace_paths": [action["workspace_target_path"] for action in actions],
-        "state_paths": [],
+        "workspace_paths": workspace_paths,
+        "state_paths": state_paths,
         "must_remain_inside_disposable_targets": True,
     }
     apply_report = {
