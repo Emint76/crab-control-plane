@@ -41,6 +41,7 @@ This repo defines how the system should be structured across six layers:
 | Disposable target path validation | `operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh` | validation only |
 | No-secret-leakage validation | `operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh` | validation only |
 | Controlled disposable apply skeleton | `operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh` | local-only, disposable-only initial skeleton |
+| Local target selector wrapper | `operations/harness-openclaw-local-selector/bin/run_controlled_disposable_apply_from_selector.sh` | local-only wrapper over disposable apply; selector file must stay outside Git; no live writes |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
@@ -149,6 +150,10 @@ bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_
 This is local-only and disposable-only.
 It does not authorize live runtime apply or Crab invocation.
 The controlled disposable apply skeleton validates its primary repo-local evidence against JSON Schemas.
+
+A bounded local target selector wrapper is available for disposable apply.
+It accepts only a non-secret selector file outside Git and forwards validated target paths into controlled disposable apply.
+Its contract is defined in `docs/LOCAL_DISPOSABLE_TARGET_SELECTOR_CONTRACT.md`.
 
 Disposable target path validation is available at:
 

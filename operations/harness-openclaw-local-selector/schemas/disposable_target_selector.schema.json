@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-local-selector/disposable_target_selector.schema.json",
+  "title": "OpenClaw Disposable Target Selector",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "version",
+    "workspace_target",
+    "workspace_approved_root",
+    "state_target",
+    "state_approved_root",
+    "approval_label",
+    "local_only",
+    "disposable_only"
+  ],
+  "properties": {
+    "kind": {
+      "const": "openclaw-disposable-target-selector"
+    },
+    "version": {
+      "const": 1
+    },
+    "workspace_target": {
+      "type": "string",
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "workspace_approved_root": {
+      "type": "string",
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "state_target": {
+      "type": "string",
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "state_approved_root": {
+      "type": "string",
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "approval_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "local_only": {
+      "const": true
+    },
+    "disposable_only": {
+      "const": true
+    }
+  }
+}

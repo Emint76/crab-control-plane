@@ -35,9 +35,13 @@ no-secret-leakage-ci:
 controlled-disposable-apply-ci:
 	bash operations/harness-openclaw-disposable-apply/tests/test_controlled_disposable_apply.sh
 
+local-target-selector-ci:
+	bash operations/harness-openclaw-local-selector/tests/test_local_target_selector_layer.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci
 	$(MAKE) disposable-target-validation-ci
 	$(MAKE) no-secret-leakage-ci
 	$(MAKE) controlled-disposable-apply-ci
+	$(MAKE) local-target-selector-ci

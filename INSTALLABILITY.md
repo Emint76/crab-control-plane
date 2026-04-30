@@ -17,6 +17,7 @@ It is not a production OpenClaw deployment package.
 - `make disposable-target-validation-ci`
 - `make no-secret-leakage-ci`
 - `make controlled-disposable-apply-ci`
+- `make local-target-selector-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -74,6 +75,20 @@ The current controlled disposable apply contour can apply both, but only inside 
 The current normal dry-run path remains workspace-only unless reserved staging prefixes appear.
 Controlled disposable apply can consume classified dry-run plans inside explicitly disposable local targets only.
 `make controlled-disposable-apply-ci` also validates controlled apply evidence schemas through the existing test surface.
+
+Bounded local target selector wrapper:
+
+```bash
+bash operations/harness-openclaw-local-selector/bin/run_controlled_disposable_apply_from_selector.sh \
+  --selector-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --dry-run-run-dir operations/harness-openclaw-dryrun/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+This is not a full local overlay implementation.
+The selector file must stay outside Git and may contain only disposable target paths plus approval label.
+It must not contain secrets, provider/model/auth/token config, identity, channel IDs, or live-runtime targets.
+The selector contract is defined in `docs/LOCAL_DISPOSABLE_TARGET_SELECTOR_CONTRACT.md`.
 
 ## One-command smoke
 
