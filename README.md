@@ -114,7 +114,7 @@ The dry-run proposed placement plan is validated against:
 
 `operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json`
 
-The placement plan distinguishes workspace-target and state-target semantics. The current dry-run adapter emits workspace-target writes only, and the current controlled disposable apply skeleton fails closed on state-target writes.
+The placement plan distinguishes workspace-target and state-target semantics. The controlled disposable apply contour now supports both workspace-target and state-target writes inside explicitly disposable local targets. The current dry-run adapter may still emit workspace-target writes only.
 
 Local-only secrets, identity, credentials, endpoint config, and instance-specific runtime config are governed by `docs/LOCAL_OVERLAY_CONTRACT.md`.
 

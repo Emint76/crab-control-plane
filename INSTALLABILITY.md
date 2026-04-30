@@ -67,8 +67,9 @@ bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_
   --run-id <RUN_ID>
 ```
 
-The current placement plan contract distinguishes workspace-target and state-target semantics.
-The current initial skeleton applies workspace-target writes only and rejects state-target writes.
+The placement plan supports workspace-target and state-target semantics.
+The current controlled disposable apply contour can apply both, but only inside explicitly disposable local targets.
+The current dry-run adapter may still emit workspace-target writes only.
 `make controlled-disposable-apply-ci` also validates controlled apply evidence schemas through the existing test surface.
 
 ## One-command smoke

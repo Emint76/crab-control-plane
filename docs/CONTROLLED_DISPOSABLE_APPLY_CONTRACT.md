@@ -11,10 +11,11 @@ The initial controlled disposable apply skeleton is implemented.
 It remains local-only and disposable-only.
 It is not approved for Crab invocation.
 No OpenClaw mutation outside explicitly disposable local targets, deploy, migration, or live runtime integration is included.
-The initial skeleton validates the disposable state target but may perform zero state writes until placement plans explicitly distinguish state-target writes.
+The initial controlled disposable apply contour supports both workspace-target and state-target writes when they are explicitly requested by the placement plan.
 Local overlay reading is still not implemented.
 The initial skeleton validates its primary repo-local evidence against JSON Schemas.
-The initial skeleton understands `workspace|state` placement target semantics, writes only workspace-target files on the current positive path, and fails closed on `state` until future explicit state-write expansion.
+State writes remain bounded to explicitly disposable state targets only.
+This is not live runtime state integration.
 
 ## Scope
 
@@ -63,11 +64,15 @@ Future controlled disposable apply must never consume:
 Controlled disposable apply may write only to:
 
 - explicit disposable OpenClaw workspace path
-- explicit disposable OpenClaw state path when future schema support distinguishes state writes
+- explicit disposable OpenClaw state path
 - repo-local evidence directory for controlled apply
 
-The initial skeleton writes proposed files only into the explicitly disposable workspace target and records zero state writes unless future schema support expands this.
-It understands `target_surface = workspace|state` on placement plan items, but rejects `state` writes in the current implementation.
+The initial skeleton writes proposed files into the selected explicitly disposable target root:
+
+- `target_surface = workspace` writes under the disposable workspace target
+- `target_surface = state` writes under the disposable state target
+
+It must never write outside the selected disposable target root.
 
 ## Forbidden writes
 
@@ -143,7 +148,7 @@ Implementation must emit:
 
 The initial skeleton emits these artifacts under `operations/harness-openclaw-disposable-apply/runs/<RUN_ID>/`.
 It validates `apply_meta.json`, `apply_report.json`, `target_refs.json`, and `apply_actions.json` against JSON Schemas before reporting success.
-This is evidence hardening only; it does not expand apply permissions, authorize state-target write expansion, or approve Crab invocation.
+This evidence schema validation does not authorize live runtime apply, deploy, migration, local overlay reading, or Crab invocation.
 
 ## Cleanup and rollback expectations
 
@@ -169,8 +174,8 @@ The initial skeleton consumes dry-run evidence and re-runs no-secret-leakage val
 
 Controlled disposable apply may only consume a schema-valid `proposed_openclaw_placement_plan.json`.
 It must fail closed if the plan is missing or invalid.
-The current skeleton accepts `target_surface = workspace` for workspace copies and fails closed on `target_surface = state`.
-This does not authorize state-target write expansion, live runtime apply, or Crab invocation.
+The current skeleton accepts `target_surface = workspace` for workspace copies and `target_surface = state` for disposable state-target copies.
+This does not authorize live runtime apply, deploy, migration, local overlay reading, or Crab invocation.
 
 ## Relationship to local overlay
 

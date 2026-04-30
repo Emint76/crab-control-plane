@@ -4,43 +4,81 @@
   "title": "Controlled Disposable Apply Actions",
   "type": "array",
   "items": {
-    "type": "object",
-    "additionalProperties": false,
-    "required": [
-      "source",
-      "target_surface",
-      "workspace_target_path",
-      "applied"
-    ],
-    "properties": {
-      "source": {
-        "type": "string",
-        "pattern": "^operations/[^\\\\\\n\\r]+$",
-        "not": {
-          "pattern": "(^|/)\\.\\.(/|$)"
+    "oneOf": [
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "target_surface",
+          "workspace_target_path",
+          "applied"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^operations/[^\\\\\\n\\r]+$",
+            "not": {
+              "pattern": "(^|/)\\.\\.(/|$)"
+            }
+          },
+          "target_surface": {
+            "const": "workspace"
+          },
+          "workspace_target_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$"
+          },
+          "applied": {
+            "type": "boolean"
+          },
+          "existed_before": {
+            "type": "boolean"
+          },
+          "bytes_copied": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       },
-      "workspace_target_path": {
-        "type": "string",
-        "minLength": 1,
-        "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$"
-      },
-      "target_surface": {
-        "enum": [
-          "workspace",
-          "state"
-        ]
-      },
-      "applied": {
-        "type": "boolean"
-      },
-      "existed_before": {
-        "type": "boolean"
-      },
-      "bytes_copied": {
-        "type": "integer",
-        "minimum": 0
+      {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "target_surface",
+          "state_target_path",
+          "applied"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^operations/[^\\\\\\n\\r]+$",
+            "not": {
+              "pattern": "(^|/)\\.\\.(/|$)"
+            }
+          },
+          "target_surface": {
+            "const": "state"
+          },
+          "state_target_path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$"
+          },
+          "applied": {
+            "type": "boolean"
+          },
+          "existed_before": {
+            "type": "boolean"
+          },
+          "bytes_copied": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
       }
-    }
+    ]
   }
 }

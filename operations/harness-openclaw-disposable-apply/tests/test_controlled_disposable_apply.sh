@@ -293,6 +293,21 @@ invalid_meta_path = run_dir / "invalid_apply_meta_missing_approval_label.json"
 invalid_meta_path.write_text(json.dumps(invalid_meta, indent=2) + "\n", encoding="utf-8")
 assert list(validators["apply_meta.json"].iter_errors(invalid_meta)), "invalid apply_meta schema case unexpectedly passed"
 
+invalid_actions = [dict(apply_actions[0])] if apply_actions else [
+    {
+        "source": "operations/harness-phase3/runs/smoke-e2e-phase3/staging/runtime-ready-applied/synthetic.json",
+        "target_surface": "state",
+        "workspace_target_path": "synthetic.json",
+        "applied": True,
+    }
+]
+invalid_actions[0]["target_surface"] = "state"
+invalid_actions[0].pop("state_target_path", None)
+invalid_actions[0]["workspace_target_path"] = invalid_actions[0].get("workspace_target_path", "synthetic.json")
+invalid_actions_path = run_dir / "invalid_apply_actions_state_with_workspace_path.json"
+invalid_actions_path.write_text(json.dumps(invalid_actions, indent=2) + "\n", encoding="utf-8")
+assert list(validators["apply_actions.json"].iter_errors(invalid_actions)), "invalid apply_actions schema case unexpectedly passed"
+
 proposed_writes = placement_plan["proposed_writes"]
 assert proposed_writes, "expected fixture dry-run plan to contain proposed writes"
 for proposed_write in proposed_writes:
@@ -392,9 +407,155 @@ from pathlib import Path
 path = Path(sys.argv[1])
 payload = json.loads(path.read_text(encoding="utf-8-sig"))
 if not payload["proposed_writes"]:
-    raise SystemExit("expected proposed writes for state-target negative case")
+    raise SystemExit("expected proposed writes for state-target positive case")
 payload["proposed_writes"][0]["target_surface"] = "state"
 path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+PY
+
+bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh \
+  --dry-run-run-dir "operations/harness-openclaw-dryrun/runs/openclaw-dryrun-state-target-write" \
+  --workspace-target "${WORKSPACE_TARGET}" \
+  --workspace-approved-root "${WORKSPACE_APPROVED_ROOT}" \
+  --state-target "${STATE_TARGET}" \
+  --state-approved-root "${STATE_APPROVED_ROOT}" \
+  --approval-label "test-approved-state-target" \
+  --run-id "controlled-disposable-apply-state-target-write"
+
+assert_file "${RUNS_ROOT}/controlled-disposable-apply-state-target-write/apply_actions.json"
+assert_file "${RUNS_ROOT}/controlled-disposable-apply-state-target-write/apply_report.json"
+assert_file "${RUNS_ROOT}/controlled-disposable-apply-state-target-write/cleanup_plan.json"
+assert_file "${RUNS_ROOT}/controlled-disposable-apply-state-target-write/rollback_plan.json"
+assert_file "${RUNS_ROOT}/controlled-disposable-apply-state-target-write/checks/evidence_schema_validation.json"
+assert_file_text_equals "${RUNS_ROOT}/controlled-disposable-apply-state-target-write/exit_code" "0"
+
+"${PYTHON_BIN}" - \
+  "${RUNS_ROOT}/controlled-disposable-apply-state-target-write" \
+  "${DRYRUN_ROOT}/runs/openclaw-dryrun-state-target-write" \
+  "${WORKSPACE_TARGET}" \
+  "${STATE_TARGET}" \
+  "${APPLY_ROOT}/schemas" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import jsonschema
+
+run_dir = Path(sys.argv[1])
+dryrun_dir = Path(sys.argv[2])
+workspace_target = Path(sys.argv[3])
+state_target = Path(sys.argv[4])
+schema_root = Path(sys.argv[5])
+
+def load(path: Path):
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+apply_meta = load(run_dir / "apply_meta.json")
+apply_report = load(run_dir / "apply_report.json")
+apply_actions = load(run_dir / "apply_actions.json")
+placement_plan = load(dryrun_dir / "proposed_openclaw_placement_plan.json")
+cleanup_plan = load(run_dir / "cleanup_plan.json")
+rollback_plan = load(run_dir / "rollback_plan.json")
+evidence_schema_validation = load(run_dir / "checks" / "evidence_schema_validation.json")
+
+schema = load(schema_root / "apply_actions.schema.json")
+jsonschema.Draft202012Validator.check_schema(schema)
+jsonschema.validate(instance=apply_actions, schema=schema)
+
+assert apply_meta["local_only"] is True, apply_meta
+assert apply_meta["disposable_only"] is True, apply_meta
+assert apply_meta["live_runtime_apply"] is False, apply_meta
+assert apply_report["overall_status"] == "pass", apply_report
+assert apply_report["local_only"] is True, apply_report
+assert apply_report["disposable_only"] is True, apply_report
+assert apply_report["live_runtime_apply"] is False, apply_report
+assert apply_report["workspace_write_count"] >= 0, apply_report
+assert apply_report["state_write_count"] >= 1, apply_report
+assert apply_report["checks"]["evidence_schema_validation"] == "pass", apply_report
+assert evidence_schema_validation["status"] == "pass", evidence_schema_validation
+assert evidence_schema_validation["violations"] == [], evidence_schema_validation
+
+state_plan_targets = {
+    item["target"].removeprefix("declared-openclaw-target:"): item["source"]
+    for item in placement_plan["proposed_writes"]
+    if item["target_surface"] == "state"
+}
+workspace_plan_targets = {
+    item["target"].removeprefix("declared-openclaw-target:"): item["source"]
+    for item in placement_plan["proposed_writes"]
+    if item["target_surface"] == "workspace"
+}
+assert state_plan_targets, placement_plan
+
+workspace_paths = []
+state_paths = []
+for action in apply_actions:
+    assert action["target_surface"] in ("workspace", "state"), action
+    assert action["applied"] is True, action
+    assert isinstance(action["source"], str) and action["source"].startswith("operations/"), action
+    assert not Path(action["source"]).is_absolute(), action
+    assert "\\" not in action["source"], action
+    assert ".." not in Path(action["source"]).parts, action
+    if action["target_surface"] == "workspace":
+        assert "workspace_target_path" in action and "state_target_path" not in action, action
+        rel_target = action["workspace_target_path"]
+        workspace_paths.append(rel_target)
+        selected_root = workspace_target
+        source_map = workspace_plan_targets
+    else:
+        assert "state_target_path" in action and "workspace_target_path" not in action, action
+        rel_target = action["state_target_path"]
+        state_paths.append(rel_target)
+        selected_root = state_target
+        source_map = state_plan_targets
+    assert isinstance(rel_target, str) and rel_target, action
+    assert not Path(rel_target).is_absolute(), action
+    assert "\\" not in rel_target, action
+    assert ".." not in Path(rel_target).parts, action
+    assert rel_target in source_map, action
+    copied = selected_root / rel_target
+    assert copied.resolve().is_relative_to(selected_root.resolve()), copied
+    source = Path(source_map[rel_target])
+    assert copied.is_file(), copied
+    assert copied.read_bytes() == source.read_bytes(), (copied, source)
+
+assert len(workspace_paths) == apply_report["workspace_write_count"], apply_report
+assert len(state_paths) == apply_report["state_write_count"], apply_report
+assert sorted(cleanup_plan["workspace_paths"]) == sorted(workspace_paths), cleanup_plan
+assert sorted(cleanup_plan["state_paths"]) == sorted(state_paths), cleanup_plan
+assert sorted(rollback_plan["workspace_paths"]) == sorted(workspace_paths), rollback_plan
+assert sorted(rollback_plan["state_paths"]) == sorted(state_paths), rollback_plan
+
+state_files = sorted(path.relative_to(state_target).as_posix() for path in state_target.rglob("*") if path.is_file())
+assert ".crab-disposable-target.json" in state_files, state_files
+for rel_target in state_paths:
+    assert rel_target in state_files, (rel_target, state_files)
+
+def iter_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from iter_strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from iter_strings(item)
+
+for plan in (cleanup_plan, rollback_plan):
+    for text in iter_strings(plan):
+        assert "live runtime target" not in text.lower(), plan
+        assert "production" not in text.lower(), plan
+        if text.startswith("operations/"):
+            assert text.startswith("operations/harness-openclaw-disposable-apply/runs/"), text
+        if text.startswith("/"):
+            resolved = Path(text).resolve()
+            assert (
+                resolved == workspace_target.resolve()
+                or resolved == state_target.resolve()
+                or resolved.is_relative_to(workspace_target.resolve())
+                or resolved.is_relative_to(state_target.resolve())
+            ), text
 PY
 
 BAD_WORKSPACE_TARGET="${WORKSPACE_APPROVED_ROOT}/workspace-not-disposable"
@@ -459,18 +620,6 @@ run_apply_expect_fail "missing-no-secret-check" \
   --state-approved-root "${STATE_APPROVED_ROOT}" \
   --approval-label "test-approved" \
   --run-id "controlled-disposable-apply-missing-no-secret"
-
-run_apply_expect_fail "state-target-write-fails-closed" \
-  --dry-run-run-dir "operations/harness-openclaw-dryrun/runs/openclaw-dryrun-state-target-write" \
-  --workspace-target "${WORKSPACE_TARGET}" \
-  --workspace-approved-root "${WORKSPACE_APPROVED_ROOT}" \
-  --state-target "${STATE_TARGET}" \
-  --state-approved-root "${STATE_APPROVED_ROOT}" \
-  --approval-label "test-approved" \
-  --run-id "controlled-disposable-apply-state-target-write"
-
-state_files_after_state_negative="$(find "${STATE_TARGET}" -type f -printf '%P\n' | sort)"
-[[ "${state_files_after_state_negative}" == ".crab-disposable-target.json" ]] || fail "state-target negative case wrote to state target"
 
 run_apply_expect_fail "workspace-target-not-disposable" \
   --dry-run-run-dir "operations/harness-openclaw-dryrun/runs/${DRYRUN_ID}" \
