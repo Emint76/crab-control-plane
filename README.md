@@ -114,6 +114,8 @@ The dry-run proposed placement plan is validated against:
 
 `operations/harness-openclaw-dryrun/schemas/proposed_openclaw_placement_plan.schema.json`
 
+The placement plan distinguishes workspace-target and state-target semantics. The current dry-run adapter emits workspace-target writes only, and the current controlled disposable apply skeleton fails closed on state-target writes.
+
 Local-only secrets, identity, credentials, endpoint config, and instance-specific runtime config are governed by `docs/LOCAL_OVERLAY_CONTRACT.md`.
 
 The local overlay must stay outside Git.

@@ -30,6 +30,7 @@
         "required": [
           "source",
           "target",
+          "target_surface",
           "write_mode",
           "reason"
         ],
@@ -40,7 +41,13 @@
           },
           "target": {
             "type": "string",
-            "pattern": "^declared-openclaw-target:(?!/)(?!.*(?:/mnt/|/home/))[^\\\\\\n\\r]+$"
+            "pattern": "^declared-openclaw-target:(?!/)(?![A-Za-z]:[\\\\/])(?!.*(?:/mnt/|/home/))[^\\\\\\n\\r]+$"
+          },
+          "target_surface": {
+            "enum": [
+              "workspace",
+              "state"
+            ]
           },
           "write_mode": {
             "const": "proposed-only"

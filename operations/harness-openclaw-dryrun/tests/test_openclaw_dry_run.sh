@@ -195,7 +195,7 @@ done
   "${VALID_RUN_DIR}/checks/proposed_plan_schema_validation.json" \
   "${VALID_RUN_DIR}/checks/no_secret_leakage_validation.json" \
   "${PLACEMENT_PLAN_SCHEMA}" \
-  "${VALID_RUN_DIR}/invalid_plan_missing_write_mode.json" <<'PY'
+  "${VALID_RUN_DIR}/invalid_plan_missing_target_surface.json" <<'PY'
 from __future__ import annotations
 
 import json
@@ -226,6 +226,7 @@ assert placement_plan["status"] == "dry-run", placement_plan
 assert placement_plan["live_writes_performed"] is False, placement_plan
 for proposed_write in placement_plan["proposed_writes"]:
     assert proposed_write["write_mode"] == "proposed-only", proposed_write
+    assert proposed_write["target_surface"] == "workspace", proposed_write
 
 assert dry_run_report["overall_status"] == "pass", dry_run_report
 assert dry_run_report["live_writes_performed"] is False, dry_run_report
@@ -246,12 +247,13 @@ jsonschema.validate(instance=placement_plan, schema=schema)
 invalid_plan = dict(placement_plan)
 invalid_plan["proposed_writes"] = [dict(item) for item in placement_plan["proposed_writes"]]
 if invalid_plan["proposed_writes"]:
-    invalid_plan["proposed_writes"][0].pop("write_mode", None)
+    invalid_plan["proposed_writes"][0].pop("target_surface", None)
 else:
     invalid_plan["proposed_writes"] = [
         {
             "source": "operations/harness-phase3/runs/smoke-e2e-phase3/staging/runtime-ready-applied/synthetic.json",
             "target": "declared-openclaw-target:synthetic.json",
+            "write_mode": "proposed-only",
             "reason": "synthetic invalid placement plan for schema negative test",
         }
     ]

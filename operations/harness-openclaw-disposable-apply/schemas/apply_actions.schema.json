@@ -8,6 +8,7 @@
     "additionalProperties": false,
     "required": [
       "source",
+      "target_surface",
       "workspace_target_path",
       "applied"
     ],
@@ -23,6 +24,12 @@
         "type": "string",
         "minLength": 1,
         "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+$"
+      },
+      "target_surface": {
+        "enum": [
+          "workspace",
+          "state"
+        ]
       },
       "applied": {
         "type": "boolean"

@@ -156,6 +156,7 @@ Proposed placement evidence is machine-readable and follows this conceptual shap
     {
       "source": "operations/harness-phase3/runs/<RUN_ID>/staging/runtime-ready-applied/<path>",
       "target": "<repo-relative-or-declared-openclaw-target>",
+      "target_surface": "workspace",
       "write_mode": "proposed-only",
       "reason": "<why this placement is proposed>"
     }
@@ -164,7 +165,11 @@ Proposed placement evidence is machine-readable and follows this conceptual shap
 }
 ```
 
-The schema may be expanded in a future PR.
+The proposed placement plan distinguishes `target_surface = workspace|state`.
+`workspace` means the declared relative target path is under the disposable workspace target root.
+`state` means the declared relative target path would be under the disposable state target root.
+The current dry-run adapter emits `workspace` only.
+This target semantics contract does not implement state-target write expansion.
 
 ## Evidence requirements
 
@@ -175,6 +180,7 @@ Adapter evidence must prove:
 - input refs are repo-relative
 - output refs are under dry-run run dir
 - proposed placements are proposed-only
+- proposed placements declare `target_surface`
 - proposed placement plan validates against the JSON Schema
 - repo-local dry-run evidence passes no-secret-leakage validation
 - exit status is explicit
