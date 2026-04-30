@@ -37,6 +37,8 @@ bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
 
 This requires existing Phase 3 repo-native evidence and performs dry-run evidence generation only.
 The generated `proposed_openclaw_placement_plan.json` is validated against the dry-run placement plan schema.
+Reserved staging prefixes are classified as `workspace/<path>` -> workspace-target write and `state/<path>` -> state-target write.
+Unprefixed staged files remain workspace-target writes for backward compatibility.
 
 Disposable target path validator:
 
@@ -69,7 +71,8 @@ bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_
 
 The placement plan supports workspace-target and state-target semantics.
 The current controlled disposable apply contour can apply both, but only inside explicitly disposable local targets.
-The current dry-run adapter may still emit workspace-target writes only.
+The current normal dry-run path remains workspace-only unless reserved staging prefixes appear.
+Controlled disposable apply can consume classified dry-run plans inside explicitly disposable local targets only.
 `make controlled-disposable-apply-ci` also validates controlled apply evidence schemas through the existing test surface.
 
 ## One-command smoke

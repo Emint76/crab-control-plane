@@ -16,6 +16,7 @@ Local overlay reading is still not implemented.
 The initial skeleton validates its primary repo-local evidence against JSON Schemas.
 State writes remain bounded to explicitly disposable state targets only.
 This is not live runtime state integration.
+State-target support covers explicitly state-classified placement plans and dry-run plans produced from reserved `state/` staging prefixes.
 
 ## Scope
 
@@ -175,6 +176,7 @@ The initial skeleton consumes dry-run evidence and re-runs no-secret-leakage val
 Controlled disposable apply may only consume a schema-valid `proposed_openclaw_placement_plan.json`.
 It must fail closed if the plan is missing or invalid.
 The current skeleton accepts `target_surface = workspace` for workspace copies and `target_surface = state` for disposable state-target copies.
+The dry-run adapter may produce state-target placement items when Phase 3 staging uses the reserved `state/` prefix.
 This does not authorize live runtime apply, deploy, migration, local overlay reading, or Crab invocation.
 
 ## Relationship to local overlay

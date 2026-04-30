@@ -31,6 +31,10 @@ PHASE3_RUN_ID="smoke-e2e-phase3"
 WRAPPER_RUN_ID="smoke-e2e-wrapper"
 TARGET_RUN_ID="smoke-e2e-target"
 VALID_RUN_ID="openclaw-dryrun-valid"
+CLASSIFICATION_PHASE3_RUN_ID="openclaw-dryrun-state-classification"
+CLASSIFICATION_RUN_ID="openclaw-dryrun-state-classification"
+INVALID_PREFIX_PHASE3_RUN_ID="openclaw-dryrun-invalid-reserved-prefix"
+INVALID_PREFIX_RUN_ID="openclaw-dryrun-invalid-reserved-prefix"
 MISSING_REPORT_PHASE3_RUN_ID="openclaw-dryrun-missing-report"
 REPORT_FAIL_PHASE3_RUN_ID="openclaw-dryrun-report-fail"
 
@@ -39,6 +43,9 @@ PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${PHASE3_RUN_ID}"
 WRAPPER_RUN_DIR="${PHASE4_ROOT}/runs/${WRAPPER_RUN_ID}"
 TARGET_RUN_DIR="${PHASE4_ROOT}/runs/${TARGET_RUN_ID}"
 VALID_RUN_DIR="${RUNS_ROOT}/${VALID_RUN_ID}"
+CLASSIFICATION_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${CLASSIFICATION_PHASE3_RUN_ID}"
+CLASSIFICATION_RUN_DIR="${RUNS_ROOT}/${CLASSIFICATION_RUN_ID}"
+INVALID_PREFIX_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${INVALID_PREFIX_PHASE3_RUN_ID}"
 MISSING_REPORT_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${MISSING_REPORT_PHASE3_RUN_ID}"
 REPORT_FAIL_PHASE3_RUN_DIR="${PHASE3_ROOT}/runs/${REPORT_FAIL_PHASE3_RUN_ID}"
 PLACEMENT_PLAN_SCHEMA="${DRYRUN_ROOT}/schemas/proposed_openclaw_placement_plan.schema.json"
@@ -79,6 +86,10 @@ PY
 
 cleanup() {
   safe_rm_generated_dir "${VALID_RUN_DIR}" "${RUNS_ROOT}" "${VALID_RUN_ID}"
+  safe_rm_generated_dir "${CLASSIFICATION_RUN_DIR}" "${RUNS_ROOT}" "${CLASSIFICATION_RUN_ID}"
+  safe_rm_generated_dir "${RUNS_ROOT}/${INVALID_PREFIX_RUN_ID}" "${RUNS_ROOT}" "${INVALID_PREFIX_RUN_ID}"
+  safe_rm_generated_dir "${CLASSIFICATION_PHASE3_RUN_DIR}" "${PHASE3_ROOT}/runs" "${CLASSIFICATION_PHASE3_RUN_ID}"
+  safe_rm_generated_dir "${INVALID_PREFIX_PHASE3_RUN_DIR}" "${PHASE3_ROOT}/runs" "${INVALID_PREFIX_PHASE3_RUN_ID}"
   safe_rm_generated_dir "${MISSING_REPORT_PHASE3_RUN_DIR}" "${PHASE3_ROOT}/runs" "${MISSING_REPORT_PHASE3_RUN_ID}"
   safe_rm_generated_dir "${REPORT_FAIL_PHASE3_RUN_DIR}" "${PHASE3_ROOT}/runs" "${REPORT_FAIL_PHASE3_RUN_ID}"
   safe_rm_generated_dir "${PHASE2_RUN_DIR}" "${PHASE2_ROOT}/runs" "${PHASE2_RUN_ID}"
@@ -141,6 +152,26 @@ run_expect_fail_no_dryrun_dir() {
 
   [[ "${status}" -ne 0 ]] || fail "negative case unexpectedly passed: ${label}"
   assert_absent "${RUNS_ROOT}/${run_id}"
+  echo "PASS dry-run negative case rejected: ${label}"
+}
+
+run_expect_fail_allow_dryrun_dir() {
+  local label="$1"
+  local run_id="$2"
+  shift 2
+  safe_rm_generated_dir "${RUNS_ROOT}/${run_id}" "${RUNS_ROOT}" "${run_id}"
+
+  set +e
+  bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh "$@" --run-id "${run_id}" >/dev/null 2>&1
+  local status=$?
+  set -e
+
+  [[ "${status}" -ne 0 ]] || fail "negative case unexpectedly passed: ${label}"
+  if [[ -e "${RUNS_ROOT}/${run_id}/exit_code" ]]; then
+    local actual
+    actual="$(tr -d '\r\n' < "${RUNS_ROOT}/${run_id}/exit_code")"
+    [[ "${actual}" != "0" ]] || fail "negative case wrote success exit_code: ${label}"
+  fi
   echo "PASS dry-run negative case rejected: ${label}"
 }
 
@@ -267,6 +298,70 @@ else:
     raise AssertionError("invalid placement plan unexpectedly passed schema validation")
 PY
 
+cp -R "${PHASE3_RUN_DIR}" "${CLASSIFICATION_PHASE3_RUN_DIR}"
+rm -rf -- "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied"
+mkdir -p \
+  "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied/workspace/config" \
+  "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied/state/memory" \
+  "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied/legacy"
+printf '{"kind":"workspace"}\n' > "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied/workspace/config/settings.json"
+printf '{"kind":"state"}\n' > "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied/state/memory/state.json"
+printf '{"kind":"legacy"}\n' > "${CLASSIFICATION_PHASE3_RUN_DIR}/staging/runtime-ready-applied/legacy/default.json"
+
+bash operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh \
+  --phase3-run-dir "operations/harness-phase3/runs/${CLASSIFICATION_PHASE3_RUN_ID}" \
+  --phase2-run-dir "operations/harness-phase2/runs/${PHASE2_RUN_ID}" \
+  --run-id "${CLASSIFICATION_RUN_ID}"
+
+assert_file "${CLASSIFICATION_RUN_DIR}/proposed_openclaw_placement_plan.json"
+assert_file "${CLASSIFICATION_RUN_DIR}/checks/proposed_plan_schema_validation.json"
+assert_file_text_equals "${CLASSIFICATION_RUN_DIR}/exit_code" "0"
+
+"${PYTHON_BIN}" - \
+  "${CLASSIFICATION_RUN_DIR}/proposed_openclaw_placement_plan.json" \
+  "${CLASSIFICATION_RUN_DIR}/checks/proposed_plan_schema_validation.json" \
+  "${PLACEMENT_PLAN_SCHEMA}" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import jsonschema
+
+placement_plan = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
+schema_check = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8-sig"))
+schema = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8-sig"))
+
+assert schema_check["status"] == "pass", schema_check
+assert schema_check["violations"] == [], schema_check
+jsonschema.validate(instance=placement_plan, schema=schema)
+
+targets = {
+    item["source"].split("/staging/runtime-ready-applied/", 1)[1]: item
+    for item in placement_plan["proposed_writes"]
+}
+
+workspace_item = targets["workspace/config/settings.json"]
+state_item = targets["state/memory/state.json"]
+legacy_item = targets["legacy/default.json"]
+
+assert workspace_item["target_surface"] == "workspace", workspace_item
+assert workspace_item["target"] == "declared-openclaw-target:config/settings.json", workspace_item
+assert state_item["target_surface"] == "state", state_item
+assert state_item["target"] == "declared-openclaw-target:memory/state.json", state_item
+assert legacy_item["target_surface"] == "workspace", legacy_item
+assert legacy_item["target"] == "declared-openclaw-target:legacy/default.json", legacy_item
+
+surfaces = {item["target_surface"] for item in placement_plan["proposed_writes"]}
+assert {"workspace", "state"}.issubset(surfaces), placement_plan
+
+for item in placement_plan["proposed_writes"]:
+    target = item["target"]
+    assert not target.startswith("declared-openclaw-target:workspace/"), item
+    assert not target.startswith("declared-openclaw-target:state/"), item
+PY
+
 invalid_run_ids=(
   "../bad"
   "bad/run"
@@ -323,6 +418,15 @@ run_expect_fail_no_dryrun_dir \
   "invalid-phase3-report-not-pass" \
   "openclaw-dryrun-invalid-report-not-pass" \
   --phase3-run-dir "operations/harness-phase3/runs/${REPORT_FAIL_PHASE3_RUN_ID}"
+
+cp -R "${PHASE3_RUN_DIR}" "${INVALID_PREFIX_PHASE3_RUN_DIR}"
+rm -rf -- "${INVALID_PREFIX_PHASE3_RUN_DIR}/staging/runtime-ready-applied"
+mkdir -p "${INVALID_PREFIX_PHASE3_RUN_DIR}/staging/runtime-ready-applied"
+printf 'invalid reserved prefix\n' > "${INVALID_PREFIX_PHASE3_RUN_DIR}/staging/runtime-ready-applied/state"
+run_expect_fail_allow_dryrun_dir \
+  "invalid-reserved-prefix-with-empty-target" \
+  "${INVALID_PREFIX_RUN_ID}" \
+  --phase3-run-dir "operations/harness-phase3/runs/${INVALID_PREFIX_PHASE3_RUN_ID}"
 
 live_surface_after="$(snapshot_repo_local_live_surfaces)"
 [[ "${live_surface_before}" == "${live_surface_after}" ]] || fail "repo-local live OpenClaw-like surfaces changed"

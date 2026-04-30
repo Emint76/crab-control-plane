@@ -56,6 +56,7 @@
 - Controlled disposable apply evidence schema validation.
 - Placement plan workspace/state target semantics.
 - Controlled disposable apply state-target write support inside disposable targets.
+- Dry-run adapter reserved-prefix workspace/state classification.
 
 ## Remaining known non-blocking debt
 
@@ -63,6 +64,6 @@
 - Runtime/deploy/live OpenClaw integration remains intentionally out of scope.
 - Installability/deploy packaging remains a separate future workstream.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
-- Future classification of real state-target writes in dry-run output.
+- Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond initial skeleton.
 - Live-runtime adapter remains future work.

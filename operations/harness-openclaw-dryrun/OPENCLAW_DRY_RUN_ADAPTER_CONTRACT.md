@@ -168,8 +168,16 @@ Proposed placement evidence is machine-readable and follows this conceptual shap
 The proposed placement plan distinguishes `target_surface = workspace|state`.
 `workspace` means the declared relative target path is under the disposable workspace target root.
 `state` means the declared relative target path would be under the disposable state target root.
-The current dry-run adapter emits `workspace` only.
-This target semantics contract does not implement state-target write expansion.
+
+The dry-run adapter classifies Phase 3 staged files using reserved relative prefixes inside `staging/runtime-ready-applied/`:
+
+- `workspace/<relative path>` -> workspace-target write
+- `state/<relative path>` -> state-target write
+- unprefixed staged file -> workspace-target write for backward compatibility
+
+The reserved prefix is stripped from the declared target path.
+This remains dry-run only, does not authorize live runtime apply, and does not change Phase 2 or Phase 3 contracts.
+It only defines how the dry-run adapter interprets staged files if such prefixes appear.
 
 ## Evidence requirements
 
