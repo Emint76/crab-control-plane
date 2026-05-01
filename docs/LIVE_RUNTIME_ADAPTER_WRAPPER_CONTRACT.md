@@ -32,6 +32,17 @@ Live runtime mutation must not be driven by repurposing disposable apply entrypo
 
 A separate surface is required so that live target identity, approval, rollback, evidence retention, redaction, and fail-closed behavior are explicit and reviewable.
 
+Those responsibilities remain governed by separate pre-execution documents:
+
+- live target identity: `docs/LIVE_TARGET_IDENTITY_MODEL.md`
+- operator approval: `docs/OPERATOR_APPROVAL_MODEL.md`
+- rollback: `docs/ROLLBACK_MODEL.md`
+- secret handling: `docs/SECRET_HANDLING_CONTRACT.md`
+- evidence retention: `docs/EVIDENCE_RETENTION_POLICY.md`
+- no-secret redaction: `docs/NO_SECRET_REDACTION_POLICY.md`
+
+The future wrapper must depend on these separate documents and must not absorb them into wrapper availability.
+
 ## Required execution ownership model
 
 Any future live-runtime adapter/wrapper must be:
@@ -111,7 +122,8 @@ The future wrapper must own a canonical live-execution evidence surface.
 
 The future live-runtime adapter/wrapper may consume approved local-only materials outside Git, but must not emit raw secrets into repo-local evidence, committed files, or unredacted logs.
 
-Secret handling requires its own separate future implementation contract.
+Secret/material source boundaries are defined by `docs/SECRET_HANDLING_CONTRACT.md`, while output safety is separately governed by `docs/NO_SECRET_REDACTION_POLICY.md`.
+Secret handling implementation remains separate future work.
 
 ## Required rollback handoff expectations
 
@@ -163,6 +175,26 @@ That selector does not replace the broader live target identity model and does n
 The future live-runtime adapter/wrapper may consume only a reviewed live selector after separate gates pass.
 The selector remains distinct from live target identity, approval, rollback, and execution ownership.
 This PR does not create or approve a live-runtime wrapper.
+
+## Relationship to Pre-Execution Contract Stack
+
+The future wrapper is the execution owner only.
+
+It must not collapse the pre-execution contract stack:
+
+- selector -> points at intended live target
+- identity model -> defines exact target identity semantics
+- approval model -> defines exact human approval semantics
+- rollback model -> defines rollback semantics
+- secret handling contract -> defines allowed secret/material sources and boundaries
+- evidence retention policy -> defines what evidence must be retained
+- no-secret redaction policy -> defines what must be redacted or never emitted
+- wrapper contract -> future execution owner only
+
+approval != wrapper
+secret handling != redaction
+retention != redaction
+retention != storage implementation
 
 ## Relationship to Crab-safe orchestration
 
