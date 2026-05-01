@@ -48,3 +48,4 @@ openclaw-local-ci:
 	$(MAKE) no-secret-leakage-ci
 	$(MAKE) controlled-disposable-apply-ci
 	$(MAKE) local-target-selector-ci
+	$(MAKE) openclaw-local-proof-ci

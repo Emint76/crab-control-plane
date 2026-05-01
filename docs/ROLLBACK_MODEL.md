@@ -85,6 +85,9 @@ If rollback readiness is missing or ambiguous, future live execution must abort 
 
 If a future wrapper detects validation failure, it must fail closed according to the wrapper contract and record status according to the evidence retention policy.
 
+`docs/FAILURE_AND_ABORT_MODEL.md` defines failure and abort classification.
+Rollback is not failure/abort classification, and failure/abort evidence must not claim rollback unless rollback handoff/status evidence exists.
+
 ## Relationship to Target Identity Model
 
 `docs/LIVE_TARGET_IDENTITY_MODEL.md` defines exact live target identity semantics.

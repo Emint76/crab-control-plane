@@ -53,6 +53,7 @@ Repo-local evidence, logs, reports, and retained records must never contain:
 - unredacted secret-like values in reports
 - approval records carrying raw secrets
 - rollback records carrying raw secrets
+- failure/abort records carrying raw secrets
 - selectors carrying raw secrets
 - wrapper output carrying raw secrets
 
@@ -82,6 +83,12 @@ Redaction defines what must be removed, masked, or excluded before evidence is r
 `docs/ROLLBACK_MODEL.md` defines rollback semantics.
 
 Approval and rollback records may reference reviewed secret/material source boundaries, but must not carry raw secrets.
+
+## Relationship to Failure and Abort Records
+
+`docs/FAILURE_AND_ABORT_MODEL.md` defines failure and abort semantics.
+
+Failure/abort records must obey no-secret redaction and must not contain raw secrets or unredacted secret-like values.
 
 ## Relationship to Live-Runtime Adapter/Wrapper
 
