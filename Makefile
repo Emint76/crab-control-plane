@@ -50,6 +50,9 @@ live-secret-retention-ci:
 live-execution-prep-ci:
 	bash operations/harness-openclaw-live-execution-prep/tests/test_live_execution_prep.sh
 
+live-wrapper-intake-ci:
+	bash operations/harness-openclaw-live-wrapper-intake/tests/test_live_wrapper_intake.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

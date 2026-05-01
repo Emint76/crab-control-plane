@@ -81,6 +81,9 @@ It does not define how storage is implemented.
 `operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` now provides a bounded redacted retention surface for candidate live-adjacent evidence.
 It writes only under its own run directory and is not canonical live-execution evidence ownership.
 
+`operations/harness-openclaw-live-wrapper-intake/bin/run_live_wrapper_intake.sh` may reference retained evidence paths from a green retention run.
+The wrapper-intake bundle is refs-and-metadata only and is not canonical live-execution evidence ownership.
+
 ## Relationship to Approval Model
 
 `docs/OPERATOR_APPROVAL_MODEL.md` defines approval semantics.
