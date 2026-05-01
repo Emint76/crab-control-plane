@@ -40,7 +40,7 @@ This repo defines how the system should be structured across six layers:
 | OpenClaw dry-run adapter | `operations/harness-openclaw-dryrun/bin/run_openclaw_dry_run.sh` | local-only dry-run evidence; no live writes |
 | Disposable target path validation | `operations/harness-openclaw-target-validation/bin/validate_disposable_target_path.sh` | validation only |
 | No-secret-leakage validation | `operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh` | validation only |
-| Controlled disposable apply skeleton | `operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh` | local-only, disposable-only initial skeleton |
+| Controlled disposable apply | `operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh` | bounded local-only disposable apply contour with workspace/state support; no live writes |
 | Local target selector wrapper | `operations/harness-openclaw-local-selector/bin/run_controlled_disposable_apply_from_selector.sh` | local-only wrapper over disposable apply; selector file must stay outside Git; no live writes |
 
 Phase 2 has two profiles, not two separate phases:
@@ -101,7 +101,8 @@ This wrapper runs the existing repo-native smoke path and does not perform live 
 
 Future OpenClaw integration is governed by `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
 
-The future dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+The OpenClaw dry-run adapter contract is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
+The OpenClaw dry-run adapter skeleton is implemented as a local-only dry-run evidence surface.
 
 The OpenClaw dry-run adapter skeleton is available at:
 
@@ -134,7 +135,7 @@ Disposable workspace/state remains local-only and explicitly disposable. The rep
 
 Controlled disposable apply rules are governed by `docs/CONTROLLED_DISPOSABLE_APPLY_CONTRACT.md`.
 
-Controlled disposable apply skeleton is available at:
+Controlled disposable apply is available at:
 
 ```bash
 bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh \
@@ -147,9 +148,9 @@ bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_
   --run-id <RUN_ID>
 ```
 
-This is local-only and disposable-only.
+This is a bounded local-only disposable apply contour with workspace/state target support.
 It does not authorize live runtime apply or Crab invocation.
-The controlled disposable apply skeleton validates its primary repo-local evidence against JSON Schemas.
+The controlled disposable apply surface validates its primary repo-local evidence against JSON Schemas.
 
 A bounded local target selector wrapper is available for disposable apply.
 It accepts only a non-secret selector file outside Git and forwards validated target paths into controlled disposable apply.
@@ -179,7 +180,7 @@ The current repository remains local-only and disposable-only for apply-like Ope
 
 It is not approved for Crab invocation yet.
 
-The current repo supports dry-run evidence generation, safety validation, and the initial controlled disposable apply skeleton only.
+The current repo supports dry-run evidence generation, safety validation, and a bounded local-only disposable apply contour only.
 Live runtime apply remains unimplemented and separately governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 The current repo still proves only local-only disposable contours.
