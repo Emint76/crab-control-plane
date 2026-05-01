@@ -198,6 +198,8 @@ This contract does not redefine disposable target semantics.
 
 Live runtime apply remains forbidden and out of scope.
 Successful disposable apply is evidence for local validation only and does not authorize live runtime apply.
+Controlled disposable apply is not live runtime apply and does not by itself authorize promotion to live runtime mutation.
+Future live runtime work is governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 
 ## Relationship to Crab-safe orchestration
 

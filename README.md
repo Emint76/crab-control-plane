@@ -180,7 +180,9 @@ The current repository remains local-only and disposable-only for apply-like Ope
 It is not approved for Crab invocation yet.
 
 The current repo supports dry-run evidence generation, safety validation, and the initial controlled disposable apply skeleton only.
-Live runtime apply remains unimplemented.
+Live runtime apply remains unimplemented and separately governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
+
+The current repo only proves local-only disposable contours.
 
 ## What belongs elsewhere
 
