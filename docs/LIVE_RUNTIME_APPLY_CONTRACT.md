@@ -60,7 +60,7 @@ Before any future implementation PR, these must be separately defined:
 - explicit live target identity model, backed by `docs/LIVE_TARGET_IDENTITY_MODEL.md`
 - explicit operator approval model, backed by `docs/OPERATOR_APPROVAL_MODEL.md`
 - explicit rollback model, backed by `docs/ROLLBACK_MODEL.md`
-- explicit failure and abort model
+- explicit failure and abort model, backed by `docs/FAILURE_AND_ABORT_MODEL.md`
 - explicit secret handling contract, backed by `docs/SECRET_HANDLING_CONTRACT.md`
 - explicit evidence retention policy, backed by `docs/EVIDENCE_RETENTION_POLICY.md`
 - explicit no-secret redaction policy, backed by `docs/NO_SECRET_REDACTION_POLICY.md`

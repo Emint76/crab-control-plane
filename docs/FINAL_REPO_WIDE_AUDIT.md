@@ -26,7 +26,7 @@
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
-| Live-runtime pre-execution contract stack | target identity, approval, rollback, secret handling, evidence retention, and no-secret redaction | no | contract/model/policy only; no implementation and no executable surface |
+| Live-runtime pre-execution contract stack | target identity, approval, rollback, failure/abort, secret handling, evidence retention, and no-secret redaction | no | contract/model/policy only; no implementation and no executable surface |
 
 ## Confirmed boundaries
 
@@ -86,9 +86,11 @@
   - live target identity model.
   - operator approval model.
   - rollback model.
+  - failure and abort model.
   - secret handling contract.
   - evidence retention policy.
   - no-secret redaction policy.
+- Failure and abort model.
 
 ## Remaining known non-blocking debt
 

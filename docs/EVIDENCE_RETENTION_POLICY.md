@@ -89,6 +89,12 @@ Approval records or approval references must be retained and tied to the exact e
 
 Rollback handoff records, operator decision points, rollback status, and failure/abort evidence must be retained.
 
+## Relationship to Failure and Abort Model
+
+`docs/FAILURE_AND_ABORT_MODEL.md` defines failure and abort semantics.
+
+Failure/abort records are retained evidence classes and must bind to the exact execution attempt and target identity.
+
 ## Relationship to No-Secret Redaction Policy
 
 `docs/NO_SECRET_REDACTION_POLICY.md` defines redaction expectations.

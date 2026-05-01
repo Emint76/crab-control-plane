@@ -37,6 +37,7 @@ Those responsibilities remain governed by separate pre-execution documents:
 - live target identity: `docs/LIVE_TARGET_IDENTITY_MODEL.md`
 - operator approval: `docs/OPERATOR_APPROVAL_MODEL.md`
 - rollback: `docs/ROLLBACK_MODEL.md`
+- failure and abort: `docs/FAILURE_AND_ABORT_MODEL.md`
 - secret handling: `docs/SECRET_HANDLING_CONTRACT.md`
 - evidence retention: `docs/EVIDENCE_RETENTION_POLICY.md`
 - no-secret redaction: `docs/NO_SECRET_REDACTION_POLICY.md`
@@ -186,12 +187,14 @@ It must not collapse the pre-execution contract stack:
 - identity model -> defines exact target identity semantics
 - approval model -> defines exact human approval semantics
 - rollback model -> defines rollback semantics
+- failure/abort model -> defines failure and abort semantics
 - secret handling contract -> defines allowed secret/material sources and boundaries
 - evidence retention policy -> defines what evidence must be retained
 - no-secret redaction policy -> defines what must be redacted or never emitted
 - wrapper contract -> future execution owner only
 
 approval != wrapper
+wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction
 retention != storage implementation

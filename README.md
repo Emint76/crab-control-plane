@@ -195,8 +195,8 @@ Live runtime apply remains unimplemented and separately governed by `docs/LIVE_R
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
 No live target selector implementation exists yet.
-The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
-These documents add no live-runtime executable surface and no Crab approval.
+The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
+These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
 The current repo still proves only local-only disposable contours.
 
 ## What belongs elsewhere

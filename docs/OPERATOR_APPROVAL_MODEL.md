@@ -104,6 +104,13 @@ Approval must not be reusable across:
 Approval must not be granted unless rollback handoff inputs are reviewed.
 Approval is not rollback and does not create rollback readiness.
 
+## Relationship to Failure and Abort Model
+
+`docs/FAILURE_AND_ABORT_MODEL.md` defines failure and abort semantics.
+
+Approval is not failure/abort handling.
+Abort/failure records must reference the exact approved execution attempt, but they do not create approval for retry or mutation.
+
 ## Relationship to Evidence Retention
 
 `docs/EVIDENCE_RETENTION_POLICY.md` defines future evidence retention expectations.
