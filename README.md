@@ -42,6 +42,7 @@ This repo defines how the system should be structured across six layers:
 | No-secret-leakage validation | `operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakage.sh` | validation only |
 | Controlled disposable apply | `operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh` | bounded local-only disposable apply contour with workspace/state support; no live writes |
 | Local target selector wrapper | `operations/harness-openclaw-local-selector/bin/run_controlled_disposable_apply_from_selector.sh` | local-only wrapper over disposable apply; selector file must stay outside Git; no live writes |
+| Full local disposable cycle proof | `operations/harness-openclaw-local-proof/bin/run_full_local_disposable_cycle.sh` | proof wrapper for the current bounded local-only disposable contour; no live apply, no live wrapper, no Crab approval |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
@@ -155,6 +156,15 @@ The controlled disposable apply surface validates its primary repo-local evidenc
 A bounded local target selector wrapper is available for disposable apply.
 It accepts only a non-secret selector file outside Git and forwards validated target paths into controlled disposable apply.
 Its contract is defined in `docs/LOCAL_DISPOSABLE_TARGET_SELECTOR_CONTRACT.md`.
+
+A dedicated full local disposable cycle proof surface is available at:
+
+```bash
+bash operations/harness-openclaw-local-proof/bin/run_full_local_disposable_cycle.sh --run-id <RUN_ID>
+```
+
+This proof surface proves the current bounded local disposable contour through the already-approved local-only surfaces.
+It does not authorize live runtime apply, does not create a live-runtime wrapper, and does not approve Crab invocation.
 
 Disposable target path validation is available at:
 

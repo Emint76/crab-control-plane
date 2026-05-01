@@ -22,6 +22,7 @@
 | No-secret-leakage validation | scanner for repo-local OpenClaw-facing evidence | yes | validation-only |
 | Controlled disposable apply | bounded local-only disposable apply contour | yes | workspace/state writes inside explicitly disposable local targets only; no live runtime; not approved for Crab invocation |
 | Bounded local target selector wrapper | forwards a non-secret external selector into disposable apply | yes | disposable selector only; outside Git; not a live target selector |
+| Full local disposable cycle proof | proof wrapper over the current local-only disposable contour | yes | proof-level evidence only; no live runtime apply, no live wrapper, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 
@@ -77,6 +78,7 @@
 - Bounded local disposable target selector layer.
 - Live runtime apply contract and safety gates.
 - Live-runtime adapter/wrapper contract.
+- Full local disposable cycle proof surface.
 
 ## Remaining known non-blocking debt
 
@@ -87,6 +89,12 @@
 - Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond the current bounded local-only contour.
 - Broader local overlay implementation is not done.
+- Live target identity model remains future work.
+- Operator approval model remains future work.
+- Rollback model remains future work.
+- Secret handling contract remains future work.
+- Evidence retention policy remains future work.
+- No-secret redaction policy remains future work.
 - Live-runtime adapter implementation remains future work.
 - Live target selector remains future work.
 - Rollout/real deployment remains future work.
