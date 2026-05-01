@@ -23,3 +23,6 @@ operations/harness-openclaw-local-proof/runs/*
 
 operations/harness-openclaw-live-precheck/runs/*
 !operations/harness-openclaw-live-precheck/runs/.gitkeep
+
+operations/harness-openclaw-live-retention/runs/*
+!operations/harness-openclaw-live-retention/runs/.gitkeep

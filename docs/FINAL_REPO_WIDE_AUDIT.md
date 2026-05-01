@@ -24,6 +24,7 @@
 | Bounded local target selector wrapper | forwards a non-secret external selector into disposable apply | yes | disposable selector only; outside Git; not a live target selector |
 | Full local disposable cycle proof | proof wrapper over the current local-only disposable contour | yes | proof-level evidence only; no live runtime apply, no live wrapper, no Crab approval |
 | Live pre-execution gate | validates reviewed outside-Git selector, approval, and rollback records | yes | validation-only; no live runtime apply, no live wrapper, no approval execution, no rollback execution, no Crab approval |
+| Live secret retention surface | validates reviewed source declaration and retains redacted candidate evidence | yes | bounded retention-only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -44,6 +45,7 @@
 - The OpenClaw dry-run adapter skeleton produces repo-local dry-run evidence only and is not approved for Crab invocation yet.
 - The controlled disposable apply surface is a bounded local-only disposable apply contour and is not approved for Crab invocation yet.
 - The live pre-execution gate validates reviewed selector, approval, and rollback records only; it is not live runtime apply and is not a live-runtime wrapper.
+- The live secret retention surface validates source declarations and retains redacted candidate evidence only; it does not load real secrets, implement full evidence storage, or act as a live wrapper.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -94,6 +96,7 @@
   - no-secret redaction policy.
 - Failure and abort model.
 - Validation-only live pre-execution gate for selector, approval, and rollback.
+- Bounded live secret-material declaration validation and redacted retention surface.
 
 ## Remaining known non-blocking debt
 
@@ -104,11 +107,11 @@
 - Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond the current bounded local-only contour.
 - Broad local overlay implementation remains future work.
-- Secret handling implementation remains future work.
+- Real secret loading and secret handling implementation remain future work.
 - Approval execution surface remains future work.
 - Rollback execution surface remains future work.
-- Evidence storage implementation remains future work.
-- No-secret redaction implementation remains future work.
+- Full live evidence storage implementation remains future work.
+- Wrapper-integrated no-secret redaction implementation remains future work.
 - Live-runtime adapter implementation remains future work.
 - Live target selector implementation remains future work.
 - Live runtime apply implementation remains future work.

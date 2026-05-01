@@ -179,6 +179,18 @@ bash operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh
 This gate validates outside-Git record location, schema shape, cross-binding, and obvious non-secret boundaries.
 It is validation-only: no live runtime apply, no live wrapper, and no Crab approval.
 
+A bounded live secret/material declaration and redacted retention surface is available for candidate evidence:
+
+```bash
+bash operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh \
+  --source-declaration-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --candidate-evidence-dir <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+This surface validates an outside-Git declaration, validates an outside-Git candidate evidence directory, and writes redacted retained copies under its own run directory.
+It is not live runtime apply, not a live wrapper, not real secret loading, and not Crab approval.
+
 Disposable target path validation is available at:
 
 ```bash
@@ -209,6 +221,7 @@ A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTI
 A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
 No selector-driven live mutation surface exists.
 A validation-only pre-execution gate exists for reviewed selector, approval, and rollback records, but it is not live runtime apply and not a live-runtime wrapper.
+A bounded secret/material declaration validation and redacted retention surface exists, but real secret loading, full live evidence storage, and wrapper-integrated redaction remain future work.
 The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
 These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
 The current repo still proves only local-only disposable contours.

@@ -12,8 +12,9 @@ This is a policy-only document.
 
 Current status:
 
-- no redaction implementation
-- no secret handling implementation
+- bounded redaction surface exists for candidate evidence retention
+- no wrapper-integrated redaction implementation
+- no real secret handling implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no Crab approval
@@ -26,7 +27,7 @@ redaction policy != execution permission
 
 The policy defines redaction expectations for future live-runtime evidence surfaces.
 
-It does not define allowed secret sources, implement secret handling, implement evidence retention, approve execution, or create a wrapper.
+It does not define allowed secret sources, implement real secret loading, implement full live evidence storage, approve execution, or create a wrapper.
 
 ## What Must Always Be Redacted
 
@@ -77,6 +78,9 @@ retention != redaction
 Retention defines what evidence must be kept.
 Redaction defines what must be removed, masked, or excluded before evidence is retained.
 
+`operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` now applies bounded redaction to candidate evidence before retaining copies under its own run directory.
+That surface is not full live evidence storage.
+
 ## Relationship to Approval and Rollback Records
 
 `docs/OPERATOR_APPROVAL_MODEL.md` defines approval semantics.
@@ -97,10 +101,13 @@ Failure/abort records must obey no-secret redaction and must not contain raw sec
 A future wrapper must enforce no-secret redaction before emitting retained evidence.
 This policy does not create or approve that wrapper.
 
+The bounded retention surface is separate from the future wrapper.
+It does not mutate targets, grant approval, perform rollback, or authorize live runtime apply.
+
 ## Non-Goals
 
-- no redaction implementation
-- no secret handling implementation
+- no wrapper-integrated redaction implementation
+- no real secret handling implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no evidence storage implementation
