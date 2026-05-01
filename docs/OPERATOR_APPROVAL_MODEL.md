@@ -12,8 +12,8 @@ This is a model-only document.
 
 Current status:
 
-- no implementation
-- no approval execution surface
+- no approval-granting execution surface
+- validation-only gate exists for reviewed approval record shape/binding
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no Crab approval
@@ -123,6 +123,12 @@ Approval records or approval references must be retained according to that polic
 
 Approval records must not carry raw secrets, tokens, keys, OAuth credentials, or unredacted secret-like values.
 
+## Relationship to Validation-Only Pre-Execution Gate
+
+`operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh` validates reviewed approval record shape and binding with selector and rollback records.
+
+That gate does not grant approval, execute approval, authorize live runtime apply, or act as a live-runtime wrapper.
+
 ## Relationship to Crab-Safe Orchestration
 
 Crab is not approved to grant or invoke live-runtime approval.
@@ -131,7 +137,7 @@ Any future Crab participation would require separate approval, separate tests, s
 
 ## Non-Goals
 
-- no approval execution surface
+- no approval-granting execution surface
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no live target selector implementation

@@ -19,6 +19,7 @@ It is not a production OpenClaw deployment package.
 - `make controlled-disposable-apply-ci`
 - `make local-target-selector-ci`
 - `make openclaw-local-proof-ci`
+- `make live-preexecution-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -102,6 +103,20 @@ It runs the current bounded local-only disposable contour in fixed order and emi
 This closes the "full local disposable cycle proof exists" prerequisite at the contract level.
 It does not change runnable live-runtime status, authorize live runtime apply, create a live-runtime wrapper, or approve Crab invocation.
 
+Validation-only live pre-execution gate:
+
+```bash
+bash operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh \
+  --selector-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --approval-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --rollback-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+`make live-preexecution-ci` validates this surface.
+It checks reviewed outside-Git selector, approval, and rollback records for location, schema shape, cross-binding, and obvious non-secret boundaries.
+This is a validation-only live-adjacent surface and does not create runnable live mutation, approval execution, rollback execution, a live-runtime wrapper, or Crab approval.
+
 ## One-command smoke
 
 ```bash
@@ -161,10 +176,11 @@ Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATI
 Future live runtime mutation is gated by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md` and is not part of the current runnable surfaces.
 No live-runtime adapter/wrapper exists yet.
 Any future live execution surface is governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md` and is not part of the current runnable surfaces.
-No live target selector executable surface exists.
-Any future live target selector is contract-governed only by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+No selector-driven live target mutation surface exists.
+A validation-only live pre-execution gate exists for reviewed selector, approval, and rollback records.
+Any future live target selector remains governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
 The live target identity model, operator approval model, rollback model, failure/abort model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
-They do not create runnable surfaces.
+They do not create runnable live mutation surfaces.
 
 The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 
@@ -186,6 +202,7 @@ Ignored generated surfaces:
 - `operations/harness-openclaw-dryrun/runs/`
 - `operations/harness-openclaw-disposable-apply/runs/`
 - `operations/harness-openclaw-local-proof/runs/`
+- `operations/harness-openclaw-live-precheck/runs/`
 
 ## Safe cleanup
 
@@ -197,7 +214,8 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
        operations/harness-orchestration/runs/orchestration-wrapper-valid \
        operations/harness-openclaw-dryrun/runs/openclaw-dryrun-valid \
        operations/harness-openclaw-disposable-apply/runs/controlled-disposable-apply-valid \
-       operations/harness-openclaw-local-proof/runs/full-local-disposable-cycle-proof-valid
+       operations/harness-openclaw-local-proof/runs/full-local-disposable-cycle-proof-valid \
+       operations/harness-openclaw-live-precheck/runs/live-preexecution-gate-valid
 ```
 
 Disposable local workspace/state targets live outside Git and must only be cleaned under explicitly approved disposable roots.

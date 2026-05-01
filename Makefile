@@ -41,6 +41,9 @@ local-target-selector-ci:
 openclaw-local-proof-ci:
 	bash operations/harness-openclaw-local-proof/tests/test_full_local_disposable_cycle.sh
 
+live-preexecution-ci:
+	bash operations/harness-openclaw-live-precheck/tests/test_live_preexecution_gate.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

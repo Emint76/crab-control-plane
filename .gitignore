@@ -20,3 +20,6 @@ operations/harness-openclaw-disposable-apply/runs/*
 !operations/harness-openclaw-disposable-apply/runs/.gitkeep
 
 operations/harness-openclaw-local-proof/runs/*
+
+operations/harness-openclaw-live-precheck/runs/*
+!operations/harness-openclaw-live-precheck/runs/.gitkeep

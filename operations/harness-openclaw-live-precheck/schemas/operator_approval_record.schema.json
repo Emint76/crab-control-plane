@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-live-precheck/operator_approval_record.schema.json",
+  "title": "Operator Approval Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "approval_kind",
+    "approval_label",
+    "approved_operation_class",
+    "target_instance_label",
+    "selector_label",
+    "execution_label",
+    "non_reusable",
+    "approved_by"
+  ],
+  "properties": {
+    "approval_kind": {
+      "const": "operator-approval"
+    },
+    "approval_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approved_operation_class": {
+      "const": "live-runtime-apply"
+    },
+    "target_instance_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selector_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "non_reusable": {
+      "const": true
+    },
+    "approved_by": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

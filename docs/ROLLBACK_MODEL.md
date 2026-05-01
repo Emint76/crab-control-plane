@@ -12,8 +12,8 @@ This is a model-only document.
 
 Current status:
 
-- no implementation
 - no rollback execution surface
+- validation-only gate exists for rollback handoff validation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no Crab approval
@@ -113,6 +113,12 @@ Rollback handoff records, rollback decisions, rollback status, and rollback fail
 `docs/SECRET_HANDLING_CONTRACT.md` defines allowed secret/material source boundaries.
 
 Rollback material must not carry raw secrets in repo-local evidence, approval records, logs, or reports.
+
+## Relationship to Validation-Only Pre-Execution Gate
+
+`operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh` validates reviewed rollback handoff shape and binding with selector and approval records.
+
+That gate does not perform rollback, trigger rollback, authorize live runtime apply, or act as a live-runtime wrapper.
 
 ## Non-Goals
 

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-live-precheck/live_target_selector.schema.json",
+  "title": "Live Target Selector",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "selector_kind",
+    "selector_label",
+    "target_class",
+    "target_instance_label",
+    "workspace_root",
+    "state_root",
+    "runtime_root",
+    "is_disposable"
+  ],
+  "properties": {
+    "selector_kind": {
+      "const": "live-target-selector"
+    },
+    "selector_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_class": {
+      "const": "live"
+    },
+    "target_instance_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workspace_root": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "state_root": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "runtime_root": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?:/|[A-Za-z]:[\\\\/]).+"
+    },
+    "is_disposable": {
+      "const": false
+    }
+  }
+}
