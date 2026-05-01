@@ -47,6 +47,9 @@ live-preexecution-ci:
 live-secret-retention-ci:
 	bash operations/harness-openclaw-live-retention/tests/test_secret_retention_surface.sh
 
+live-execution-prep-ci:
+	bash operations/harness-openclaw-live-execution-prep/tests/test_live_execution_prep.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

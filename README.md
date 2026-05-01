@@ -43,6 +43,7 @@ This repo defines how the system should be structured across six layers:
 | Controlled disposable apply | `operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh` | bounded local-only disposable apply contour with workspace/state support; no live writes |
 | Local target selector wrapper | `operations/harness-openclaw-local-selector/bin/run_controlled_disposable_apply_from_selector.sh` | local-only wrapper over disposable apply; selector file must stay outside Git; no live writes |
 | Full local disposable cycle proof | `operations/harness-openclaw-local-proof/bin/run_full_local_disposable_cycle.sh` | proof wrapper for the current bounded local-only disposable contour; no live apply, no live wrapper, no Crab approval |
+| Live execution-prep bundle | `operations/harness-openclaw-live-execution-prep/bin/run_live_execution_prep.sh` | repo-local bundle for reviewed selector, approval, and rollback records; no live apply, no live wrapper, no approval grant, no rollback execution |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
@@ -191,6 +192,19 @@ bash operations/harness-openclaw-live-retention/bin/run_secret_retention_surface
 This surface validates an outside-Git declaration, validates an outside-Git candidate evidence directory, and writes redacted retained copies under its own run directory.
 It is not live runtime apply, not a live wrapper, not real secret loading, and not Crab approval.
 
+A bounded live execution-prep bundle surface is available for reviewed selector, approval, and rollback records:
+
+```bash
+bash operations/harness-openclaw-live-execution-prep/bin/run_live_execution_prep.sh \
+  --selector-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --approval-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --rollback-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+This surface depends on a green validation-only live pre-execution gate and emits repo-local normalized execution-prep records.
+It does not grant approval, execute rollback, create a live wrapper, authorize live runtime apply, or approve Crab invocation.
+
 Disposable target path validation is available at:
 
 ```bash
@@ -222,6 +236,7 @@ A future live target selector is separately governed by `docs/LIVE_TARGET_SELECT
 No selector-driven live mutation surface exists.
 A validation-only pre-execution gate exists for reviewed selector, approval, and rollback records, but it is not live runtime apply and not a live-runtime wrapper.
 A bounded secret/material declaration validation and redacted retention surface exists, but real secret loading, full live evidence storage, and wrapper-integrated redaction remain future work.
+A bounded live execution-prep bundle exists for reviewed selector, approval, and rollback records, but it is not approval granting, not rollback execution, not live runtime apply, and not a live-runtime wrapper.
 The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
 These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
 The current repo still proves only local-only disposable contours.
