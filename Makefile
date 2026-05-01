@@ -44,6 +44,9 @@ openclaw-local-proof-ci:
 live-preexecution-ci:
 	bash operations/harness-openclaw-live-precheck/tests/test_live_preexecution_gate.sh
 
+live-secret-retention-ci:
+	bash operations/harness-openclaw-live-retention/tests/test_secret_retention_surface.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

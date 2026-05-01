@@ -53,6 +53,8 @@ Any future live target selector is separately governed by `docs/LIVE_TARGET_SELE
 The live target selector contract does not replace the future live target identity model, approval model, rollback model, or live-runtime adapter/wrapper.
 A validation-only pre-execution gate now exists in `operations/harness-openclaw-live-precheck/` for reviewed selector, approval, and rollback records.
 That gate validates record location, schema, binding, and obvious non-secret boundaries only; it does not authorize live runtime apply.
+A bounded live retention surface now exists in `operations/harness-openclaw-live-retention/` for source declaration validation and redacted candidate evidence retention.
+That surface does not load real secrets, implement full live evidence storage, create a live wrapper, or authorize live runtime apply.
 
 ## Required prerequisites before any future implementation
 
@@ -79,6 +81,7 @@ Before any future execution attempt, all gates must pass:
 - explicit confirmation that target is not disposable
 - explicit confirmation that rollback inputs are present
 - validation-only pre-execution gate green for selector, approval, and rollback records when those records are used
+- bounded source declaration and redacted retention checks green when candidate live-adjacent evidence is retained
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -159,6 +162,13 @@ Selector presence is not approval and does not authorize live runtime apply.
 The live pre-execution gate validates reviewed selector, approval, and rollback records together before any future live execution discussion.
 
 It is not live runtime apply, not a live-runtime adapter/wrapper, not approval execution, not rollback execution, not secret handling implementation, and not evidence storage implementation.
+It does not weaken any gate in this contract.
+
+## Relationship to live secret retention surface
+
+The live secret retention surface validates a reviewed source declaration and retains redacted candidate evidence before any future live execution discussion.
+
+It is not live runtime apply, not a live-runtime adapter/wrapper, not real secret loading, not broader local overlay reading, and not full live evidence storage.
 It does not weaken any gate in this contract.
 
 ## Relationship to Crab-safe orchestration

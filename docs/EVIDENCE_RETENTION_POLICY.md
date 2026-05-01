@@ -12,7 +12,8 @@ This is a policy-only document.
 
 Current status:
 
-- no storage implementation
+- bounded redacted retention surface exists
+- no full live evidence storage implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no Crab approval
@@ -23,7 +24,7 @@ evidence retention policy != storage implementation
 
 The policy defines future evidence classes, retention boundary expectations, and ownership expectations.
 
-It does not implement storage, redaction, secret handling, rollback, approval, live runtime apply, or a wrapper.
+It does not implement full live evidence storage, secret handling, rollback, approval, live runtime apply, or a wrapper.
 
 ## Evidence Classes That Must Be Retained
 
@@ -77,6 +78,9 @@ A future live-runtime adapter/wrapper must own the canonical live-execution evid
 The evidence retention policy defines what must be retained.
 It does not define how storage is implemented.
 
+`operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` now provides a bounded redacted retention surface for candidate live-adjacent evidence.
+It writes only under its own run directory and is not canonical live-execution evidence ownership.
+
 ## Relationship to Approval Model
 
 `docs/OPERATOR_APPROVAL_MODEL.md` defines approval semantics.
@@ -110,9 +114,12 @@ Redaction defines what must not appear unredacted in those evidence classes.
 
 Retention must record source review and boundary compliance without retaining raw secrets.
 
+The bounded retention surface validates a source declaration and retains redacted candidate evidence only.
+It does not read raw material from the declared sources.
+
 ## Non-Goals
 
-- no storage implementation
+- no full live evidence storage implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no approval execution surface

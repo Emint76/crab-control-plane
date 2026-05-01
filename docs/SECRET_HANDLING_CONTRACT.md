@@ -12,7 +12,8 @@ This is a contract-only document.
 
 Current status:
 
-- no secret handling implementation
+- bounded source declaration validation exists
+- no real secret loading implementation
 - no local overlay implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
@@ -24,7 +25,7 @@ secret handling contract != secret handling implementation
 
 The contract defines future source classes, forbidden source classes, local-only boundaries, and relationships to redaction and evidence retention.
 
-It does not implement secret loading, credential storage, redaction, evidence storage, live runtime apply, or a wrapper.
+It does not implement real secret loading, credential storage, broad local overlay reading, full evidence storage, live runtime apply, or a wrapper.
 
 ## Allowed Future Secret/Material Source Class
 
@@ -97,11 +98,17 @@ secret handling != redaction
 Secret handling defines allowed source boundaries.
 Redaction defines output safety expectations.
 
+`operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` now validates a reviewed source declaration and applies bounded redaction to candidate evidence before retention.
+That surface does not load raw secrets from the declared sources and does not implement full secret handling.
+
 ## Relationship to Evidence Retention
 
 `docs/EVIDENCE_RETENTION_POLICY.md` defines retained evidence classes.
 
 Evidence retention must retain enough proof of source review without retaining raw secrets.
+
+The bounded live retention surface can retain redacted candidate evidence under its own run directory.
+It is not full live evidence storage and is not wrapper-owned live execution evidence.
 
 ## Relationship to Live-Runtime Adapter/Wrapper
 
@@ -113,6 +120,7 @@ This contract does not create or approve that wrapper.
 ## Non-Goals
 
 - no secret handling implementation
+- no real secret loading implementation
 - no local overlay implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation

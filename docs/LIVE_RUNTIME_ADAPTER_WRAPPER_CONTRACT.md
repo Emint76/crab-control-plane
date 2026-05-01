@@ -45,6 +45,8 @@ Those responsibilities remain governed by separate pre-execution documents:
 The future wrapper must depend on these separate documents and must not absorb them into wrapper availability.
 A validation-only pre-execution gate may exist before the wrapper to validate reviewed selector, approval, and rollback records.
 That gate is not the execution owner.
+A bounded live retention surface may exist before the wrapper to validate source declarations and retain redacted candidate evidence.
+That retention surface is not the execution owner.
 
 ## Required execution ownership model
 
@@ -95,6 +97,7 @@ Before any future live execution, the wrapper must validate:
 - approval record validation
 - rollback input validation
 - validation-only pre-execution gate result for selector, approval, and rollback records when present
+- bounded source declaration and redacted retention result when candidate evidence is retained
 - no-secret-leakage/redaction precheck
 - evidence-path validation
 - exact target-surface ambiguity check
@@ -128,6 +131,7 @@ The future live-runtime adapter/wrapper may consume approved local-only material
 
 Secret/material source boundaries are defined by `docs/SECRET_HANDLING_CONTRACT.md`, while output safety is separately governed by `docs/NO_SECRET_REDACTION_POLICY.md`.
 Secret handling implementation remains separate future work.
+The bounded retention surface validates source declarations and redacts candidate evidence only; it does not load real secrets or provide wrapper-integrated redaction.
 
 ## Required rollback handoff expectations
 
@@ -189,6 +193,15 @@ preexecution gate != execution owner
 The wrapper remains separate.
 The gate does not mutate targets, grant approval, perform rollback, read broader local overlay material, or become a live-runtime adapter/wrapper.
 
+## Relationship to Live Secret Retention Surface
+
+`operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` is a bounded live-adjacent surface for source declaration validation and redacted candidate evidence retention.
+
+retention surface != execution owner
+
+The wrapper remains separate.
+The retention surface does not load real secrets, read broader local overlay material, mutate targets, grant approval, perform rollback, or become a live-runtime adapter/wrapper.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -205,9 +218,11 @@ It must not collapse the pre-execution contract stack:
 - no-secret redaction policy -> defines what must be redacted or never emitted
 - wrapper contract -> future execution owner only
 - preexecution gate -> validation-only selector/approval/rollback record check
+- retention surface -> bounded declaration validation and redacted candidate evidence retention
 
 approval != wrapper
 preexecution gate != execution owner
+retention surface != execution owner
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction
