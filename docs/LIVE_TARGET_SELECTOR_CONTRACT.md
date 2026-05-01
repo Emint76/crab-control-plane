@@ -49,6 +49,8 @@ The live target selector must remain separate from:
 The separation is mandatory:
 
 - disposable selector != live selector
+- selector != identity
+- selector != approval
 - selector != execution owner
 - selector != approval record
 - selector != full target identity model
@@ -102,10 +104,10 @@ This PR does not implement reading future live selector material.
 
 ## Relationship to Live Target Identity Model
 
-This contract does not replace the future live target identity model.
+This contract does not replace the live target identity model defined in `docs/LIVE_TARGET_IDENTITY_MODEL.md`.
 
 It only defines the selector boundary used to point at the intended live target.
-The broader live target identity model remains separate future work.
+The broader live target identity model remains separate and must define exact target identity semantics.
 
 ## Relationship to Approval Model
 
@@ -113,19 +115,20 @@ A selector is not approval.
 
 A selector may be an input to a future approval flow, but does not authorize execution.
 Approval must remain a separate reviewed record tied to the exact target identity and exact execution attempt.
+The operator approval model is defined in `docs/OPERATOR_APPROVAL_MODEL.md`.
 
 ## Relationship to Rollback Model
 
 A selector is not rollback material.
 
-Rollback remains separately defined future work.
+Rollback is separately defined in `docs/ROLLBACK_MODEL.md`.
 A future live runtime attempt must not infer rollback readiness from selector presence.
 
 ## Relationship to Live-Runtime Adapter/Wrapper
 
 A future live-runtime adapter/wrapper may consume a reviewed live selector only after separate gates pass.
 
-Those gates include the future live target identity model, operator approval model, rollback model, secret handling contract, and the safety gates defined in `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
+Those gates include the live target identity model, operator approval model, rollback model, secret handling contract, evidence retention policy, no-secret redaction policy, and the safety gates defined in `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 This PR does not create or approve that wrapper.
 
 ## Relationship to Crab-Safe Orchestration
@@ -149,8 +152,8 @@ Any future Crab use would need separate approval, separate tests, separate CI, a
 - no live target selector implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
-- no live target identity model
-- no approval model
-- no rollback model
+- no live target identity implementation
+- no approval execution surface
+- no rollback execution surface
 - no local overlay implementation
 - no Crab approval

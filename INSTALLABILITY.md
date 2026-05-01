@@ -163,6 +163,8 @@ No live-runtime adapter/wrapper exists yet.
 Any future live execution surface is governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md` and is not part of the current runnable surfaces.
 No live target selector executable surface exists.
 Any future live target selector is contract-governed only by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+The live target identity model, operator approval model, rollback model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
+They do not create runnable surfaces.
 
 The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 

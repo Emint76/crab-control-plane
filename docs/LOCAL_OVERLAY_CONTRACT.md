@@ -149,7 +149,8 @@ Future live runtime usage requires a separate contract defined in `docs/LIVE_RUN
 Any future live-runtime adapter/wrapper may require broader local-only materials outside Git, but that reading is not implemented and not authorized here.
 Its future execution surface is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 Broader future local-only live material may include a future live target selector governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
-This PR does not implement reading live target selector material.
+It may also include materials governed by `docs/LIVE_TARGET_IDENTITY_MODEL.md` and `docs/SECRET_HANDLING_CONTRACT.md`.
+This PR does not implement reading live target selector, live target identity, or secret/material source material.
 
 ## Relationship to Crab-safe orchestration
 

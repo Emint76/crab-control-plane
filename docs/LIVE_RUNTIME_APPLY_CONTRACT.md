@@ -57,13 +57,16 @@ The live target selector contract does not replace the future live target identi
 Before any future implementation PR, these must be separately defined:
 
 - separate live-runtime adapter/wrapper contract
-- explicit live target identity model
-- explicit operator approval model
-- explicit rollback model
+- explicit live target identity model, backed by `docs/LIVE_TARGET_IDENTITY_MODEL.md`
+- explicit operator approval model, backed by `docs/OPERATOR_APPROVAL_MODEL.md`
+- explicit rollback model, backed by `docs/ROLLBACK_MODEL.md`
 - explicit failure and abort model
-- explicit secret handling contract
-- explicit evidence retention policy
-- explicit no-secret redaction policy
+- explicit secret handling contract, backed by `docs/SECRET_HANDLING_CONTRACT.md`
+- explicit evidence retention policy, backed by `docs/EVIDENCE_RETENTION_POLICY.md`
+- explicit no-secret redaction policy, backed by `docs/NO_SECRET_REDACTION_POLICY.md`
+
+These documents are pre-execution contracts, models, and policies only.
+They do not weaken any live-runtime safety gate and do not create a live-runtime executable surface.
 
 ## Required safety gates before any future execution
 

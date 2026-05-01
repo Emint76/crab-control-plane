@@ -26,6 +26,7 @@
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
+| Live-runtime pre-execution contract stack | target identity, approval, rollback, secret handling, evidence retention, and no-secret redaction | no | contract/model/policy only; no implementation and no executable surface |
 
 ## Confirmed boundaries
 
@@ -81,6 +82,13 @@
 - Live-runtime adapter/wrapper contract.
 - Full local disposable cycle proof surface.
 - Live target selector contract.
+- Live-runtime pre-execution contract stack:
+  - live target identity model.
+  - operator approval model.
+  - rollback model.
+  - secret handling contract.
+  - evidence retention policy.
+  - no-secret redaction policy.
 
 ## Remaining known non-blocking debt
 
@@ -90,13 +98,14 @@
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
 - Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond the current bounded local-only contour.
-- Broader local overlay implementation is not done.
-- Live target identity model remains future work.
-- Operator approval model remains future work.
-- Rollback model remains future work.
-- Secret handling contract remains future work.
-- Evidence retention policy remains future work.
-- No-secret redaction policy remains future work.
+- Broad local overlay implementation remains future work.
+- Secret handling implementation remains future work.
+- Approval execution surface remains future work.
+- Rollback execution surface remains future work.
+- Evidence storage implementation remains future work.
+- No-secret redaction implementation remains future work.
 - Live-runtime adapter implementation remains future work.
 - Live target selector implementation remains future work.
+- Live runtime apply implementation remains future work.
+- Crab approval remains future work.
 - Rollout/real deployment remains future work.
