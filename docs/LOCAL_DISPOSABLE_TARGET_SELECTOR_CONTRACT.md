@@ -83,6 +83,8 @@ It must not bypass target validation, no-secret validation, placement plan valid
 
 Live runtime apply remains forbidden and out of scope.
 This selector does not authorize live runtime targets or live runtime writes.
+This bounded disposable selector is not a live target selector.
+Future live-runtime target selection, if needed, requires a separate contract and must not be inferred from this selector.
 
 ## Non-goals
 
