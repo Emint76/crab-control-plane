@@ -57,7 +57,7 @@ bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakag
   --evidence-dir operations/harness-openclaw-dryrun/runs/<RUN_ID>
 ```
 
-Controlled disposable apply skeleton:
+Bounded controlled disposable apply surface:
 
 ```bash
 bash operations/harness-openclaw-disposable-apply/bin/run_controlled_disposable_apply.sh \
@@ -139,9 +139,9 @@ It stages into repo-local generated run directories only.
 - local overlay implementation
 - secrets/config management
 - disposable workspace implementation
-- controlled disposable apply beyond the initial skeleton
+- controlled disposable apply expansion beyond the current bounded local-only contour
 - live runtime apply
-- OpenClaw workspace/state writes
+- live OpenClaw workspace/state writes
 - live-runtime adapter
 
 Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
@@ -190,4 +190,4 @@ This document does not provide a generic cleanup command for arbitrary absolute 
 - tooling hardening: ruff/shellcheck/pytest
 - artifact validation
 - OpenClaw dry-run adapter expansion beyond skeleton
-- controlled disposable apply expansion beyond initial skeleton
+- controlled disposable apply expansion beyond the current bounded local-only contour

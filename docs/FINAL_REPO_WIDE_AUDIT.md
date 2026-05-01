@@ -8,6 +8,23 @@
 | Phase 3 | repo-native canonical execution owner | `operations/harness-phase3/bin/run_phase3_bundle.sh` | `phase3-validate` |
 | Phase 4 | thin wrapper over Phase 3 | `operations/harness-phase4/bin/run_phase4_wrapper.sh` | `phase4-validate` |
 
+## Current runnable, OpenClaw-facing, and approval-bound surfaces
+
+| Surface | Current role | Executable? | Status / boundary |
+|---|---|---|---|
+| Phase 2 strict check layer | audit-only external check profile | yes | no render, no `runtime-ready/`, no handoff |
+| Phase 2 repo-native scaffold | package and handoff preparation for Phase 3 intake | yes | repo-native scaffold only; not live runtime |
+| Phase 3 execution surface | canonical repo-native execution owner | yes | repo-local evidence only; not live runtime |
+| Phase 4 wrapper | thin wrapper over Phase 3 | yes | wrapper-only metadata; not canonical owner |
+| Crab-safe orchestration wrapper | approved Crab entrypoint for repo-native smoke | yes | repo-native smoke only; no OpenClaw writes |
+| OpenClaw dry-run adapter | local-only dry-run evidence and placement plan classification | yes | no live writes; not approved for Crab invocation |
+| Disposable target path validation | disposable target path and marker validator | yes | validation-only |
+| No-secret-leakage validation | scanner for repo-local OpenClaw-facing evidence | yes | validation-only |
+| Controlled disposable apply | bounded local-only disposable apply contour | yes | workspace/state writes inside explicitly disposable local targets only; no live runtime; not approved for Crab invocation |
+| Bounded local target selector wrapper | forwards a non-secret external selector into disposable apply | yes | disposable selector only; outside Git; not a live target selector |
+| Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
+| Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
+
 ## Confirmed boundaries
 
 - Phase 2 does not perform live runtime execution.
@@ -21,7 +38,7 @@
 - The orchestration wrapper is not a new phase, not a deploy layer, and not a runtime adapter.
 - OpenClaw integration is currently local-only and disposable-only for apply-like behavior; live runtime mutation, deploy, migration, live runtime adapter behavior, real source ingestion, and real KB write-back are not implemented.
 - The OpenClaw dry-run adapter skeleton produces repo-local dry-run evidence only and is not approved for Crab invocation yet.
-- The controlled disposable apply skeleton is local-only, disposable-only, and is not approved for Crab invocation yet.
+- The controlled disposable apply surface is a bounded local-only disposable apply contour and is not approved for Crab invocation yet.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -52,7 +69,7 @@
 - Controlled disposable apply contract.
 - Disposable target path validation.
 - No-secret-leakage validation.
-- Controlled disposable apply skeleton.
+- Controlled disposable apply bounded local-only contour.
 - Controlled disposable apply evidence schema validation.
 - Placement plan workspace/state target semantics.
 - Controlled disposable apply state-target write support inside disposable targets.
@@ -68,7 +85,7 @@
 - Installability/deploy packaging remains a separate future workstream.
 - Future OpenClaw dry-run adapter expansion beyond skeleton.
 - Future expansion of Phase 3 staging conventions if needed.
-- Controlled disposable apply expansion beyond initial skeleton.
+- Controlled disposable apply expansion beyond the current bounded local-only contour.
 - Broader local overlay implementation is not done.
 - Live-runtime adapter implementation remains future work.
 - Live target selector remains future work.
