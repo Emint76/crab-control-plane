@@ -166,6 +166,19 @@ bash operations/harness-openclaw-local-proof/bin/run_full_local_disposable_cycle
 This proof surface proves the current bounded local disposable contour through the already-approved local-only surfaces.
 It does not authorize live runtime apply, does not create a live-runtime wrapper, and does not approve Crab invocation.
 
+A validation-only live pre-execution gate is available for reviewed selector, approval, and rollback records:
+
+```bash
+bash operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh \
+  --selector-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --approval-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --rollback-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+This gate validates outside-Git record location, schema shape, cross-binding, and obvious non-secret boundaries.
+It is validation-only: no live runtime apply, no live wrapper, and no Crab approval.
+
 Disposable target path validation is available at:
 
 ```bash
@@ -194,7 +207,8 @@ The current repo supports dry-run evidence generation, safety validation, and a 
 Live runtime apply remains unimplemented and separately governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
-No live target selector implementation exists yet.
+No selector-driven live mutation surface exists.
+A validation-only pre-execution gate exists for reviewed selector, approval, and rollback records, but it is not live runtime apply and not a live-runtime wrapper.
 The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
 These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
 The current repo still proves only local-only disposable contours.

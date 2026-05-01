@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/crab-control-plane/openclaw-live-precheck/rollback_handoff_record.schema.json",
+  "title": "Rollback Handoff Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rollback_kind",
+    "rollback_label",
+    "target_instance_label",
+    "execution_label",
+    "rollback_ready",
+    "rollback_boundary",
+    "decision_points"
+  ],
+  "properties": {
+    "rollback_kind": {
+      "const": "rollback-handoff"
+    },
+    "rollback_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_instance_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rollback_ready": {
+      "const": true
+    },
+    "rollback_boundary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision_points": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

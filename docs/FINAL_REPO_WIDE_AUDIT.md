@@ -23,6 +23,7 @@
 | Controlled disposable apply | bounded local-only disposable apply contour | yes | workspace/state writes inside explicitly disposable local targets only; no live runtime; not approved for Crab invocation |
 | Bounded local target selector wrapper | forwards a non-secret external selector into disposable apply | yes | disposable selector only; outside Git; not a live target selector |
 | Full local disposable cycle proof | proof wrapper over the current local-only disposable contour | yes | proof-level evidence only; no live runtime apply, no live wrapper, no Crab approval |
+| Live pre-execution gate | validates reviewed outside-Git selector, approval, and rollback records | yes | validation-only; no live runtime apply, no live wrapper, no approval execution, no rollback execution, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -42,6 +43,7 @@
 - OpenClaw integration is currently local-only and disposable-only for apply-like behavior; live runtime mutation, deploy, migration, live runtime adapter behavior, real source ingestion, and real KB write-back are not implemented.
 - The OpenClaw dry-run adapter skeleton produces repo-local dry-run evidence only and is not approved for Crab invocation yet.
 - The controlled disposable apply surface is a bounded local-only disposable apply contour and is not approved for Crab invocation yet.
+- The live pre-execution gate validates reviewed selector, approval, and rollback records only; it is not live runtime apply and is not a live-runtime wrapper.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -91,6 +93,7 @@
   - evidence retention policy.
   - no-secret redaction policy.
 - Failure and abort model.
+- Validation-only live pre-execution gate for selector, approval, and rollback.
 
 ## Remaining known non-blocking debt
 

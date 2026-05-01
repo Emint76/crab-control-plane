@@ -19,8 +19,9 @@ This is a contract-only document.
 
 Current status:
 
-- no implementation
-- no live target selection executable surface
+- no selector-driven live mutation
+- no executable live target selection for mutation
+- validation-only pre-execution gate exists for reviewed selector, approval, and rollback record shape/binding
 - no live runtime apply
 - no Crab approval
 
@@ -77,7 +78,8 @@ At contract level, a future live target selector must provide reviewed semantics
 - reviewed human intent
 
 These are conceptual requirements only.
-This document does not define a concrete file format, schema, parser, command, or executable surface.
+A bounded validation-only schema and parser now exist under `operations/harness-openclaw-live-precheck/` for pre-execution record validation.
+That gate validates reviewed selector, approval, and rollback records together, but it does not create selector-driven live mutation or approval.
 
 ## Forbidden Selector Content
 
@@ -101,6 +103,7 @@ Any future live selector material must remain outside Git.
 
 The repository may document the selector contract, but must not contain real selector material for a live target.
 This PR does not implement reading future live selector material.
+The validation-only pre-execution gate may read a reviewed selector record from outside Git only for validation with approval and rollback records.
 
 ## Relationship to Live Target Identity Model
 
@@ -129,7 +132,8 @@ A future live runtime attempt must not infer rollback readiness from selector pr
 A future live-runtime adapter/wrapper may consume a reviewed live selector only after separate gates pass.
 
 Those gates include the live target identity model, operator approval model, rollback model, secret handling contract, evidence retention policy, no-secret redaction policy, and the safety gates defined in `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
-This PR does not create or approve that wrapper.
+The validation-only pre-execution gate may validate selector, approval, and rollback record binding before that future wrapper exists.
+The gate is not the wrapper and does not authorize live runtime apply.
 
 ## Relationship to Crab-Safe Orchestration
 
@@ -149,7 +153,7 @@ Any future Crab use would need separate approval, separate tests, separate CI, a
 
 ## Non-Goals
 
-- no live target selector implementation
+- no selector-driven live target mutation implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no live target identity implementation

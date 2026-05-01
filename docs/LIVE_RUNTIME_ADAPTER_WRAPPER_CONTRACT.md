@@ -43,6 +43,8 @@ Those responsibilities remain governed by separate pre-execution documents:
 - no-secret redaction: `docs/NO_SECRET_REDACTION_POLICY.md`
 
 The future wrapper must depend on these separate documents and must not absorb them into wrapper availability.
+A validation-only pre-execution gate may exist before the wrapper to validate reviewed selector, approval, and rollback records.
+That gate is not the execution owner.
 
 ## Required execution ownership model
 
@@ -92,6 +94,7 @@ Before any future live execution, the wrapper must validate:
 - local-only material location validation
 - approval record validation
 - rollback input validation
+- validation-only pre-execution gate result for selector, approval, and rollback records when present
 - no-secret-leakage/redaction precheck
 - evidence-path validation
 - exact target-surface ambiguity check
@@ -177,6 +180,15 @@ The future live-runtime adapter/wrapper may consume only a reviewed live selecto
 The selector remains distinct from live target identity, approval, rollback, and execution ownership.
 This PR does not create or approve a live-runtime wrapper.
 
+## Relationship to Validation-Only Pre-Execution Gate
+
+`operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh` is a validation-only live-adjacent surface for selector, approval, and rollback records.
+
+preexecution gate != execution owner
+
+The wrapper remains separate.
+The gate does not mutate targets, grant approval, perform rollback, read broader local overlay material, or become a live-runtime adapter/wrapper.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -192,8 +204,10 @@ It must not collapse the pre-execution contract stack:
 - evidence retention policy -> defines what evidence must be retained
 - no-secret redaction policy -> defines what must be redacted or never emitted
 - wrapper contract -> future execution owner only
+- preexecution gate -> validation-only selector/approval/rollback record check
 
 approval != wrapper
+preexecution gate != execution owner
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction

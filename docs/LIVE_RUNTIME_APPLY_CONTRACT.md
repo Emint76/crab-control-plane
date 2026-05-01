@@ -51,6 +51,8 @@ The `full local disposable cycle proof exists` prerequisite is now satisfied at 
 That proof surface only runs the current local-only disposable contour and does not authorize live runtime apply, live-runtime adapter behavior, or Crab invocation.
 Any future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
 The live target selector contract does not replace the future live target identity model, approval model, rollback model, or live-runtime adapter/wrapper.
+A validation-only pre-execution gate now exists in `operations/harness-openclaw-live-precheck/` for reviewed selector, approval, and rollback records.
+That gate validates record location, schema, binding, and obvious non-secret boundaries only; it does not authorize live runtime apply.
 
 ## Required prerequisites before any future implementation
 
@@ -76,6 +78,7 @@ Before any future execution attempt, all gates must pass:
 - human-reviewed exact target path(s)
 - explicit confirmation that target is not disposable
 - explicit confirmation that rollback inputs are present
+- validation-only pre-execution gate green for selector, approval, and rollback records when those records are used
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -150,6 +153,13 @@ The bounded local disposable target selector layer is not a live target selector
 It must not be reused as-is for live runtime apply.
 A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
 Selector presence is not approval and does not authorize live runtime apply.
+
+## Relationship to validation-only pre-execution gate
+
+The live pre-execution gate validates reviewed selector, approval, and rollback records together before any future live execution discussion.
+
+It is not live runtime apply, not a live-runtime adapter/wrapper, not approval execution, not rollback execution, not secret handling implementation, and not evidence storage implementation.
+It does not weaken any gate in this contract.
 
 ## Relationship to Crab-safe orchestration
 
