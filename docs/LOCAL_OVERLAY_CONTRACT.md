@@ -143,6 +143,8 @@ This does not authorize broader overlay reading, secrets/config ingestion, or li
 
 Live runtime apply remains forbidden and out of scope.
 Local overlay contract does not authorize live runtime writes.
+Broader local-only materials needed for any future live runtime apply are not implemented and are not authorized by the bounded disposable target selector layer.
+Future live runtime usage requires a separate contract defined in `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 
 ## Relationship to Crab-safe orchestration
 

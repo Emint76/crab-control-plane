@@ -1,0 +1,166 @@
+# LIVE_RUNTIME_APPLY_CONTRACT
+
+## Purpose
+
+This document defines the contract and safety gates for any future live runtime apply.
+
+It exists to separate local disposable validation from real runtime mutation.
+It does not authorize implementation or execution.
+
+## Status
+
+This is a contract-only document.
+
+No live runtime apply, no deploy, no migration, no live-runtime adapter, and no rollout behavior are included in this PR.
+
+## Scope
+
+This contract defines the minimum prerequisites, safety gates, evidence expectations, rollback expectations, and forbidden shortcuts for any future live runtime apply discussion.
+It does not create an executable surface and does not approve any runtime target mutation.
+
+## Live runtime apply definition
+
+Live runtime apply means mutating a real OpenClaw runtime target that is not disposable and not intended to be deleted after validation.
+
+This is categorically different from local disposable apply.
+
+## How live runtime apply differs from disposable apply
+
+Disposable apply is local-only, disposable-only, and rollback-tolerant by design.
+
+Live runtime apply affects a real target with continuity, identity, configuration, and operational consequences.
+Passing disposable apply does not by itself authorize live runtime apply.
+
+## Required prerequisites before discussion
+
+Before live runtime apply can even be discussed, these must already exist:
+
+- local overlay contract exists
+- disposable workspace contract exists
+- controlled disposable apply contract exists
+- full local disposable cycle proof exists
+- bounded local target selector layer exists
+- no-secret-leakage validation exists
+- target path validation exists
+
+## Required prerequisites before any future implementation
+
+Before any future implementation PR, these must be separately defined:
+
+- separate live-runtime adapter/wrapper contract
+- explicit live target identity model
+- explicit operator approval model
+- explicit rollback model
+- explicit failure and abort model
+- explicit secret handling contract
+- explicit evidence retention policy
+- explicit no-secret redaction policy
+
+## Required safety gates before any future execution
+
+Before any future execution attempt, all gates must pass:
+
+- human-reviewed target identity
+- human-reviewed exact target path(s)
+- explicit confirmation that target is not disposable
+- explicit confirmation that rollback inputs are present
+- explicit confirmation that secrets/config are sourced from local-only material outside Git
+- dry-run classification still green
+- controlled disposable apply still green
+- no-secret-leakage checks green
+- artifact/evidence schema validation green
+- no pending ambiguity about target surface semantics
+
+## Required evidence before execution
+
+Future live runtime apply must require:
+
+- approved placement plan
+- reviewed target identity record
+- reviewed rollback plan
+- reviewed secret/material source declaration
+- operator approval record
+- pre-apply runtime snapshot reference
+
+## Required evidence during execution
+
+Future live runtime apply must emit:
+
+- execution log
+- mutation action log
+- per-target write log
+- failure/abort log if any
+- redacted operator evidence
+
+## Required evidence after execution
+
+Future live runtime apply must emit:
+
+- post-apply snapshot
+- final execution report
+- final status
+- rollback status if rollback triggered
+- no-secret-leakage evidence for retained reports
+
+## Required rollback expectations
+
+Any future live runtime apply must have an explicit rollback contract before execution.
+
+Rollback must not be implied, assumed, or deferred.
+Rollback inputs, boundaries, and operator decision points must be defined before any live execution is attempted.
+
+## Required no-secret-leakage expectations
+
+Any future live runtime apply must preserve the existing no-secret-leakage discipline.
+
+Secrets may be consumed only from approved local-only sources outside Git.
+Secrets must not be written into repo-local evidence, committed files, or unredacted reports.
+
+## Required target-identity expectations
+
+Any future live runtime apply must define exact target identity, including what instance is being changed, why it is the intended target, and how confusion with disposable targets is prevented.
+
+## Relationship to LOCAL_OVERLAY_CONTRACT
+
+Live runtime apply would require broader local-only material than the bounded disposable selector layer.
+
+This PR does not implement or authorize broader overlay reading.
+
+## Relationship to CONTROLLED_DISPOSABLE_APPLY_CONTRACT
+
+Controlled disposable apply is a prerequisite validation stage, not a launch authorization stage.
+
+Live runtime apply remains a separate future class of operation.
+
+## Relationship to local target selector layer
+
+The bounded local disposable target selector layer is not a live target selector.
+It must not be reused as-is for live runtime apply.
+A future live target selector, if any, would need a separate contract.
+
+## Relationship to Crab-safe orchestration
+
+Crab is not approved to invoke live runtime apply.
+A future live-runtime wrapper would require separate approval, separate tests, separate CI, and explicit human control.
+
+## Forbidden shortcuts
+
+- no direct promotion from disposable apply to live runtime apply
+- no implicit reuse of disposable target selectors for live targets
+- no rollout driven by repo-only evidence without local-only approval material
+- no secret values in Git-tracked files
+- no bypass of rollback requirements
+- no Crab invocation without separate approval
+- no deploy/migration hidden inside apply
+
+## Non-goals
+
+- no live runtime apply implementation
+- no deploy
+- no migration
+- no live-runtime adapter/wrapper
+- no local overlay implementation
+- no secrets handling implementation
+- no Crab approval
+- no Phase 2/3/4 behavior changes
+- no workflow changes

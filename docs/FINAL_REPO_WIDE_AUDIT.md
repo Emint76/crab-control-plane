@@ -58,6 +58,7 @@
 - Controlled disposable apply state-target write support inside disposable targets.
 - Dry-run adapter reserved-prefix workspace/state classification.
 - Bounded local disposable target selector layer.
+- Live runtime apply contract and safety gates.
 
 ## Remaining known non-blocking debt
 
@@ -69,3 +70,4 @@
 - Controlled disposable apply expansion beyond initial skeleton.
 - Broader local overlay implementation is not done.
 - Live-runtime adapter remains future work.
+- Rollout/real deployment remains future work.

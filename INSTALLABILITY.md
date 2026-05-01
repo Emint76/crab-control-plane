@@ -142,9 +142,11 @@ It stages into repo-local generated run directories only.
 - controlled disposable apply beyond the initial skeleton
 - live runtime apply
 - OpenClaw workspace/state writes
-- live runtime adapter
+- live-runtime adapter
 
 Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
+
+Future live runtime mutation is gated by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md` and is not part of the current runnable surfaces.
 
 The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 
