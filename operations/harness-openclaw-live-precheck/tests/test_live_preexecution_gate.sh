@@ -22,13 +22,13 @@ export LIVE_PRECHECK_PYTHON_BIN="${LIVE_PRECHECK_PYTHON_BIN:-${PYTHON_BIN}}"
 VALID_RUN_ID="live-preexecution-gate-valid"
 REPO_LOCAL_RUN_ID="live-preexecution-gate-repo-local-input"
 TARGET_MISMATCH_RUN_ID="live-preexecution-gate-target-mismatch"
-SECRET_KEY_RUN_ID="live-preexecution-gate-secret-key"
+BLOCKED_KEY_RUN_ID="live-preexecution-gate-secret-key"
 INVALID_RUN_ID="../bad"
 
 VALID_RUN_DIR="${RUNS_ROOT}/${VALID_RUN_ID}"
 REPO_LOCAL_RUN_DIR="${RUNS_ROOT}/${REPO_LOCAL_RUN_ID}"
 TARGET_MISMATCH_RUN_DIR="${RUNS_ROOT}/${TARGET_MISMATCH_RUN_ID}"
-SECRET_KEY_RUN_DIR="${RUNS_ROOT}/${SECRET_KEY_RUN_ID}"
+BLOCKED_KEY_RUN_DIR="${RUNS_ROOT}/${BLOCKED_KEY_RUN_ID}"
 
 TMP_ROOT="$(mktemp -d)"
 VALID_SELECTOR="${TMP_ROOT}/live-target-selector.json"
@@ -36,7 +36,7 @@ VALID_APPROVAL="${TMP_ROOT}/operator-approval.json"
 VALID_ROLLBACK="${TMP_ROOT}/rollback-handoff.json"
 REPO_LOCAL_SELECTOR="${SCRIPT_DIR}/repo-local-live-target-selector.tmp.json"
 TARGET_MISMATCH_APPROVAL="${TMP_ROOT}/operator-approval-target-mismatch.json"
-SECRET_KEY_SELECTOR="${TMP_ROOT}/live-target-selector-secret-key.json"
+BLOCKED_KEY_SELECTOR="${TMP_ROOT}/live-target-selector-secret-key.json"
 
 fail() {
   echo "FAIL $*" >&2
@@ -80,7 +80,7 @@ cleanup() {
   safe_rm_generated_dir "${VALID_RUN_DIR}" "${RUNS_ROOT}" "${VALID_RUN_ID}"
   safe_rm_generated_dir "${REPO_LOCAL_RUN_DIR}" "${RUNS_ROOT}" "${REPO_LOCAL_RUN_ID}"
   safe_rm_generated_dir "${TARGET_MISMATCH_RUN_DIR}" "${RUNS_ROOT}" "${TARGET_MISMATCH_RUN_ID}"
-  safe_rm_generated_dir "${SECRET_KEY_RUN_DIR}" "${RUNS_ROOT}" "${SECRET_KEY_RUN_ID}"
+  safe_rm_generated_dir "${BLOCKED_KEY_RUN_DIR}" "${RUNS_ROOT}" "${BLOCKED_KEY_RUN_ID}"
 }
 
 assert_file() {
@@ -312,8 +312,8 @@ run_gate_expect_fail \
   --approval-file "${TARGET_MISMATCH_APPROVAL}" \
   --rollback-file "${VALID_ROLLBACK}"
 
-cp "${VALID_SELECTOR}" "${SECRET_KEY_SELECTOR}"
-"${PYTHON_BIN}" - "${SECRET_KEY_SELECTOR}" <<'PY'
+cp "${VALID_SELECTOR}" "${BLOCKED_KEY_SELECTOR}"
+"${PYTHON_BIN}" - "${BLOCKED_KEY_SELECTOR}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -325,10 +325,10 @@ path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 PY
 run_gate_expect_fail \
   "secret-like key" \
-  "${SECRET_KEY_RUN_ID}" \
-  "${SECRET_KEY_RUN_DIR}" \
+  "${BLOCKED_KEY_RUN_ID}" \
+  "${BLOCKED_KEY_RUN_DIR}" \
   "non_secret_input_validation" \
-  --selector-file "${SECRET_KEY_SELECTOR}" \
+  --selector-file "${BLOCKED_KEY_SELECTOR}" \
   --approval-file "${VALID_APPROVAL}" \
   --rollback-file "${VALID_ROLLBACK}"
 
