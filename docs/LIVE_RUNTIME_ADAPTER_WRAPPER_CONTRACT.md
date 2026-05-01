@@ -52,6 +52,7 @@ It must produce canonical execution evidence for the live mutation attempt.
 Any future live-runtime adapter/wrapper may consume only reviewed and approved inputs such as:
 
 - reviewed live target identity record
+- reviewed live target selector governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`
 - approved placement plan
 - reviewed rollback plan
 - reviewed local-only material source declaration
@@ -74,6 +75,7 @@ Any future live-runtime adapter/wrapper must not consume:
 Before any future live execution, the wrapper must validate:
 
 - live target identity validation
+- live target selector boundary validation
 - confirmation that target is not disposable
 - local-only material location validation
 - approval record validation
@@ -151,7 +153,16 @@ This PR does not implement or authorize that reading.
 
 The bounded disposable target selector layer is not a live target selector and must not be promoted into one by convention.
 
-A future live selector, if needed, requires a separate contract.
+A future live selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+That selector does not replace the broader live target identity model and does not act as approval or execution ownership.
+
+## Relationship to LIVE_TARGET_SELECTOR_CONTRACT
+
+`docs/LIVE_TARGET_SELECTOR_CONTRACT.md` defines the boundary for a future selector that may point at the intended live target.
+
+The future live-runtime adapter/wrapper may consume only a reviewed live selector after separate gates pass.
+The selector remains distinct from live target identity, approval, rollback, and execution ownership.
+This PR does not create or approve a live-runtime wrapper.
 
 ## Relationship to Crab-safe orchestration
 

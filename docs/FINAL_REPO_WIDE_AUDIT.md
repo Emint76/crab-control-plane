@@ -25,6 +25,7 @@
 | Full local disposable cycle proof | proof wrapper over the current local-only disposable contour | yes | proof-level evidence only; no live runtime apply, no live wrapper, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
+| Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
 
 ## Confirmed boundaries
 
@@ -79,6 +80,7 @@
 - Live runtime apply contract and safety gates.
 - Live-runtime adapter/wrapper contract.
 - Full local disposable cycle proof surface.
+- Live target selector contract.
 
 ## Remaining known non-blocking debt
 
@@ -96,5 +98,5 @@
 - Evidence retention policy remains future work.
 - No-secret redaction policy remains future work.
 - Live-runtime adapter implementation remains future work.
-- Live target selector remains future work.
+- Live target selector implementation remains future work.
 - Rollout/real deployment remains future work.

@@ -193,6 +193,8 @@ It is not approved for Crab invocation yet.
 The current repo supports dry-run evidence generation, safety validation, and a bounded local-only disposable apply contour only.
 Live runtime apply remains unimplemented and separately governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
+A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+No live target selector implementation exists yet.
 The current repo still proves only local-only disposable contours.
 
 ## What belongs elsewhere
