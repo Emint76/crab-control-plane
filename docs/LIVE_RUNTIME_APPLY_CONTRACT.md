@@ -18,6 +18,9 @@ No live runtime apply, no deploy, no migration, no live-runtime adapter, and no 
 This contract defines the minimum prerequisites, safety gates, evidence expectations, rollback expectations, and forbidden shortcuts for any future live runtime apply discussion.
 It does not create an executable surface and does not approve any runtime target mutation.
 
+A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
+Live runtime apply must not be driven directly from disposable apply surfaces.
+
 ## Live runtime apply definition
 
 Live runtime apply means mutating a real OpenClaw runtime target that is not disposable and not intended to be deleted after validation.

@@ -145,6 +145,8 @@ Live runtime apply remains forbidden and out of scope.
 Local overlay contract does not authorize live runtime writes.
 Broader local-only materials needed for any future live runtime apply are not implemented and are not authorized by the bounded disposable target selector layer.
 Future live runtime usage requires a separate contract defined in `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
+Any future live-runtime adapter/wrapper may require broader local-only materials outside Git, but that reading is not implemented and not authorized here.
+Its future execution surface is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 
 ## Relationship to Crab-safe orchestration
 

@@ -181,8 +181,8 @@ It is not approved for Crab invocation yet.
 
 The current repo supports dry-run evidence generation, safety validation, and the initial controlled disposable apply skeleton only.
 Live runtime apply remains unimplemented and separately governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
-
-The current repo only proves local-only disposable contours.
+A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
+The current repo still proves only local-only disposable contours.
 
 ## What belongs elsewhere
 

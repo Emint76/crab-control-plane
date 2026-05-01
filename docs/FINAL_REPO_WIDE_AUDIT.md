@@ -59,6 +59,7 @@
 - Dry-run adapter reserved-prefix workspace/state classification.
 - Bounded local disposable target selector layer.
 - Live runtime apply contract and safety gates.
+- Live-runtime adapter/wrapper contract.
 
 ## Remaining known non-blocking debt
 
@@ -69,5 +70,6 @@
 - Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond initial skeleton.
 - Broader local overlay implementation is not done.
-- Live-runtime adapter remains future work.
+- Live-runtime adapter implementation remains future work.
+- Live target selector remains future work.
 - Rollout/real deployment remains future work.
