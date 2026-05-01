@@ -81,6 +81,9 @@ Redaction defines what must be removed, masked, or excluded before evidence is r
 `operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` now applies bounded redaction to candidate evidence before retaining copies under its own run directory.
 That surface is not full live evidence storage.
 
+`operations/harness-openclaw-live-wrapper-intake/bin/run_live_wrapper_intake.sh` creates a refs-and-metadata-only bundle that may point at retained evidence paths.
+It must not inline retained file contents or secret-like values.
+
 ## Relationship to Approval and Rollback Records
 
 `docs/OPERATOR_APPROVAL_MODEL.md` defines approval semantics.
@@ -103,6 +106,9 @@ This policy does not create or approve that wrapper.
 
 The bounded retention surface is separate from the future wrapper.
 It does not mutate targets, grant approval, perform rollback, or authorize live runtime apply.
+
+The bounded wrapper-intake surface is also separate from the future wrapper.
+It does not load raw secrets, inline retained contents, mutate targets, grant approval, perform rollback, or authorize live runtime apply.
 
 ## Non-Goals
 
