@@ -34,6 +34,7 @@ The repository may document expected overlay shape, but must not contain real ov
 - instance-specific runtime config
 - local operator preferences
 - local OpenClaw target selectors
+- future live target selector material
 - local paths to disposable workspace/state
 
 ## What must never enter Git
@@ -147,6 +148,8 @@ Broader local-only materials needed for any future live runtime apply are not im
 Future live runtime usage requires a separate contract defined in `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 Any future live-runtime adapter/wrapper may require broader local-only materials outside Git, but that reading is not implemented and not authorized here.
 Its future execution surface is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
+Broader future local-only live material may include a future live target selector governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+This PR does not implement reading live target selector material.
 
 ## Relationship to Crab-safe orchestration
 

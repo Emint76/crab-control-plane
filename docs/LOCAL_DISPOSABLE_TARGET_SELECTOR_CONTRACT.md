@@ -7,6 +7,7 @@ This document defines a bounded local-only selector file for disposable apply ta
 It is not a full local overlay.
 It is not a secrets/config/identity layer.
 It is only a non-secret local target selector for disposable workspace/state roots and approval label.
+It is not a live target selector and must not be promoted into one.
 
 ## Status
 
@@ -84,7 +85,8 @@ It must not bypass target validation, no-secret validation, placement plan valid
 Live runtime apply remains forbidden and out of scope.
 This selector does not authorize live runtime targets or live runtime writes.
 This bounded disposable selector is not a live target selector.
-Future live-runtime target selection, if needed, requires a separate contract and must not be inferred from this selector.
+It must not be promoted into one by naming convention, path convention, wrapper reuse, or operator habit.
+Future live-runtime target selection is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md` and must not be inferred from this selector.
 
 ## Non-goals
 

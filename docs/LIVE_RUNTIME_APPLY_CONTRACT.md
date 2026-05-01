@@ -43,11 +43,14 @@ Before live runtime apply can even be discussed, these must already exist:
 - controlled disposable apply contract exists
 - full local disposable cycle proof exists
 - bounded local target selector layer exists
+- live target selector contract exists
 - no-secret-leakage validation exists
 - target path validation exists
 
 The `full local disposable cycle proof exists` prerequisite is now satisfied at the contract level by the dedicated proof surface in `operations/harness-openclaw-local-proof/`.
 That proof surface only runs the current local-only disposable contour and does not authorize live runtime apply, live-runtime adapter behavior, or Crab invocation.
+Any future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+The live target selector contract does not replace the future live target identity model, approval model, rollback model, or live-runtime adapter/wrapper.
 
 ## Required prerequisites before any future implementation
 
@@ -142,7 +145,8 @@ Live runtime apply remains a separate future class of operation.
 
 The bounded local disposable target selector layer is not a live target selector.
 It must not be reused as-is for live runtime apply.
-A future live target selector, if any, would need a separate contract.
+A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
+Selector presence is not approval and does not authorize live runtime apply.
 
 ## Relationship to Crab-safe orchestration
 
