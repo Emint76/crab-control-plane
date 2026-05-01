@@ -38,6 +38,9 @@ controlled-disposable-apply-ci:
 local-target-selector-ci:
 	bash operations/harness-openclaw-local-selector/tests/test_local_target_selector_layer.sh
 
+openclaw-local-proof-ci:
+	bash operations/harness-openclaw-local-proof/tests/test_full_local_disposable_cycle.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

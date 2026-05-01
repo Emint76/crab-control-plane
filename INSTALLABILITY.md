@@ -18,6 +18,7 @@ It is not a production OpenClaw deployment package.
 - `make no-secret-leakage-ci`
 - `make controlled-disposable-apply-ci`
 - `make local-target-selector-ci`
+- `make openclaw-local-proof-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -89,6 +90,17 @@ This is not a full local overlay implementation.
 The selector file must stay outside Git and may contain only disposable target paths plus approval label.
 It must not contain secrets, provider/model/auth/token config, identity, channel IDs, or live-runtime targets.
 The selector contract is defined in `docs/LOCAL_DISPOSABLE_TARGET_SELECTOR_CONTRACT.md`.
+
+Full local disposable cycle proof:
+
+```bash
+bash operations/harness-openclaw-local-proof/bin/run_full_local_disposable_cycle.sh --run-id <RUN_ID>
+```
+
+`make openclaw-local-proof-ci` validates this proof surface.
+It runs the current bounded local-only disposable contour in fixed order and emits proof-level evidence under `operations/harness-openclaw-local-proof/runs/<RUN_ID>/`.
+This closes the "full local disposable cycle proof exists" prerequisite at the contract level.
+It does not change runnable live-runtime status, authorize live runtime apply, create a live-runtime wrapper, or approve Crab invocation.
 
 ## One-command smoke
 
@@ -169,6 +181,7 @@ Ignored generated surfaces:
 - `operations/harness-orchestration/runs/`
 - `operations/harness-openclaw-dryrun/runs/`
 - `operations/harness-openclaw-disposable-apply/runs/`
+- `operations/harness-openclaw-local-proof/runs/`
 
 ## Safe cleanup
 

@@ -46,6 +46,9 @@ Before live runtime apply can even be discussed, these must already exist:
 - no-secret-leakage validation exists
 - target path validation exists
 
+The `full local disposable cycle proof exists` prerequisite is now satisfied at the contract level by the dedicated proof surface in `operations/harness-openclaw-local-proof/`.
+That proof surface only runs the current local-only disposable contour and does not authorize live runtime apply, live-runtime adapter behavior, or Crab invocation.
+
 ## Required prerequisites before any future implementation
 
 Before any future implementation PR, these must be separately defined:
