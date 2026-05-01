@@ -26,3 +26,6 @@ operations/harness-openclaw-live-precheck/runs/*
 
 operations/harness-openclaw-live-retention/runs/*
 !operations/harness-openclaw-live-retention/runs/.gitkeep
+
+operations/harness-openclaw-live-execution-prep/runs/*
+!operations/harness-openclaw-live-execution-prep/runs/.gitkeep

@@ -14,6 +14,7 @@ Current status:
 
 - no rollback execution surface
 - validation-only gate exists for rollback handoff validation
+- repo-local rollback execution-prep record surface exists for normalized reviewed handoff only
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no Crab approval
@@ -119,6 +120,15 @@ Rollback material must not carry raw secrets in repo-local evidence, approval re
 `operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh` validates reviewed rollback handoff shape and binding with selector and approval records.
 
 That gate does not perform rollback, trigger rollback, authorize live runtime apply, or act as a live-runtime wrapper.
+
+## Relationship to Live Execution-Prep Bundle
+
+`operations/harness-openclaw-live-execution-prep/bin/run_live_execution_prep.sh` creates a bounded repo-local rollback execution-prep record from an already reviewed rollback handoff after the validation-only pre-execution gate passes.
+
+rollback execution-prep record != rollback execution
+
+The execution-prep bundle normalizes reviewed rollback handoff metadata only.
+It does not execute rollback, trigger rollback, authorize live runtime apply, or act as a live-runtime wrapper.
 
 ## Non-Goals
 

@@ -47,6 +47,8 @@ A validation-only pre-execution gate may exist before the wrapper to validate re
 That gate is not the execution owner.
 A bounded live retention surface may exist before the wrapper to validate source declarations and retain redacted candidate evidence.
 That retention surface is not the execution owner.
+A wrapper-ready execution-prep bundle may exist before the wrapper to normalize reviewed selector, approval, and rollback records.
+That execution-prep bundle is not the execution owner.
 
 ## Required execution ownership model
 
@@ -97,6 +99,7 @@ Before any future live execution, the wrapper must validate:
 - approval record validation
 - rollback input validation
 - validation-only pre-execution gate result for selector, approval, and rollback records when present
+- execution-prep bundle result for selector, approval, and rollback records when a wrapper-ready bundle is prepared
 - bounded source declaration and redacted retention result when candidate evidence is retained
 - no-secret-leakage/redaction precheck
 - evidence-path validation
@@ -202,6 +205,15 @@ retention surface != execution owner
 The wrapper remains separate.
 The retention surface does not load real secrets, read broader local overlay material, mutate targets, grant approval, perform rollback, or become a live-runtime adapter/wrapper.
 
+## Relationship to Live Execution-Prep Bundle
+
+`operations/harness-openclaw-live-execution-prep/bin/run_live_execution_prep.sh` is a bounded live-adjacent surface that reruns the pre-execution gate and emits repo-local normalized selector, approval, and rollback execution-prep records.
+
+execution-prep bundle != execution owner
+
+The wrapper remains separate.
+The execution-prep bundle does not mutate targets, grant approval, perform rollback, load secrets, read broader local overlay material, or become a live-runtime adapter/wrapper.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -219,10 +231,12 @@ It must not collapse the pre-execution contract stack:
 - wrapper contract -> future execution owner only
 - preexecution gate -> validation-only selector/approval/rollback record check
 - retention surface -> bounded declaration validation and redacted candidate evidence retention
+- execution-prep bundle -> repo-local normalized selector/approval/rollback records after pre-execution validation
 
 approval != wrapper
 preexecution gate != execution owner
 retention surface != execution owner
+execution-prep bundle != execution owner
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction

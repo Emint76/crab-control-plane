@@ -14,6 +14,7 @@ Current status:
 
 - no approval-granting execution surface
 - validation-only gate exists for reviewed approval record shape/binding
+- repo-local approval execution-prep record surface exists for normalized reviewed records only
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
 - no Crab approval
@@ -128,6 +129,15 @@ Approval records must not carry raw secrets, tokens, keys, OAuth credentials, or
 `operations/harness-openclaw-live-precheck/bin/run_live_preexecution_gate.sh` validates reviewed approval record shape and binding with selector and rollback records.
 
 That gate does not grant approval, execute approval, authorize live runtime apply, or act as a live-runtime wrapper.
+
+## Relationship to Live Execution-Prep Bundle
+
+`operations/harness-openclaw-live-execution-prep/bin/run_live_execution_prep.sh` creates a bounded repo-local approval execution-prep record from an already reviewed approval record after the validation-only pre-execution gate passes.
+
+approval execution-prep record != approval grant
+
+The execution-prep bundle normalizes reviewed approval metadata only.
+It does not grant approval, execute approval, authorize live runtime apply, or act as a live-runtime wrapper.
 
 ## Relationship to Crab-Safe Orchestration
 
