@@ -51,6 +51,8 @@ A wrapper-ready execution-prep bundle may exist before the wrapper to normalize 
 That execution-prep bundle is not the execution owner.
 A bounded wrapper-intake bundle may exist before the wrapper to compose green execution-prep and retention run references.
 That wrapper-intake bundle is not the execution owner.
+A bounded repo-local wrapper preflight skeleton may exist before the wrapper to validate wrapper-intake input and emit preflight evidence.
+That preflight skeleton is not the execution owner.
 
 ## Required execution ownership model
 
@@ -104,6 +106,7 @@ Before any future live execution, the wrapper must validate:
 - execution-prep bundle result for selector, approval, and rollback records when a wrapper-ready bundle is prepared
 - bounded source declaration and redacted retention result when candidate evidence is retained
 - wrapper-intake bundle result when execution-prep and retention evidence are composed for future wrapper intake
+- wrapper preflight skeleton result when a green wrapper-intake bundle is validated before any future wrapper
 - no-secret-leakage/redaction precheck
 - evidence-path validation
 - exact target-surface ambiguity check
@@ -226,6 +229,15 @@ wrapper-intake bundle != execution owner
 The wrapper remains separate.
 The wrapper-intake bundle does not mutate targets, load raw secrets, grant approval, perform rollback, authorize live runtime apply, or become a live-runtime adapter/wrapper.
 
+## Relationship to Live Wrapper Preflight Skeleton
+
+`operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_preflight.sh` is a bounded repo-local surface that consumes a green wrapper-intake bundle and emits wrapper preflight evidence plus a stub plan.
+
+preflight skeleton != execution owner
+
+The wrapper remains separate.
+The preflight skeleton does not mutate targets, load raw secrets, grant approval, perform rollback, authorize live runtime apply, or become the live-runtime execution owner.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -245,12 +257,14 @@ It must not collapse the pre-execution contract stack:
 - retention surface -> bounded declaration validation and redacted candidate evidence retention
 - execution-prep bundle -> repo-local normalized selector/approval/rollback records after pre-execution validation
 - wrapper-intake bundle -> refs-and-metadata composition of green execution-prep and retention outputs
+- preflight skeleton -> wrapper preflight evidence and stub plan only
 
 approval != wrapper
 preexecution gate != execution owner
 retention surface != execution owner
 execution-prep bundle != execution owner
 wrapper-intake bundle != execution owner
+preflight skeleton != execution owner
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction

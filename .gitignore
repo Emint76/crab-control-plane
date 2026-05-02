@@ -32,3 +32,6 @@ operations/harness-openclaw-live-execution-prep/runs/*
 
 operations/harness-openclaw-live-wrapper-intake/runs/*
 !operations/harness-openclaw-live-wrapper-intake/runs/.gitkeep
+
+operations/harness-openclaw-live-wrapper/runs/*
+!operations/harness-openclaw-live-wrapper/runs/.gitkeep
