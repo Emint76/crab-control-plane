@@ -61,6 +61,8 @@ A bounded live wrapper-intake bundle now exists in `operations/harness-openclaw-
 That bundle emits refs and metadata only; it does not load secrets, create a live wrapper, or authorize live runtime apply.
 A bounded live wrapper preflight skeleton now exists in `operations/harness-openclaw-live-wrapper/` for green wrapper-intake run outputs.
 That skeleton emits preflight evidence and a stub plan only; it does not load secrets, create a live wrapper, or authorize live runtime apply.
+A bounded live material-resolution bundle now exists in `operations/harness-openclaw-live-material-resolution/` for green wrapper preflight outputs and reviewed outside-Git source declarations.
+That bundle emits refs-only material metadata; it does not load raw secrets, create a live wrapper, or authorize live runtime apply.
 
 ## Required prerequisites before any future implementation
 
@@ -91,6 +93,7 @@ Before any future execution attempt, all gates must pass:
 - bounded source declaration and redacted retention checks green when candidate live-adjacent evidence is retained
 - wrapper-intake bundle green when execution-prep and retention outputs are composed before a future wrapper
 - wrapper preflight skeleton green when a wrapper-intake bundle is validated before any future live wrapper
+- material-resolution bundle green when reviewed material references are resolved from a green wrapper preflight run
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -199,6 +202,13 @@ It does not weaken any gate in this contract.
 The live wrapper preflight skeleton may exist before any future live wrapper to validate a green wrapper-intake bundle and emit preflight-only evidence.
 
 It is still not live runtime apply, not a live-runtime execution owner, not approval granting, not rollback execution, not real secret loading, and not broader local overlay reading.
+It does not weaken any gate in this contract.
+
+## Relationship to live material-resolution bundle
+
+The live material-resolution bundle may exist before any future live wrapper or live apply to validate reviewed material references from a green wrapper preflight run.
+
+It is still not live runtime apply, not a live-runtime execution owner, not approval granting, not rollback execution, not raw secret loading, and not broader local overlay reading.
 It does not weaken any gate in this contract.
 
 ## Relationship to Crab-safe orchestration

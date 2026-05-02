@@ -56,6 +56,9 @@ live-wrapper-intake-ci:
 live-wrapper-preflight-ci:
 	bash operations/harness-openclaw-live-wrapper/tests/test_live_wrapper_preflight.sh
 
+live-material-resolution-ci:
+	bash operations/harness-openclaw-live-material-resolution/tests/test_live_material_resolution.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci
