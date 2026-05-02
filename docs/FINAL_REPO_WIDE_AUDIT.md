@@ -28,6 +28,7 @@
 | Live execution-prep bundle for selector, approval, and rollback records | normalizes reviewed records into a repo-local execution-prep bundle | yes | execution-prep only; no live runtime apply, no live wrapper, no approval grant, no rollback execution, no Crab approval |
 | Live wrapper-intake bundle from execution-prep and retention surfaces | composes green execution-prep and retention refs into a repo-local intake bundle | yes | wrapper-intake only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live wrapper preflight skeleton from green wrapper-intake bundle | validates wrapper-intake input and emits preflight evidence plus a stub plan | yes | preflight-only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
+| Live material-resolution bundle from green wrapper preflight and reviewed source declaration | validates reviewed material refs and emits a repo-local refs-only material bundle | yes | material-resolution only; no live runtime apply, no live wrapper, no raw secret loading, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -52,6 +53,7 @@
 - The live execution-prep bundle normalizes reviewed selector, approval, and rollback records only; it does not grant approval, execute rollback, mutate targets, or act as a live wrapper.
 - The live wrapper-intake bundle composes green execution-prep and retention references only; it does not load raw secrets, mutate targets, or act as a live wrapper.
 - The live wrapper preflight skeleton validates green wrapper-intake input and emits stub evidence only; it does not load raw secrets, mutate targets, or act as a live wrapper.
+- The live material-resolution bundle validates green wrapper preflight input and reviewed outside-Git material references only; it emits refs-only metadata and does not load raw secrets, mutate targets, or act as a live wrapper.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -106,6 +108,7 @@
 - Bounded repo-local execution-prep bundle for reviewed selector, approval, and rollback records.
 - Bounded repo-local wrapper-intake bundle from execution-prep and retention surfaces.
 - Bounded repo-local live wrapper preflight skeleton from green wrapper-intake bundle.
+- Bounded repo-local live material-resolution bundle from green wrapper preflight and reviewed source declaration.
 
 ## Remaining known non-blocking debt
 

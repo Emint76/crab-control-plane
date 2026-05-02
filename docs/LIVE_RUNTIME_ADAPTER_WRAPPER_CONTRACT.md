@@ -53,6 +53,8 @@ A bounded wrapper-intake bundle may exist before the wrapper to compose green ex
 That wrapper-intake bundle is not the execution owner.
 A bounded repo-local wrapper preflight skeleton may exist before the wrapper to validate wrapper-intake input and emit preflight evidence.
 That preflight skeleton is not the execution owner.
+A bounded repo-local material-resolution bundle may exist before the wrapper to validate reviewed material references from a green wrapper preflight run.
+That material-resolution bundle is not the execution owner.
 
 ## Required execution ownership model
 
@@ -107,6 +109,7 @@ Before any future live execution, the wrapper must validate:
 - bounded source declaration and redacted retention result when candidate evidence is retained
 - wrapper-intake bundle result when execution-prep and retention evidence are composed for future wrapper intake
 - wrapper preflight skeleton result when a green wrapper-intake bundle is validated before any future wrapper
+- material-resolution bundle result when reviewed material references are resolved from a green wrapper preflight run
 - no-secret-leakage/redaction precheck
 - evidence-path validation
 - exact target-surface ambiguity check
@@ -141,6 +144,8 @@ The future live-runtime adapter/wrapper may consume approved local-only material
 Secret/material source boundaries are defined by `docs/SECRET_HANDLING_CONTRACT.md`, while output safety is separately governed by `docs/NO_SECRET_REDACTION_POLICY.md`.
 Secret handling implementation remains separate future work.
 The bounded retention surface validates source declarations and redacts candidate evidence only; it does not load real secrets or provide wrapper-integrated redaction.
+A bounded material-resolution surface may validate declared material paths and emit refs-only metadata before any future live wrapper.
+That material-resolution bundle does not load raw secrets and does not provide wrapper-integrated redaction.
 
 ## Required rollback handoff expectations
 
@@ -238,6 +243,15 @@ preflight skeleton != execution owner
 The wrapper remains separate.
 The preflight skeleton does not mutate targets, load raw secrets, grant approval, perform rollback, authorize live runtime apply, or become the live-runtime execution owner.
 
+## Relationship to Live Material-Resolution Bundle
+
+`operations/harness-openclaw-live-material-resolution/bin/run_live_material_resolution.sh` is a bounded repo-local surface that consumes a green wrapper preflight run and a reviewed outside-Git source declaration to emit refs-only material metadata.
+
+material-resolution bundle != execution owner
+
+The wrapper remains separate.
+The material-resolution bundle does not mutate targets, load raw secrets into repo-local artifacts, grant approval, perform rollback, authorize live runtime apply, or become the live-runtime execution owner.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -258,6 +272,7 @@ It must not collapse the pre-execution contract stack:
 - execution-prep bundle -> repo-local normalized selector/approval/rollback records after pre-execution validation
 - wrapper-intake bundle -> refs-and-metadata composition of green execution-prep and retention outputs
 - preflight skeleton -> wrapper preflight evidence and stub plan only
+- material-resolution bundle -> refs-only material metadata from green wrapper preflight and reviewed declaration
 
 approval != wrapper
 preexecution gate != execution owner
@@ -265,6 +280,7 @@ retention surface != execution owner
 execution-prep bundle != execution owner
 wrapper-intake bundle != execution owner
 preflight skeleton != execution owner
+material-resolution bundle != execution owner
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction

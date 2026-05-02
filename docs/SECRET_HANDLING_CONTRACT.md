@@ -101,6 +101,10 @@ Redaction defines output safety expectations.
 `operations/harness-openclaw-live-retention/bin/run_secret_retention_surface.sh` now validates a reviewed source declaration and applies bounded redaction to candidate evidence before retention.
 That surface does not load raw secrets from the declared sources and does not implement full secret handling.
 
+`operations/harness-openclaw-live-material-resolution/bin/run_live_material_resolution.sh` now validates declared material paths from a reviewed outside-Git source declaration and emits repo-local refs-only material-resolution evidence.
+It records source references and path kinds only; material resolution != raw secret loading.
+It does not read broader local overlay material and does not copy raw source material into repo-local outputs.
+
 ## Relationship to Evidence Retention
 
 `docs/EVIDENCE_RETENTION_POLICY.md` defines retained evidence classes.
@@ -116,6 +120,9 @@ It is not full live evidence storage and is not wrapper-owned live execution evi
 
 A future wrapper may consume approved local-only material only after separate gates pass.
 This contract does not create or approve that wrapper.
+
+The bounded material-resolution surface may prepare refs-only material metadata before any future wrapper.
+It is not the execution owner and does not implement secret loading.
 
 ## Non-Goals
 

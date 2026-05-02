@@ -35,3 +35,6 @@ operations/harness-openclaw-live-wrapper-intake/runs/*
 
 operations/harness-openclaw-live-wrapper/runs/*
 !operations/harness-openclaw-live-wrapper/runs/.gitkeep
+
+operations/harness-openclaw-live-material-resolution/runs/*
+!operations/harness-openclaw-live-material-resolution/runs/.gitkeep
