@@ -27,6 +27,7 @@
 | Live secret retention surface | validates reviewed source declaration and retains redacted candidate evidence | yes | bounded retention-only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live execution-prep bundle for selector, approval, and rollback records | normalizes reviewed records into a repo-local execution-prep bundle | yes | execution-prep only; no live runtime apply, no live wrapper, no approval grant, no rollback execution, no Crab approval |
 | Live wrapper-intake bundle from execution-prep and retention surfaces | composes green execution-prep and retention refs into a repo-local intake bundle | yes | wrapper-intake only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
+| Live wrapper preflight skeleton from green wrapper-intake bundle | validates wrapper-intake input and emits preflight evidence plus a stub plan | yes | preflight-only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -50,6 +51,7 @@
 - The live secret retention surface validates source declarations and retains redacted candidate evidence only; it does not load real secrets, implement full evidence storage, or act as a live wrapper.
 - The live execution-prep bundle normalizes reviewed selector, approval, and rollback records only; it does not grant approval, execute rollback, mutate targets, or act as a live wrapper.
 - The live wrapper-intake bundle composes green execution-prep and retention references only; it does not load raw secrets, mutate targets, or act as a live wrapper.
+- The live wrapper preflight skeleton validates green wrapper-intake input and emits stub evidence only; it does not load raw secrets, mutate targets, or act as a live wrapper.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -103,6 +105,7 @@
 - Bounded live secret-material declaration validation and redacted retention surface.
 - Bounded repo-local execution-prep bundle for reviewed selector, approval, and rollback records.
 - Bounded repo-local wrapper-intake bundle from execution-prep and retention surfaces.
+- Bounded repo-local live wrapper preflight skeleton from green wrapper-intake bundle.
 
 ## Remaining known non-blocking debt
 
@@ -118,6 +121,7 @@
 - Rollback execution surface remains future work.
 - Full live evidence storage implementation remains future work.
 - Wrapper-integrated no-secret redaction implementation remains future work.
+- Live-runtime execution owner implementation remains future work.
 - Live-runtime adapter implementation remains future work.
 - Live target selector implementation remains future work.
 - Live runtime apply implementation remains future work.

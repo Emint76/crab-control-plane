@@ -53,6 +53,9 @@ live-execution-prep-ci:
 live-wrapper-intake-ci:
 	bash operations/harness-openclaw-live-wrapper-intake/tests/test_live_wrapper_intake.sh
 
+live-wrapper-preflight-ci:
+	bash operations/harness-openclaw-live-wrapper/tests/test_live_wrapper_preflight.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

@@ -23,6 +23,7 @@ It is not a production OpenClaw deployment package.
 - `make live-secret-retention-ci`
 - `make live-execution-prep-ci`
 - `make live-wrapper-intake-ci`
+- `make live-wrapper-preflight-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -160,6 +161,18 @@ bash operations/harness-openclaw-live-wrapper-intake/bin/run_live_wrapper_intake
 It checks green execution-prep and retention run directories and writes a repo-local refs-and-metadata intake bundle under `operations/harness-openclaw-live-wrapper-intake/runs/<RUN_ID>/`.
 This is wrapper-intake only and does not load secrets, grant approval, execute rollback, create a live-runtime wrapper, authorize live runtime apply, or approve Crab invocation.
 
+Bounded live wrapper preflight skeleton:
+
+```bash
+bash operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_preflight.sh \
+  --wrapper-intake-run-dir operations/harness-openclaw-live-wrapper-intake/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+`make live-wrapper-preflight-ci` validates this surface.
+It checks a green wrapper-intake run directory and writes repo-local preflight evidence plus a stub execution plan under `operations/harness-openclaw-live-wrapper/runs/<RUN_ID>/`.
+This is preflight only and does not load secrets, grant approval, execute rollback, create a live-runtime execution owner, authorize live runtime apply, or approve Crab invocation.
+
 ## One-command smoke
 
 ```bash
@@ -228,6 +241,8 @@ A bounded live execution-prep bundle now exists for reviewed selector, approval,
 It is execution-prep only and does not create runnable live mutation.
 A bounded live wrapper-intake bundle now exists for green execution-prep and retention inputs.
 It is wrapper-intake only and does not create runnable live mutation or a live-runtime wrapper.
+A bounded live wrapper preflight skeleton now exists for green wrapper-intake inputs.
+It is preflight only and does not create runnable live mutation or a live-runtime execution owner.
 The live target identity model, operator approval model, rollback model, failure/abort model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
 They do not create runnable live mutation surfaces.
 
@@ -255,6 +270,7 @@ Ignored generated surfaces:
 - `operations/harness-openclaw-live-retention/runs/`
 - `operations/harness-openclaw-live-execution-prep/runs/`
 - `operations/harness-openclaw-live-wrapper-intake/runs/`
+- `operations/harness-openclaw-live-wrapper/runs/`
 
 ## Safe cleanup
 
@@ -270,7 +286,8 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
        operations/harness-openclaw-live-precheck/runs/live-preexecution-gate-valid \
        operations/harness-openclaw-live-retention/runs/live-secret-retention-valid \
        operations/harness-openclaw-live-execution-prep/runs/live-execution-prep-valid \
-       operations/harness-openclaw-live-wrapper-intake/runs/live-wrapper-intake-valid
+       operations/harness-openclaw-live-wrapper-intake/runs/live-wrapper-intake-valid \
+       operations/harness-openclaw-live-wrapper/runs/live-wrapper-preflight-valid
 ```
 
 Disposable local workspace/state targets live outside Git and must only be cleaned under explicitly approved disposable roots.

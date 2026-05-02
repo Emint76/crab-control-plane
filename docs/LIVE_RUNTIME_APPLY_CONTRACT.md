@@ -59,6 +59,8 @@ A bounded live execution-prep bundle now exists in `operations/harness-openclaw-
 That bundle depends on a green pre-execution gate and emits repo-local normalized records only; it does not grant approval, execute rollback, create a live wrapper, or authorize live runtime apply.
 A bounded live wrapper-intake bundle now exists in `operations/harness-openclaw-live-wrapper-intake/` for green execution-prep and retention run outputs.
 That bundle emits refs and metadata only; it does not load secrets, create a live wrapper, or authorize live runtime apply.
+A bounded live wrapper preflight skeleton now exists in `operations/harness-openclaw-live-wrapper/` for green wrapper-intake run outputs.
+That skeleton emits preflight evidence and a stub plan only; it does not load secrets, create a live wrapper, or authorize live runtime apply.
 
 ## Required prerequisites before any future implementation
 
@@ -88,6 +90,7 @@ Before any future execution attempt, all gates must pass:
 - execution-prep bundle green for reviewed selector, approval, and rollback records when a wrapper-ready bundle is prepared
 - bounded source declaration and redacted retention checks green when candidate live-adjacent evidence is retained
 - wrapper-intake bundle green when execution-prep and retention outputs are composed before a future wrapper
+- wrapper preflight skeleton green when a wrapper-intake bundle is validated before any future live wrapper
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -189,6 +192,13 @@ It does not weaken any gate in this contract.
 The live wrapper-intake bundle may exist before any future wrapper to compose green execution-prep and retention outputs into one refs-and-metadata intake bundle.
 
 It is still not live runtime apply, not a live-runtime adapter/wrapper, not approval granting, not rollback execution, not real secret loading, and not broader local overlay reading.
+It does not weaken any gate in this contract.
+
+## Relationship to live wrapper preflight skeleton
+
+The live wrapper preflight skeleton may exist before any future live wrapper to validate a green wrapper-intake bundle and emit preflight-only evidence.
+
+It is still not live runtime apply, not a live-runtime execution owner, not approval granting, not rollback execution, not real secret loading, and not broader local overlay reading.
 It does not weaken any gate in this contract.
 
 ## Relationship to Crab-safe orchestration
