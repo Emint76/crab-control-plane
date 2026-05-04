@@ -13,7 +13,8 @@ This is a contract-only document.
 Current status:
 
 - bounded source declaration validation exists
-- no real secret loading implementation
+- bounded secret-session in-process material loading exists for already-resolved outside-Git sources
+- no live-wrapper-integrated secret loading implementation
 - no local overlay implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
@@ -105,6 +106,11 @@ That surface does not load raw secrets from the declared sources and does not im
 It records source references and path kinds only; material resolution != raw secret loading.
 It does not read broader local overlay material and does not copy raw source material into repo-local outputs.
 
+`operations/harness-openclaw-live-secret-session/bin/run_live_secret_session.sh` now performs bounded in-process raw material loading from already-resolved outside-Git sources produced by a green material-resolution run.
+It writes metadata-only loaded material manifests and wrapper-owned redacted observations.
+secret-session != live wrapper and secret-session != live apply.
+It does not broaden local overlay reading beyond the resolved source paths and must not persist raw secret material.
+
 ## Relationship to Evidence Retention
 
 `docs/EVIDENCE_RETENTION_POLICY.md` defines retained evidence classes.
@@ -124,10 +130,13 @@ This contract does not create or approve that wrapper.
 The bounded material-resolution surface may prepare refs-only material metadata before any future wrapper.
 It is not the execution owner and does not implement secret loading.
 
+The bounded secret-session surface may prepare redacted observations before any future wrapper.
+It is not the execution owner, does not mutate targets, and does not authorize live runtime apply.
+
 ## Non-Goals
 
-- no secret handling implementation
-- no real secret loading implementation
+- no full secret handling implementation
+- no wrapper-owned live secret loading implementation
 - no local overlay implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation

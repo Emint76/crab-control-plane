@@ -59,6 +59,9 @@ live-wrapper-preflight-ci:
 live-material-resolution-ci:
 	bash operations/harness-openclaw-live-material-resolution/tests/test_live_material_resolution.sh
 
+live-secret-session-ci:
+	bash operations/harness-openclaw-live-secret-session/tests/test_live_secret_session.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

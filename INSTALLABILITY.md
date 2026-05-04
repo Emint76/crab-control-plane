@@ -25,6 +25,7 @@ It is not a production OpenClaw deployment package.
 - `make live-wrapper-intake-ci`
 - `make live-wrapper-preflight-ci`
 - `make live-material-resolution-ci`
+- `make live-secret-session-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -187,6 +188,18 @@ bash operations/harness-openclaw-live-material-resolution/bin/run_live_material_
 It checks a green wrapper preflight run directory, validates a reviewed outside-Git source declaration, validates declared material paths, and writes repo-local refs-only material-resolution evidence under `operations/harness-openclaw-live-material-resolution/runs/<RUN_ID>/`.
 This is material-resolution only and does not load raw secrets, grant approval, execute rollback, create a live-runtime execution owner, authorize live runtime apply, or approve Crab invocation.
 
+Bounded live secret-session bundle:
+
+```bash
+bash operations/harness-openclaw-live-secret-session/bin/run_live_secret_session.sh \
+  --material-resolution-run-dir operations/harness-openclaw-live-material-resolution/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+`make live-secret-session-ci` validates this surface.
+It checks a green material-resolution run directory, loads only already-resolved outside-Git material sources in-process, and writes repo-local metadata plus redacted observations under `operations/harness-openclaw-live-secret-session/runs/<RUN_ID>/`.
+This is secret-session only and does not persist raw secret material, grant approval, execute rollback, create a live-runtime execution owner, authorize live runtime apply, or approve Crab invocation.
+
 ## One-command smoke
 
 ```bash
@@ -259,6 +272,8 @@ A bounded live wrapper preflight skeleton now exists for green wrapper-intake in
 It is preflight only and does not create runnable live mutation or a live-runtime execution owner.
 A bounded live material-resolution bundle now exists for green wrapper preflight inputs and reviewed outside-Git source declarations.
 It is material-resolution only and does not create runnable live mutation, raw secret loading, or a live-runtime execution owner.
+A bounded live secret-session bundle now exists for green material-resolution inputs.
+It is secret-session only and does not create runnable live mutation, raw secret output, or a live-runtime execution owner.
 The live target identity model, operator approval model, rollback model, failure/abort model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
 They do not create runnable live mutation surfaces.
 
@@ -288,6 +303,7 @@ Ignored generated surfaces:
 - `operations/harness-openclaw-live-wrapper-intake/runs/`
 - `operations/harness-openclaw-live-wrapper/runs/`
 - `operations/harness-openclaw-live-material-resolution/runs/`
+- `operations/harness-openclaw-live-secret-session/runs/`
 
 ## Safe cleanup
 
@@ -305,7 +321,8 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
        operations/harness-openclaw-live-execution-prep/runs/live-execution-prep-valid \
        operations/harness-openclaw-live-wrapper-intake/runs/live-wrapper-intake-valid \
        operations/harness-openclaw-live-wrapper/runs/live-wrapper-preflight-valid \
-       operations/harness-openclaw-live-material-resolution/runs/live-material-resolution-valid
+       operations/harness-openclaw-live-material-resolution/runs/live-material-resolution-valid \
+       operations/harness-openclaw-live-secret-session/runs/live-secret-session-valid
 ```
 
 Disposable local workspace/state targets live outside Git and must only be cleaned under explicitly approved disposable roots.

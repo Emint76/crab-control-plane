@@ -29,6 +29,7 @@
 | Live wrapper-intake bundle from execution-prep and retention surfaces | composes green execution-prep and retention refs into a repo-local intake bundle | yes | wrapper-intake only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live wrapper preflight skeleton from green wrapper-intake bundle | validates wrapper-intake input and emits preflight evidence plus a stub plan | yes | preflight-only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live material-resolution bundle from green wrapper preflight and reviewed source declaration | validates reviewed material refs and emits a repo-local refs-only material bundle | yes | material-resolution only; no live runtime apply, no live wrapper, no raw secret loading, no Crab approval |
+| Live secret-session bundle from green material-resolution bundle with wrapper-owned redacted observations | loads already-resolved outside-Git material in-process and emits metadata plus redacted observations | yes | secret-session only; no live runtime apply, no live wrapper, no raw secret output, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -54,6 +55,7 @@
 - The live wrapper-intake bundle composes green execution-prep and retention references only; it does not load raw secrets, mutate targets, or act as a live wrapper.
 - The live wrapper preflight skeleton validates green wrapper-intake input and emits stub evidence only; it does not load raw secrets, mutate targets, or act as a live wrapper.
 - The live material-resolution bundle validates green wrapper preflight input and reviewed outside-Git material references only; it emits refs-only metadata and does not load raw secrets, mutate targets, or act as a live wrapper.
+- The live secret-session bundle loads already-resolved outside-Git material in-process only; it emits metadata and redacted observations and does not persist raw secrets, mutate targets, or act as a live wrapper.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -109,6 +111,7 @@
 - Bounded repo-local wrapper-intake bundle from execution-prep and retention surfaces.
 - Bounded repo-local live wrapper preflight skeleton from green wrapper-intake bundle.
 - Bounded repo-local live material-resolution bundle from green wrapper preflight and reviewed source declaration.
+- Bounded repo-local live secret-session bundle from green material-resolution bundle with wrapper-owned redacted observations.
 
 ## Remaining known non-blocking debt
 
@@ -119,7 +122,7 @@
 - Future expansion of Phase 3 staging conventions if needed.
 - Controlled disposable apply expansion beyond the current bounded local-only contour.
 - Broad local overlay implementation remains future work.
-- Real secret loading and secret handling implementation remain future work.
+- Full live secret handling implementation remains future work.
 - Approval execution surface remains future work.
 - Rollback execution surface remains future work.
 - Full live evidence storage implementation remains future work.
