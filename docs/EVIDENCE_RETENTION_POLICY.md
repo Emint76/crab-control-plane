@@ -13,6 +13,7 @@ This is a policy-only document.
 Current status:
 
 - bounded redacted retention surface exists
+- bounded secret-session redacted observation evidence exists
 - no full live evidence storage implementation
 - no live runtime apply
 - no live-runtime adapter/wrapper implementation
@@ -83,6 +84,9 @@ It writes only under its own run directory and is not canonical live-execution e
 
 `operations/harness-openclaw-live-wrapper-intake/bin/run_live_wrapper_intake.sh` may reference retained evidence paths from a green retention run.
 The wrapper-intake bundle is refs-and-metadata only and is not canonical live-execution evidence ownership.
+
+`operations/harness-openclaw-live-secret-session/bin/run_live_secret_session.sh` emits repo-local redacted observation evidence from already-resolved outside-Git material sources.
+Those observations are not canonical live execution evidence ownership and do not replace future wrapper-owned live evidence storage.
 
 ## Relationship to Approval Model
 

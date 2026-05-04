@@ -38,3 +38,6 @@ operations/harness-openclaw-live-wrapper/runs/*
 
 operations/harness-openclaw-live-material-resolution/runs/*
 !operations/harness-openclaw-live-material-resolution/runs/.gitkeep
+
+operations/harness-openclaw-live-secret-session/runs/*
+!operations/harness-openclaw-live-secret-session/runs/.gitkeep

@@ -13,6 +13,7 @@ This is a policy-only document.
 Current status:
 
 - bounded redaction surface exists for candidate evidence retention
+- bounded wrapper-owned redacted observations exist for live secret-session material previews
 - no wrapper-integrated redaction implementation
 - no real secret handling implementation
 - no live runtime apply
@@ -84,6 +85,10 @@ That surface is not full live evidence storage.
 `operations/harness-openclaw-live-wrapper-intake/bin/run_live_wrapper_intake.sh` creates a refs-and-metadata-only bundle that may point at retained evidence paths.
 It must not inline retained file contents or secret-like values.
 
+`operations/harness-openclaw-live-secret-session/bin/run_live_secret_session.sh` emits wrapper-owned redacted observations from already-resolved outside-Git material sources.
+Redaction is applied before any preview is persisted.
+That surface is still not full wrapper-integrated redaction for live execution.
+
 ## Relationship to Approval and Rollback Records
 
 `docs/OPERATOR_APPROVAL_MODEL.md` defines approval semantics.
@@ -109,6 +114,9 @@ It does not mutate targets, grant approval, perform rollback, or authorize live 
 
 The bounded wrapper-intake surface is also separate from the future wrapper.
 It does not load raw secrets, inline retained contents, mutate targets, grant approval, perform rollback, or authorize live runtime apply.
+
+The bounded secret-session surface is separate from the future wrapper.
+It may load already-resolved material in-process, but it emits only metadata and redacted observations.
 
 ## Non-Goals
 
