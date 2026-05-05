@@ -65,6 +65,8 @@ A bounded live material-resolution bundle now exists in `operations/harness-open
 That bundle emits refs-only material metadata; it does not load raw secrets, create a live wrapper, or authorize live runtime apply.
 A bounded live secret-session bundle now exists in `operations/harness-openclaw-live-secret-session/` for green material-resolution outputs.
 That bundle loads already-resolved outside-Git material in-process and emits metadata plus redacted observations only; it does not create a live wrapper or authorize live runtime apply.
+A bounded live wrapper execution-owner skeleton now exists in `operations/harness-openclaw-live-wrapper/` for green secret-session outputs.
+That skeleton is the first wrapper-owned canonical execution surface and emits an apply-request stub only; it does not perform bounded live apply, mutate targets, or approve Crab invocation.
 
 ## Required prerequisites before any future implementation
 
@@ -97,6 +99,7 @@ Before any future execution attempt, all gates must pass:
 - wrapper preflight skeleton green when a wrapper-intake bundle is validated before any future live wrapper
 - material-resolution bundle green when reviewed material references are resolved from a green wrapper preflight run
 - secret-session bundle green when already-resolved material is loaded in-process and redacted observations are emitted before any future live wrapper
+- wrapper execution-owner skeleton green when wrapper-owned canonical evidence and an apply-request stub are prepared before bounded live apply
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -219,6 +222,14 @@ It does not weaken any gate in this contract.
 The live secret-session bundle may exist before any future live wrapper or live apply to load already-resolved outside-Git material in-process and emit redacted observations.
 
 It is still not live runtime apply, not a live-runtime execution owner, not approval granting, not rollback execution, not broader local overlay reading, and not raw secret persistence.
+It does not weaken any gate in this contract.
+
+## Relationship to live wrapper execution-owner skeleton
+
+The live wrapper execution-owner skeleton may exist before bounded live apply to consume a green secret-session run and emit wrapper-owned canonical evidence plus an apply-request stub.
+
+It is still not live runtime apply, not target mutation, not approval granting, not rollback execution, not new raw secret loading, and not Crab approval.
+Bounded live apply remains separate and future.
 It does not weaken any gate in this contract.
 
 ## Relationship to Crab-safe orchestration

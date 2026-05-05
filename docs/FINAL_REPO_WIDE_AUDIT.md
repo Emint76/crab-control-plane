@@ -30,6 +30,7 @@
 | Live wrapper preflight skeleton from green wrapper-intake bundle | validates wrapper-intake input and emits preflight evidence plus a stub plan | yes | preflight-only; no live runtime apply, no live wrapper, no real secret loading, no Crab approval |
 | Live material-resolution bundle from green wrapper preflight and reviewed source declaration | validates reviewed material refs and emits a repo-local refs-only material bundle | yes | material-resolution only; no live runtime apply, no live wrapper, no raw secret loading, no Crab approval |
 | Live secret-session bundle from green material-resolution bundle with wrapper-owned redacted observations | loads already-resolved outside-Git material in-process and emits metadata plus redacted observations | yes | secret-session only; no live runtime apply, no live wrapper, no raw secret output, no Crab approval |
+| Live wrapper execution-owner skeleton from green secret-session bundle | emits wrapper-owned canonical execution evidence plus an apply-request stub | yes | execution-owner only; no live runtime apply, no target mutation, no approval grant, no rollback execution, no Crab approval |
 | Live runtime apply contract | safety gates for possible future live mutation | no | contract-only; no implementation |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -56,6 +57,7 @@
 - The live wrapper preflight skeleton validates green wrapper-intake input and emits stub evidence only; it does not load raw secrets, mutate targets, or act as a live wrapper.
 - The live material-resolution bundle validates green wrapper preflight input and reviewed outside-Git material references only; it emits refs-only metadata and does not load raw secrets, mutate targets, or act as a live wrapper.
 - The live secret-session bundle loads already-resolved outside-Git material in-process only; it emits metadata and redacted observations and does not persist raw secrets, mutate targets, or act as a live wrapper.
+- The live wrapper execution-owner skeleton emits wrapper-owned canonical execution evidence and an apply-request stub only; it does not perform live runtime apply, mutate targets, grant approval, execute rollback, load new raw secrets, or approve Crab invocation.
 - No OpenClaw runtime mutation is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
@@ -112,6 +114,7 @@
 - Bounded repo-local live wrapper preflight skeleton from green wrapper-intake bundle.
 - Bounded repo-local live material-resolution bundle from green wrapper preflight and reviewed source declaration.
 - Bounded repo-local live secret-session bundle from green material-resolution bundle with wrapper-owned redacted observations.
+- Bounded repo-local live wrapper execution-owner skeleton from green secret-session bundle.
 
 ## Remaining known non-blocking debt
 
@@ -127,9 +130,8 @@
 - Rollback execution surface remains future work.
 - Full live evidence storage implementation remains future work.
 - Wrapper-integrated no-secret redaction implementation remains future work.
-- Live-runtime execution owner implementation remains future work.
-- Live-runtime adapter implementation remains future work.
+- Full live-runtime adapter implementation remains future work.
 - Live target selector implementation remains future work.
-- Live runtime apply implementation remains future work.
+- Bounded live runtime apply remains future work.
 - Crab approval remains future work.
-- Rollout/real deployment remains future work.
+- First real rollout / deployment remains future work.

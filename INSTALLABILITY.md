@@ -26,6 +26,7 @@ It is not a production OpenClaw deployment package.
 - `make live-wrapper-preflight-ci`
 - `make live-material-resolution-ci`
 - `make live-secret-session-ci`
+- `make live-wrapper-execution-owner-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -200,6 +201,18 @@ bash operations/harness-openclaw-live-secret-session/bin/run_live_secret_session
 It checks a green material-resolution run directory, loads only already-resolved outside-Git material sources in-process, and writes repo-local metadata plus redacted observations under `operations/harness-openclaw-live-secret-session/runs/<RUN_ID>/`.
 This is secret-session only and does not persist raw secret material, grant approval, execute rollback, create a live-runtime execution owner, authorize live runtime apply, or approve Crab invocation.
 
+Bounded live wrapper execution-owner skeleton:
+
+```bash
+bash operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_owner.sh \
+  --secret-session-run-dir operations/harness-openclaw-live-secret-session/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+`make live-wrapper-execution-owner-ci` validates this surface.
+It checks a green secret-session run directory and writes wrapper-owned canonical execution evidence plus an apply-request stub under `operations/harness-openclaw-live-wrapper/runs/<RUN_ID>/`.
+This is execution-owner only and does not perform live runtime apply, mutate targets, grant approval, execute rollback, load new raw secrets, read broader local overlay material, or approve Crab invocation.
+
 ## One-command smoke
 
 ```bash
@@ -322,7 +335,8 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
        operations/harness-openclaw-live-wrapper-intake/runs/live-wrapper-intake-valid \
        operations/harness-openclaw-live-wrapper/runs/live-wrapper-preflight-valid \
        operations/harness-openclaw-live-material-resolution/runs/live-material-resolution-valid \
-       operations/harness-openclaw-live-secret-session/runs/live-secret-session-valid
+       operations/harness-openclaw-live-secret-session/runs/live-secret-session-valid \
+       operations/harness-openclaw-live-wrapper/runs/live-wrapper-execution-owner-valid
 ```
 
 Disposable local workspace/state targets live outside Git and must only be cleaned under explicitly approved disposable roots.

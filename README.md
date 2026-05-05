@@ -48,6 +48,7 @@ This repo defines how the system should be structured across six layers:
 | Live wrapper preflight skeleton | `operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_preflight.sh` | repo-local preflight evidence from green wrapper-intake input; no live apply, no live wrapper, no secret loading |
 | Live material-resolution bundle | `operations/harness-openclaw-live-material-resolution/bin/run_live_material_resolution.sh` | repo-local refs-only material bundle from green wrapper preflight and reviewed outside-Git declaration; no live apply, no live wrapper, no raw secret loading |
 | Live secret-session bundle | `operations/harness-openclaw-live-secret-session/bin/run_live_secret_session.sh` | repo-local session bundle from green material-resolution input with in-process material loading and redacted observations; no live apply, no live wrapper, no raw secret output |
+| Live wrapper execution-owner skeleton | `operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_owner.sh` | first wrapper-owned canonical execution surface from green secret-session input; apply-request stub only; no live apply, no target mutation, no Crab approval |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
@@ -255,6 +256,17 @@ bash operations/harness-openclaw-live-secret-session/bin/run_live_secret_session
 This surface performs bounded in-process raw material loading only from already-resolved outside-Git sources and emits repo-local metadata plus wrapper-owned redacted observations.
 It depends on a green material-resolution run, is not the live wrapper, does not persist raw secrets, and does not authorize live runtime apply.
 
+A bounded live wrapper execution-owner skeleton is available for green secret-session runs:
+
+```bash
+bash operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_owner.sh \
+  --secret-session-run-dir operations/harness-openclaw-live-secret-session/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+This is the first wrapper-owned canonical execution surface and emits canonical wrapper evidence plus an apply-request stub only.
+It depends on a green secret-session run, is execution-owner only, is not live runtime apply, does not mutate targets, and does not approve Crab invocation.
+
 Disposable target path validation is available at:
 
 ```bash
@@ -291,6 +303,7 @@ A bounded live wrapper-intake bundle exists for green execution-prep and retenti
 A bounded live wrapper preflight skeleton exists for green wrapper-intake inputs, but it is preflight-only, not the live wrapper, not secret loading, not live runtime apply, and not Crab approval.
 A bounded live material-resolution bundle exists for green wrapper preflight inputs and reviewed outside-Git declarations, but it is refs-only, not raw secret loading, not the live wrapper, not live runtime apply, and not Crab approval.
 A bounded live secret-session bundle exists for green material-resolution inputs and already-resolved outside-Git sources, but it emits only metadata and redacted observations, not raw secret output, not the live wrapper, not live runtime apply, and not Crab approval.
+A bounded live wrapper execution-owner skeleton exists for green secret-session inputs, but it emits only wrapper-owned canonical evidence and an apply-request stub, not live runtime apply, not target mutation, and not Crab approval.
 The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
 These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
 The current repo still proves only local-only disposable contours.
