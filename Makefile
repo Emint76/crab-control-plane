@@ -62,6 +62,9 @@ live-material-resolution-ci:
 live-secret-session-ci:
 	bash operations/harness-openclaw-live-secret-session/tests/test_live_secret_session.sh
 
+live-wrapper-execution-owner-ci:
+	bash operations/harness-openclaw-live-wrapper/tests/test_live_wrapper_execution_owner.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

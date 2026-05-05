@@ -57,6 +57,8 @@ A bounded repo-local material-resolution bundle may exist before the wrapper to 
 That material-resolution bundle is not the execution owner.
 A bounded repo-local secret-session bundle may exist before the wrapper to load already-resolved material in-process and emit redacted observations.
 That secret-session bundle is not the execution owner.
+A bounded repo-local live wrapper execution-owner skeleton may exist after a green secret-session run.
+It is the first wrapper-owned canonical execution surface, but it still emits an apply-request stub only and does not perform live runtime apply.
 
 ## Required execution ownership model
 
@@ -113,6 +115,7 @@ Before any future live execution, the wrapper must validate:
 - wrapper preflight skeleton result when a green wrapper-intake bundle is validated before any future wrapper
 - material-resolution bundle result when reviewed material references are resolved from a green wrapper preflight run
 - secret-session bundle result when already-resolved material is loaded in-process and redacted observations are produced
+- wrapper execution-owner skeleton result when wrapper-owned canonical evidence and an apply-request stub are prepared before any bounded live apply
 - no-secret-leakage/redaction precheck
 - evidence-path validation
 - exact target-surface ambiguity check
@@ -151,6 +154,8 @@ A bounded material-resolution surface may validate declared material paths and e
 That material-resolution bundle does not load raw secrets and does not provide wrapper-integrated redaction.
 A bounded secret-session surface may load already-resolved outside-Git material in-process and persist redacted observations only.
 That secret-session bundle does not provide the live execution owner or final wrapper-integrated redaction.
+A bounded wrapper execution-owner skeleton may consume a green secret-session bundle and emit wrapper-owned canonical evidence plus an apply-request stub.
+That execution-owner skeleton is not bounded live runtime apply and does not authorize target mutation.
 
 ## Required rollback handoff expectations
 
@@ -266,6 +271,17 @@ secret-session bundle != execution owner
 The wrapper remains separate.
 The secret-session bundle does not mutate targets, write raw secret material into repo-local outputs, grant approval, perform rollback, authorize live runtime apply, or become the live-runtime execution owner.
 
+## Relationship to Live Wrapper Execution-Owner Skeleton
+
+`operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_owner.sh` is a bounded repo-local surface that consumes a green secret-session run and emits wrapper-owned canonical execution evidence plus an apply-request stub.
+
+This is the first wrapper-owned canonical execution surface.
+
+execution-owner skeleton != bounded live runtime apply
+
+It does not mutate targets, grant approval, execute rollback, load new raw secrets, approve Crab invocation, or perform deploy/migration.
+Bounded live runtime apply remains separate future work.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -288,6 +304,7 @@ It must not collapse the pre-execution contract stack:
 - preflight skeleton -> wrapper preflight evidence and stub plan only
 - material-resolution bundle -> refs-only material metadata from green wrapper preflight and reviewed declaration
 - secret-session bundle -> in-process material loading with metadata and redacted observations only
+- execution-owner skeleton -> wrapper-owned canonical execution evidence plus apply-request stub only
 
 approval != wrapper
 preexecution gate != execution owner
@@ -297,6 +314,7 @@ wrapper-intake bundle != execution owner
 preflight skeleton != execution owner
 material-resolution bundle != execution owner
 secret-session bundle != execution owner
+execution-owner skeleton != bounded live runtime apply
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction
