@@ -49,6 +49,7 @@ This repo defines how the system should be structured across six layers:
 | Live material-resolution bundle | `operations/harness-openclaw-live-material-resolution/bin/run_live_material_resolution.sh` | repo-local refs-only material bundle from green wrapper preflight and reviewed outside-Git declaration; no live apply, no live wrapper, no raw secret loading |
 | Live secret-session bundle | `operations/harness-openclaw-live-secret-session/bin/run_live_secret_session.sh` | repo-local session bundle from green material-resolution input with in-process material loading and redacted observations; no live apply, no live wrapper, no raw secret output |
 | Live wrapper execution-owner skeleton | `operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_owner.sh` | first wrapper-owned canonical execution surface from green secret-session input; apply-request stub only; no live apply, no target mutation, no Crab approval |
+| Bounded live runtime apply | `operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh` | consumes a green wrapper execution-owner run and performs bounded mutation inside selected outside-Git live roots only; no Crab approval, no rollout orchestration |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
@@ -267,6 +268,18 @@ bash operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_own
 This is the first wrapper-owned canonical execution surface and emits canonical wrapper evidence plus an apply-request stub only.
 It depends on a green secret-session run, is execution-owner only, is not live runtime apply, does not mutate targets, and does not approve Crab invocation.
 
+A bounded live runtime apply surface is available for green wrapper execution-owner runs:
+
+```bash
+bash operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh \
+  --execution-owner-run-dir operations/harness-openclaw-live-wrapper/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+This surface re-loads already-approved outside-Git material sources, maps `workspace`, `state`, and `runtime` source classes into the selected outside-Git live roots, and emits canonical wrapper apply evidence plus rollback handoff metadata.
+It performs bounded target mutation only inside those selected live roots.
+It does not imply Crab approval, approval granting, rollback execution, deploy, migration, or rollout orchestration.
+
 Disposable target path validation is available at:
 
 ```bash
@@ -287,12 +300,12 @@ bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakag
 
 This is validation only. It does not implement apply or OpenClaw writes.
 
-The current repository remains local-only and disposable-only for apply-like OpenClaw integration. It does not perform live OpenClaw mutation, deploy, migration, live runtime adapter behavior, real source ingestion, or real KB write-back.
+The current repository now includes a bounded live runtime apply surface for explicitly selected outside-Git roots. It does not perform deploy, migration, rollout orchestration, live runtime adapter expansion, real source ingestion, or real KB write-back.
 
 It is not approved for Crab invocation yet.
 
-The current repo supports dry-run evidence generation, safety validation, and a bounded local-only disposable apply contour only.
-Live runtime apply remains unimplemented and separately governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
+The current repo supports dry-run evidence generation, safety validation, a bounded local-only disposable apply contour, and bounded live runtime apply from a green wrapper execution-owner run.
+Live runtime apply remains governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
 No selector-driven live mutation surface exists.
@@ -304,6 +317,7 @@ A bounded live wrapper preflight skeleton exists for green wrapper-intake inputs
 A bounded live material-resolution bundle exists for green wrapper preflight inputs and reviewed outside-Git declarations, but it is refs-only, not raw secret loading, not the live wrapper, not live runtime apply, and not Crab approval.
 A bounded live secret-session bundle exists for green material-resolution inputs and already-resolved outside-Git sources, but it emits only metadata and redacted observations, not raw secret output, not the live wrapper, not live runtime apply, and not Crab approval.
 A bounded live wrapper execution-owner skeleton exists for green secret-session inputs, but it emits only wrapper-owned canonical evidence and an apply-request stub, not live runtime apply, not target mutation, and not Crab approval.
+A bounded live runtime apply surface exists for green wrapper execution-owner inputs, but it is bounded mutation inside selected outside-Git live roots only, not rollout orchestration, not deploy/migration, not rollback execution, and not Crab approval.
 The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
 These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
 The current repo still proves only local-only disposable contours.

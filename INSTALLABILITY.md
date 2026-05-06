@@ -27,6 +27,7 @@ It is not a production OpenClaw deployment package.
 - `make live-material-resolution-ci`
 - `make live-secret-session-ci`
 - `make live-wrapper-execution-owner-ci`
+- `make live-runtime-apply-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -213,6 +214,18 @@ bash operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_own
 It checks a green secret-session run directory and writes wrapper-owned canonical execution evidence plus an apply-request stub under `operations/harness-openclaw-live-wrapper/runs/<RUN_ID>/`.
 This is execution-owner only and does not perform live runtime apply, mutate targets, grant approval, execute rollback, load new raw secrets, read broader local overlay material, or approve Crab invocation.
 
+Bounded live runtime apply:
+
+```bash
+bash operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh \
+  --execution-owner-run-dir operations/harness-openclaw-live-wrapper/runs/<RUN_ID> \
+  --run-id <RUN_ID>
+```
+
+`make live-runtime-apply-ci` validates this surface.
+It consumes a green wrapper execution-owner run, re-loads already-approved outside-Git material sources, and applies them only inside the selected outside-Git `workspace`, `state`, and `runtime` live roots.
+This is bounded live runtime apply, not rollout orchestration, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
+
 ## One-command smoke
 
 ```bash
@@ -263,15 +276,16 @@ It stages into repo-local generated run directories only.
 - secrets/config management
 - disposable workspace implementation
 - controlled disposable apply expansion beyond the current bounded local-only contour
-- live runtime apply
-- live OpenClaw workspace/state writes
-- live-runtime adapter
+- live-runtime adapter expansion
+- rollout orchestration
+- production deploy
+- migration
 
 Future OpenClaw integration requirements are defined in `docs/OPENCLAW_INTEGRATION_BOUNDARY.md`.
 
-Future live runtime mutation is gated by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md` and is not part of the current runnable surfaces.
-No live-runtime adapter/wrapper exists yet.
-Any future live execution surface is governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md` and is not part of the current runnable surfaces.
+Bounded live runtime mutation is gated by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md` and exists only as the current bounded wrapper apply surface.
+No rollout orchestration or full live-runtime adapter expansion exists yet.
+Any future live execution expansion is governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md` and is not part of the current runnable surfaces.
 No selector-driven live target mutation surface exists.
 A validation-only live pre-execution gate exists for reviewed selector, approval, and rollback records.
 Any future live target selector remains governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
@@ -287,8 +301,10 @@ A bounded live material-resolution bundle now exists for green wrapper preflight
 It is material-resolution only and does not create runnable live mutation, raw secret loading, or a live-runtime execution owner.
 A bounded live secret-session bundle now exists for green material-resolution inputs.
 It is secret-session only and does not create runnable live mutation, raw secret output, or a live-runtime execution owner.
+A bounded live runtime apply surface now exists for green wrapper execution-owner inputs.
+It performs bounded mutation only inside selected outside-Git live roots and does not create rollout orchestration, deploy/migration, Crab approval, approval granting, or rollback execution.
 The live target identity model, operator approval model, rollback model, failure/abort model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
-They do not create runnable live mutation surfaces.
+They do not create Crab approval, rollout orchestration, or deploy/migration surfaces.
 
 The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 
