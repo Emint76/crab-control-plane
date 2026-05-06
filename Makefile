@@ -65,6 +65,9 @@ live-secret-session-ci:
 live-wrapper-execution-owner-ci:
 	bash operations/harness-openclaw-live-wrapper/tests/test_live_wrapper_execution_owner.sh
 
+live-runtime-apply-ci:
+	bash operations/harness-openclaw-live-wrapper/tests/test_live_runtime_apply.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

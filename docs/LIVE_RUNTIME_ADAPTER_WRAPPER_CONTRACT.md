@@ -2,24 +2,25 @@
 
 ## Purpose
 
-This document defines the contract for a future live-runtime adapter/wrapper.
+This document defines the contract for the live-runtime adapter/wrapper boundary.
 
-Its purpose is to ensure that any future live runtime apply is driven only through a dedicated, bounded, human-controlled execution surface.
+Its purpose is to ensure that live runtime apply is driven only through a dedicated, bounded, human-controlled execution surface.
 
 ## Status
 
-This is a contract-only document.
+The wrapper execution-owner skeleton and bounded live runtime apply companion now exist under `operations/harness-openclaw-live-wrapper/`.
 
-No live-runtime adapter/wrapper implementation, no live runtime apply, no deploy, no migration, and no rollout behavior are included in this PR.
+They remain separate surfaces.
+No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no rollout behavior are included.
 
 ## Scope
 
-This contract defines the future execution-owner boundary for live runtime mutation.
-It does not create an executable live-runtime surface, approve rollout, approve deploy, approve migration, or approve Crab invocation.
+This contract defines the execution-owner boundary for live runtime mutation.
+The current bounded apply surface does not approve rollout, deploy, migration, or Crab invocation.
 
 ## Live-runtime adapter/wrapper definition
 
-A future live-runtime adapter/wrapper is the only allowed execution-owner surface for any live runtime mutation.
+A live-runtime adapter/wrapper is the only allowed execution-owner boundary for any live runtime mutation.
 
 It is not the dry-run adapter.
 It is not the controlled disposable apply surface.
@@ -59,6 +60,9 @@ A bounded repo-local secret-session bundle may exist before the wrapper to load 
 That secret-session bundle is not the execution owner.
 A bounded repo-local live wrapper execution-owner skeleton may exist after a green secret-session run.
 It is the first wrapper-owned canonical execution surface, but it still emits an apply-request stub only and does not perform live runtime apply.
+A bounded live runtime apply companion may exist after a green wrapper execution-owner run.
+It consumes the execution-owner output, re-loads already-approved material sources, and applies only into selected outside-Git live roots.
+Execution-owner and apply remain separate surfaces.
 
 ## Required execution ownership model
 
@@ -280,7 +284,14 @@ This is the first wrapper-owned canonical execution surface.
 execution-owner skeleton != bounded live runtime apply
 
 It does not mutate targets, grant approval, execute rollback, load new raw secrets, approve Crab invocation, or perform deploy/migration.
-Bounded live runtime apply remains separate future work.
+Bounded live runtime apply is a separate companion surface that consumes only green execution-owner output.
+
+## Relationship to Bounded Live Runtime Apply
+
+`operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh` consumes a green wrapper execution-owner run and performs bounded mutation only inside selected outside-Git live roots.
+
+It emits canonical wrapper apply evidence plus rollback handoff metadata.
+It remains separate from execution-owner preparation and does not grant approval, execute rollback, approve Crab invocation, deploy, migrate, or orchestrate rollout.
 
 ## Relationship to Pre-Execution Contract Stack
 
@@ -305,6 +316,7 @@ It must not collapse the pre-execution contract stack:
 - material-resolution bundle -> refs-only material metadata from green wrapper preflight and reviewed declaration
 - secret-session bundle -> in-process material loading with metadata and redacted observations only
 - execution-owner skeleton -> wrapper-owned canonical execution evidence plus apply-request stub only
+- bounded live runtime apply -> target mutation only inside selected outside-Git live roots
 
 approval != wrapper
 preexecution gate != execution owner
@@ -315,6 +327,7 @@ preflight skeleton != execution owner
 material-resolution bundle != execution owner
 secret-session bundle != execution owner
 execution-owner skeleton != bounded live runtime apply
+bounded live runtime apply != rollout orchestration
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction
@@ -322,7 +335,7 @@ retention != storage implementation
 
 ## Relationship to Crab-safe orchestration
 
-Crab is not approved to invoke the future live-runtime adapter/wrapper.
+Crab is not approved to invoke the live-runtime adapter/wrapper.
 
 Any future Crab approval would require a separate approval decision, separate tests, separate CI, and explicit human control semantics.
 
@@ -338,8 +351,8 @@ Any future Crab approval would require a separate approval decision, separate te
 
 ## Non-goals
 
-- no live-runtime adapter/wrapper implementation
-- no live runtime apply
+- no full live-runtime adapter expansion
+- no rollout orchestration
 - no deploy
 - no migration
 - no live target selector implementation

@@ -2,21 +2,22 @@
 
 ## Purpose
 
-This document defines the contract and safety gates for any future live runtime apply.
+This document defines the contract and safety gates for live runtime apply.
 
 It exists to separate local disposable validation from real runtime mutation.
 It does not authorize implementation or execution.
 
 ## Status
 
-This is a contract-only document.
+Bounded live runtime apply now exists in `operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh`.
 
-No live runtime apply, no deploy, no migration, no live-runtime adapter, and no rollout behavior are included in this PR.
+It consumes a green wrapper execution-owner run and performs bounded filesystem mutation only inside selected outside-Git live roots.
+No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no rollout behavior are included.
 
 ## Scope
 
-This contract defines the minimum prerequisites, safety gates, evidence expectations, rollback expectations, and forbidden shortcuts for any future live runtime apply discussion.
-It does not create an executable surface and does not approve any runtime target mutation.
+This contract defines the minimum prerequisites, safety gates, evidence expectations, rollback expectations, and forbidden shortcuts for live runtime apply.
+The current executable surface is bounded apply only and does not approve rollout orchestration.
 
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 Live runtime apply must not be driven directly from disposable apply surfaces.
@@ -67,10 +68,13 @@ A bounded live secret-session bundle now exists in `operations/harness-openclaw-
 That bundle loads already-resolved outside-Git material in-process and emits metadata plus redacted observations only; it does not create a live wrapper or authorize live runtime apply.
 A bounded live wrapper execution-owner skeleton now exists in `operations/harness-openclaw-live-wrapper/` for green secret-session outputs.
 That skeleton is the first wrapper-owned canonical execution surface and emits an apply-request stub only; it does not perform bounded live apply, mutate targets, or approve Crab invocation.
+A bounded live runtime apply surface now exists in `operations/harness-openclaw-live-wrapper/` for green wrapper execution-owner outputs.
+That surface re-loads already-approved outside-Git material sources and mutates only the selected outside-Git `workspace`, `state`, and `runtime` roots.
+It is not rollout orchestration, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
 
-## Required prerequisites before any future implementation
+## Required prerequisites before any future expansion
 
-Before any future implementation PR, these must be separately defined:
+Before any future rollout/deployment or adapter expansion PR, these must be separately defined or extended:
 
 - separate live-runtime adapter/wrapper contract
 - explicit live target identity model, backed by `docs/LIVE_TARGET_IDENTITY_MODEL.md`
@@ -84,9 +88,9 @@ Before any future implementation PR, these must be separately defined:
 These documents are pre-execution contracts, models, and policies only.
 They do not weaken any live-runtime safety gate and do not create a live-runtime executable surface.
 
-## Required safety gates before any future execution
+## Required safety gates before execution
 
-Before any future execution attempt, all gates must pass:
+Before any bounded execution attempt, all gates must pass:
 
 - human-reviewed target identity
 - human-reviewed exact target path(s)
@@ -100,6 +104,7 @@ Before any future execution attempt, all gates must pass:
 - material-resolution bundle green when reviewed material references are resolved from a green wrapper preflight run
 - secret-session bundle green when already-resolved material is loaded in-process and redacted observations are emitted before any future live wrapper
 - wrapper execution-owner skeleton green when wrapper-owned canonical evidence and an apply-request stub are prepared before bounded live apply
+- bounded live runtime apply validation green when material source, target root, post-apply, and non-secret evidence checks are evaluated
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -109,7 +114,7 @@ Before any future execution attempt, all gates must pass:
 
 ## Required evidence before execution
 
-Future live runtime apply must require:
+Live runtime apply must require:
 
 - approved placement plan
 - reviewed target identity record
@@ -120,7 +125,7 @@ Future live runtime apply must require:
 
 ## Required evidence during execution
 
-Future live runtime apply must emit:
+Live runtime apply must emit:
 
 - execution log
 - mutation action log
@@ -130,7 +135,7 @@ Future live runtime apply must emit:
 
 ## Required evidence after execution
 
-Future live runtime apply must emit:
+Live runtime apply must emit:
 
 - post-apply snapshot
 - final execution report
@@ -140,21 +145,22 @@ Future live runtime apply must emit:
 
 ## Required rollback expectations
 
-Any future live runtime apply must have an explicit rollback contract before execution.
+Any live runtime apply must have an explicit rollback contract before execution.
 
 Rollback must not be implied, assumed, or deferred.
 Rollback inputs, boundaries, and operator decision points must be defined before any live execution is attempted.
+The current bounded apply surface emits rollback handoff metadata only; it does not execute rollback.
 
 ## Required no-secret-leakage expectations
 
-Any future live runtime apply must preserve the existing no-secret-leakage discipline.
+Any live runtime apply must preserve the existing no-secret-leakage discipline.
 
 Secrets may be consumed only from approved local-only sources outside Git.
 Secrets must not be written into repo-local evidence, committed files, or unredacted reports.
 
 ## Required target-identity expectations
 
-Any future live runtime apply must define exact target identity, including what instance is being changed, why it is the intended target, and how confusion with disposable targets is prevented.
+Any live runtime apply must define exact target identity, including what instance is being changed, why it is the intended target, and how confusion with disposable targets is prevented.
 
 ## Relationship to LOCAL_OVERLAY_CONTRACT
 
@@ -229,13 +235,21 @@ It does not weaken any gate in this contract.
 The live wrapper execution-owner skeleton may exist before bounded live apply to consume a green secret-session run and emit wrapper-owned canonical evidence plus an apply-request stub.
 
 It is still not live runtime apply, not target mutation, not approval granting, not rollback execution, not new raw secret loading, and not Crab approval.
-Bounded live apply remains separate and future.
+Bounded live apply is a separate companion surface that consumes only green execution-owner output.
 It does not weaken any gate in this contract.
+
+## Relationship to bounded live runtime apply
+
+`operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh` is the first bounded live runtime apply surface.
+
+It consumes a green wrapper execution-owner run, re-loads raw material sources from already-approved refs, maps `workspace`, `state`, and `runtime` source classes into selector roots, emits canonical apply evidence, and emits rollback handoff metadata only.
+
+It is not first real rollout/deployment, not rollout orchestration, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
 
 ## Relationship to Crab-safe orchestration
 
 Crab is not approved to invoke live runtime apply.
-A future live-runtime wrapper would require separate approval, separate tests, separate CI, and explicit human control.
+Any future Crab invocation would require separate approval, separate tests, separate CI, and explicit human control.
 
 ## Forbidden shortcuts
 
@@ -249,10 +263,10 @@ A future live-runtime wrapper would require separate approval, separate tests, s
 
 ## Non-goals
 
-- no live runtime apply implementation
+- no rollout orchestration
 - no deploy
 - no migration
-- no live-runtime adapter/wrapper
+- no full live-runtime adapter expansion
 - no local overlay implementation
 - no secrets handling implementation
 - no Crab approval
