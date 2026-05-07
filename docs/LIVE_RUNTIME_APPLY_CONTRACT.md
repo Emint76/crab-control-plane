@@ -14,7 +14,9 @@ Bounded live runtime apply now exists in `operations/harness-openclaw-live-wrapp
 It consumes a green wrapper execution-owner run and performs bounded filesystem mutation only inside selected outside-Git live roots.
 A first real rollout companion now exists in `operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh`.
 It consumes green bounded apply evidence plus a reviewed outside-Git rollout declaration, launches one reviewed runtime command, and runs one reviewed healthcheck.
-No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no rollout orchestration are included.
+One narrow Crab-approved invocation wrapper now exists in `operations/harness-orchestration/bin/run_crab_approved_live_rollout.sh`.
+It delegates only to first real rollout.
+No deploy, no migration, no direct Crab approval for live apply, no broader Crab approval, no approval granting, no rollback execution, and no rollout orchestration are included.
 
 ## Scope
 
@@ -262,7 +264,9 @@ It is not Crab approval, not approval granting, not rollout orchestration, not a
 
 ## Relationship to Crab-safe orchestration
 
-Crab is not approved to invoke live runtime apply.
+Crab is not approved to invoke live runtime apply directly.
+Crab may invoke only the narrow orchestration wrapper that validates inputs and delegates to first real rollout.
+This does not approve execution-owner, secret-session, material-resolution, or other upstream live-adjacent surfaces.
 Any future Crab invocation would require separate approval, separate tests, separate CI, and explicit human control.
 
 ## Forbidden shortcuts

@@ -29,6 +29,7 @@ It is not a production OpenClaw deployment package.
 - `make live-wrapper-execution-owner-ci`
 - `make live-runtime-apply-ci`
 - `make first-real-rollout-ci`
+- `make crab-approved-live-rollout-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -240,6 +241,21 @@ bash operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh \
 It consumes a green bounded live runtime apply run, validates one reviewed outside-Git rollout declaration, launches one reviewed runtime command, runs one reviewed healthcheck command, and emits canonical rollout evidence.
 This is first real rollout, not an orchestration framework, not a supervisor, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
 
+Crab-approved live rollout wrapper:
+
+```bash
+bash operations/harness-orchestration/bin/run_crab_approved_live_rollout.sh \
+  --apply-run-dir operations/harness-openclaw-live-wrapper/runs/<RUN_ID> \
+  --rollout-declaration-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+`make crab-approved-live-rollout-ci` validates this surface.
+It consumes a green bounded live runtime apply run, validates one reviewed outside-Git rollout declaration, delegates only to first real rollout, and emits Crab-approved invocation evidence.
+Crab approval is narrow and limited to the first real rollout wrapper only.
+It does not approve direct bounded live runtime apply or any upstream live-adjacent surface.
+It is not rollout orchestration, not a supervisor, not a scheduler, not deploy/migration, not approval granting, and not rollback execution.
+
 ## One-command smoke
 
 ```bash
@@ -319,8 +335,10 @@ A bounded live runtime apply surface now exists for green wrapper execution-owne
 It performs bounded mutation only inside selected outside-Git live roots and does not create rollout orchestration, deploy/migration, Crab approval, approval granting, or rollback execution.
 A first real rollout surface now exists for green bounded live runtime apply inputs.
 It launches one reviewed runtime command and one reviewed healthcheck only; it does not create an orchestration framework, supervisor, deploy/migration surface, Crab approval, approval granting, or rollback execution.
+One Crab-approved live rollout wrapper now exists for first real rollout only.
+It does not create broader Crab approval and does not approve direct live runtime apply.
 The live target identity model, operator approval model, rollback model, failure/abort model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
-They do not create Crab approval, rollout orchestration, or deploy/migration surfaces.
+They do not create broader Crab approval, rollout orchestration, or deploy/migration surfaces.
 
 The OpenClaw dry-run adapter skeleton is implemented for repo-local dry-run evidence only. Its boundary is defined in `operations/harness-openclaw-dryrun/OPENCLAW_DRY_RUN_ADAPTER_CONTRACT.md`.
 

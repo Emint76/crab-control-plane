@@ -33,6 +33,7 @@
 | Live wrapper execution-owner skeleton from green secret-session bundle | emits wrapper-owned canonical execution evidence plus an apply-request stub | yes | execution-owner only; no live runtime apply, no target mutation, no approval grant, no rollback execution, no Crab approval |
 | Bounded live runtime apply from green wrapper execution-owner run | re-loads already-approved material sources and applies them into selected outside-Git live roots | yes | bounded apply only; no rollout orchestration, no approval grant, no rollback execution, no Crab approval |
 | First real rollout from green bounded live runtime apply | launches one reviewed runtime command and one reviewed healthcheck from a reviewed outside-Git declaration | yes | first rollout only; no rollout orchestration, no supervisor, no approval grant, no rollback execution, no Crab approval |
+| Crab-approved live rollout wrapper delegating only to first real rollout | validates green bounded apply and reviewed rollout declaration, then delegates only to first real rollout | yes | Crab approval for invocation only; no direct live apply, no broader Crab approval, no orchestration framework |
 | Live runtime apply contract | safety gates for live mutation | yes | bounded apply and first rollout companion surfaces exist; orchestration/deploy remains future work |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
@@ -122,6 +123,7 @@
 - Bounded repo-local live wrapper execution-owner skeleton from green secret-session bundle.
 - Bounded live runtime apply from green wrapper execution-owner run.
 - First real rollout from green bounded live runtime apply.
+- Crab approval for one narrow live surface: first real rollout wrapper only.
 
 ## Remaining known non-blocking debt
 
@@ -139,6 +141,6 @@
 - Wrapper-integrated no-secret redaction implementation remains future work.
 - Full live-runtime adapter implementation remains future work.
 - Live target selector implementation remains future work.
-- Crab approval remains future work.
+- Broader Crab approval remains future work.
 - Rollout orchestration / supervision remains future work.
 - Deployment framework remains future work.
