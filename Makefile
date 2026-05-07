@@ -68,6 +68,9 @@ live-wrapper-execution-owner-ci:
 live-runtime-apply-ci:
 	bash operations/harness-openclaw-live-wrapper/tests/test_live_runtime_apply.sh
 
+first-real-rollout-ci:
+	bash operations/harness-openclaw-live-wrapper/tests/test_first_real_rollout.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci
