@@ -51,6 +51,7 @@ This repo defines how the system should be structured across six layers:
 | Live wrapper execution-owner skeleton | `operations/harness-openclaw-live-wrapper/bin/run_live_wrapper_execution_owner.sh` | first wrapper-owned canonical execution surface from green secret-session input; apply-request stub only; no live apply, no target mutation, no Crab approval |
 | Bounded live runtime apply | `operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh` | consumes a green wrapper execution-owner run and performs bounded mutation inside selected outside-Git live roots only; no Crab approval, no rollout orchestration |
 | First real rollout from green bounded live runtime apply | `operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh` | consumes a green bounded live runtime apply run and a reviewed outside-Git rollout declaration; launches one reviewed runtime command and one reviewed healthcheck; no Crab approval, no rollout orchestration |
+| Crab-approved live rollout wrapper | `operations/harness-orchestration/bin/run_crab_approved_live_rollout.sh` | only Crab-approved live surface; validates green bounded apply plus reviewed rollout declaration and delegates only to first real rollout; no direct live apply, no orchestration framework |
 
 Phase 2 has two profiles, not two separate phases:
 - `check-layer-strict` is the audit-only profile.
@@ -295,6 +296,21 @@ It validates identity binding, launches one reviewed runtime command, runs one r
 It is first real rollout only.
 It is not Crab approval, not approval granting, not rollout orchestration, not deploy/migration, and not a supervisor.
 
+A Crab-approved live rollout wrapper is available for the same first real rollout surface only:
+
+```bash
+bash operations/harness-orchestration/bin/run_crab_approved_live_rollout.sh \
+  --apply-run-dir operations/harness-openclaw-live-wrapper/runs/<RUN_ID> \
+  --rollout-declaration-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+`make crab-approved-live-rollout-ci` validates this surface.
+This is the only Crab-approved live surface.
+It approves invocation only for the first real rollout wrapper.
+It does not approve direct bounded live runtime apply, execution-owner, secret-session, material-resolution, or other upstream live-adjacent surfaces.
+It is not an orchestration framework, not retries, not a scheduler, not a supervisor, not deploy/migration, not approval granting, and not rollback execution.
+
 Disposable target path validation is available at:
 
 ```bash
@@ -315,11 +331,9 @@ bash operations/harness-openclaw-safety-validation/bin/validate_no_secret_leakag
 
 This is validation only. It does not implement apply or OpenClaw writes.
 
-The current repository now includes a bounded live runtime apply surface for explicitly selected outside-Git roots and a first real rollout surface for a reviewed launch plus healthcheck after green bounded apply. It does not perform deploy, migration, rollout orchestration, live runtime adapter expansion, real source ingestion, or real KB write-back.
+The current repository now includes a bounded live runtime apply surface for explicitly selected outside-Git roots, a first real rollout surface for a reviewed launch plus healthcheck after green bounded apply, and one Crab-approved wrapper that delegates only to first real rollout. It does not perform deploy, migration, rollout orchestration, live runtime adapter expansion, real source ingestion, or real KB write-back.
 
-It is not approved for Crab invocation yet.
-
-The current repo supports dry-run evidence generation, safety validation, a bounded local-only disposable apply contour, bounded live runtime apply from a green wrapper execution-owner run, and first real rollout from a green bounded live runtime apply run.
+The current repo supports dry-run evidence generation, safety validation, a bounded local-only disposable apply contour, bounded live runtime apply from a green wrapper execution-owner run, first real rollout from a green bounded live runtime apply run, and one narrow Crab-approved invocation wrapper for first real rollout only.
 Live runtime apply remains governed by `docs/LIVE_RUNTIME_APPLY_CONTRACT.md`.
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 A future live target selector is separately governed by `docs/LIVE_TARGET_SELECTOR_CONTRACT.md`.
@@ -334,8 +348,9 @@ A bounded live secret-session bundle exists for green material-resolution inputs
 A bounded live wrapper execution-owner skeleton exists for green secret-session inputs, but it emits only wrapper-owned canonical evidence and an apply-request stub, not live runtime apply, not target mutation, and not Crab approval.
 A bounded live runtime apply surface exists for green wrapper execution-owner inputs, but it is bounded mutation inside selected outside-Git live roots only, not rollout orchestration, not deploy/migration, not rollback execution, and not Crab approval.
 A first real rollout surface exists for green bounded live runtime apply inputs, but it launches only one reviewed runtime command and one reviewed healthcheck, not orchestration, not supervision, not deploy/migration, and not Crab approval.
+A Crab-approved live rollout wrapper exists for first real rollout only; it does not approve direct bounded live runtime apply or upstream live-adjacent surfaces and is not an orchestration framework.
 The remaining live-runtime pre-execution contract stack is documented by `docs/LIVE_TARGET_IDENTITY_MODEL.md`, `docs/OPERATOR_APPROVAL_MODEL.md`, `docs/ROLLBACK_MODEL.md`, `docs/FAILURE_AND_ABORT_MODEL.md`, `docs/SECRET_HANDLING_CONTRACT.md`, `docs/EVIDENCE_RETENTION_POLICY.md`, and `docs/NO_SECRET_REDACTION_POLICY.md`.
-These documents are contract/model/policy only and add no live-runtime executable surface and no Crab approval.
+These documents are contract/model/policy only and add no live-runtime executable surface and no broader Crab approval.
 The current repo still proves only local-only disposable contours.
 
 ## What belongs elsewhere

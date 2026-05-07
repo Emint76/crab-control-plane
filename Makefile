@@ -71,6 +71,9 @@ live-runtime-apply-ci:
 first-real-rollout-ci:
 	bash operations/harness-openclaw-live-wrapper/tests/test_first_real_rollout.sh
 
+crab-approved-live-rollout-ci:
+	bash operations/harness-orchestration/tests/test_crab_approved_live_rollout.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

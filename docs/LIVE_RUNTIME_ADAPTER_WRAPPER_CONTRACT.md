@@ -9,15 +9,17 @@ Its purpose is to ensure that live runtime apply is driven only through a dedica
 ## Status
 
 The wrapper execution-owner skeleton, bounded live runtime apply companion, and first real rollout surface now exist under `operations/harness-openclaw-live-wrapper/`.
+One narrow Crab-approved invocation wrapper now exists under `operations/harness-orchestration/`.
 
 They remain separate surfaces.
 The rollout surface launches one reviewed runtime command and one reviewed healthcheck only.
-No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no orchestration behavior are included.
+Crab approval exists only for the orchestration wrapper that delegates to first real rollout.
+No deploy, no migration, no broader Crab approval, no approval granting, no rollback execution, and no orchestration behavior are included.
 
 ## Scope
 
 This contract defines the execution-owner boundary for live runtime mutation.
-The current bounded apply surface does not approve deploy, migration, orchestration, supervision, or Crab invocation.
+The current bounded apply surface does not approve deploy, migration, orchestration, supervision, or direct Crab invocation.
 
 ## Live-runtime adapter/wrapper definition
 
@@ -307,6 +309,11 @@ It remains separate from execution-owner preparation and does not grant approval
 It validates target and execution labels against upstream apply evidence, launches one reviewed runtime command, runs one reviewed healthcheck command, and emits canonical rollout evidence.
 It is not Crab approval, not approval granting, not rollout orchestration, not a supervisor, not deploy/migration, and not rollback execution.
 
+`operations/harness-orchestration/bin/run_crab_approved_live_rollout.sh` is the only Crab-approved live invocation surface.
+It consumes the same green bounded apply evidence and reviewed rollout declaration, validates the allowed surface, and delegates only to `run_first_real_rollout.sh`.
+It does not approve direct bounded live runtime apply, execution-owner, secret-session, material-resolution, or any upstream live-adjacent surface.
+It is not rollout orchestration, not a scheduler, not retries, not a supervisor, not deploy/migration, not approval granting, and not rollback execution.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -352,9 +359,10 @@ retention != storage implementation
 
 ## Relationship to Crab-safe orchestration
 
-Crab is not approved to invoke the live-runtime adapter/wrapper.
+Crab is approved to invoke only the narrow orchestration wrapper that delegates to first real rollout.
 
-Any future Crab approval would require a separate approval decision, separate tests, separate CI, and explicit human control semantics.
+Crab is not approved to invoke bounded live runtime apply directly or any upstream live-adjacent surface directly.
+Any broader Crab approval would require a separate approval decision, separate tests, separate CI, and explicit human control semantics.
 
 ## Forbidden shortcuts
 
