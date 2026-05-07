@@ -12,12 +12,14 @@ It does not authorize implementation or execution.
 Bounded live runtime apply now exists in `operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh`.
 
 It consumes a green wrapper execution-owner run and performs bounded filesystem mutation only inside selected outside-Git live roots.
-No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no rollout behavior are included.
+A first real rollout companion now exists in `operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh`.
+It consumes green bounded apply evidence plus a reviewed outside-Git rollout declaration, launches one reviewed runtime command, and runs one reviewed healthcheck.
+No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no rollout orchestration are included.
 
 ## Scope
 
 This contract defines the minimum prerequisites, safety gates, evidence expectations, rollback expectations, and forbidden shortcuts for live runtime apply.
-The current executable surface is bounded apply only and does not approve rollout orchestration.
+The current executable surfaces are bounded apply and first real rollout only; they do not approve rollout orchestration.
 
 A future live-runtime adapter/wrapper is separately governed by `docs/LIVE_RUNTIME_ADAPTER_WRAPPER_CONTRACT.md`.
 Live runtime apply must not be driven directly from disposable apply surfaces.
@@ -71,6 +73,9 @@ That skeleton is the first wrapper-owned canonical execution surface and emits a
 A bounded live runtime apply surface now exists in `operations/harness-openclaw-live-wrapper/` for green wrapper execution-owner outputs.
 That surface re-loads already-approved outside-Git material sources and mutates only the selected outside-Git `workspace`, `state`, and `runtime` roots.
 It is not rollout orchestration, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
+A first real rollout companion now exists in `operations/harness-openclaw-live-wrapper/` for green bounded live runtime apply outputs.
+That surface validates one reviewed outside-Git rollout declaration, launches one reviewed runtime command, runs one reviewed healthcheck, and emits canonical rollout evidence.
+It is not Crab approval, not rollout orchestration, not a supervisor, not deploy/migration, and not rollback execution.
 
 ## Required prerequisites before any future expansion
 
@@ -105,6 +110,7 @@ Before any bounded execution attempt, all gates must pass:
 - secret-session bundle green when already-resolved material is loaded in-process and redacted observations are emitted before any future live wrapper
 - wrapper execution-owner skeleton green when wrapper-owned canonical evidence and an apply-request stub are prepared before bounded live apply
 - bounded live runtime apply validation green when material source, target root, post-apply, and non-secret evidence checks are evaluated
+- first real rollout validation green when rollout consumes a green bounded live apply run and reviewed outside-Git declaration
 - explicit confirmation that secrets/config are sourced from local-only material outside Git
 - dry-run classification still green
 - controlled disposable apply still green
@@ -246,6 +252,14 @@ It consumes a green wrapper execution-owner run, re-loads raw material sources f
 
 It is not first real rollout/deployment, not rollout orchestration, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
 
+## Relationship to first real rollout
+
+`operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh` is the bounded first real rollout companion to green bounded live runtime apply.
+
+It consumes apply evidence, validates a reviewed outside-Git rollout declaration, binds target and execution labels to upstream apply evidence, launches one reviewed runtime command, runs one reviewed healthcheck, and emits canonical rollout evidence.
+
+It is not Crab approval, not approval granting, not rollout orchestration, not a scheduler, not a supervisor, not deploy/migration, and not rollback execution.
+
 ## Relationship to Crab-safe orchestration
 
 Crab is not approved to invoke live runtime apply.
@@ -260,10 +274,14 @@ Any future Crab invocation would require separate approval, separate tests, sepa
 - no bypass of rollback requirements
 - no Crab invocation without separate approval
 - no deploy/migration hidden inside apply
+- no orchestration loop hidden inside first real rollout
 
 ## Non-goals
 
 - no rollout orchestration
+- no supervisors
+- no retries
+- no schedulers
 - no deploy
 - no migration
 - no full live-runtime adapter expansion

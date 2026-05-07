@@ -32,7 +32,8 @@
 | Live secret-session bundle from green material-resolution bundle with wrapper-owned redacted observations | loads already-resolved outside-Git material in-process and emits metadata plus redacted observations | yes | secret-session only; no live runtime apply, no live wrapper, no raw secret output, no Crab approval |
 | Live wrapper execution-owner skeleton from green secret-session bundle | emits wrapper-owned canonical execution evidence plus an apply-request stub | yes | execution-owner only; no live runtime apply, no target mutation, no approval grant, no rollback execution, no Crab approval |
 | Bounded live runtime apply from green wrapper execution-owner run | re-loads already-approved material sources and applies them into selected outside-Git live roots | yes | bounded apply only; no rollout orchestration, no approval grant, no rollback execution, no Crab approval |
-| Live runtime apply contract | safety gates for live mutation | yes | bounded apply surface exists; first rollout/deploy remains future work |
+| First real rollout from green bounded live runtime apply | launches one reviewed runtime command and one reviewed healthcheck from a reviewed outside-Git declaration | yes | first rollout only; no rollout orchestration, no supervisor, no approval grant, no rollback execution, no Crab approval |
+| Live runtime apply contract | safety gates for live mutation | yes | bounded apply and first rollout companion surfaces exist; orchestration/deploy remains future work |
 | Live-runtime adapter/wrapper contract | future live execution-owner contract | no | contract-only; no implementation and no Crab approval |
 | Live target selector contract | future live target selector boundary | no | contract-only; no implementation, no approval, no execution ownership |
 | Live-runtime pre-execution contract stack | target identity, approval, rollback, failure/abort, secret handling, evidence retention, and no-secret redaction | no | contract/model/policy only; no implementation and no executable surface |
@@ -60,7 +61,9 @@
 - The live secret-session bundle loads already-resolved outside-Git material in-process only; it emits metadata and redacted observations and does not persist raw secrets, mutate targets, or act as a live wrapper.
 - The live wrapper execution-owner skeleton emits wrapper-owned canonical execution evidence and an apply-request stub only; it does not perform live runtime apply, mutate targets, grant approval, execute rollback, load new raw secrets, or approve Crab invocation.
 - The bounded live runtime apply surface consumes a green wrapper execution-owner run and mutates only explicitly selected outside-Git live roots.
+- The first real rollout surface consumes a green bounded live runtime apply run and a reviewed outside-Git rollout declaration, then launches one reviewed runtime command and one reviewed healthcheck only.
 - No rollout orchestration is implemented.
+- No rollout supervisor, retry loop, or scheduler is implemented.
 - No deploy/migration implementation is present.
 - No plugin/gateway/channel/model/auth/token/config changes are implemented.
 
@@ -118,6 +121,7 @@
 - Bounded repo-local live secret-session bundle from green material-resolution bundle with wrapper-owned redacted observations.
 - Bounded repo-local live wrapper execution-owner skeleton from green secret-session bundle.
 - Bounded live runtime apply from green wrapper execution-owner run.
+- First real rollout from green bounded live runtime apply.
 
 ## Remaining known non-blocking debt
 
@@ -136,4 +140,5 @@
 - Full live-runtime adapter implementation remains future work.
 - Live target selector implementation remains future work.
 - Crab approval remains future work.
-- First real rollout / deployment remains future work.
+- Rollout orchestration / supervision remains future work.
+- Deployment framework remains future work.

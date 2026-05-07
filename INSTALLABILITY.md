@@ -28,6 +28,7 @@ It is not a production OpenClaw deployment package.
 - `make live-secret-session-ci`
 - `make live-wrapper-execution-owner-ci`
 - `make live-runtime-apply-ci`
+- `make first-real-rollout-ci`
 - `make openclaw-local-ci`
 
 Agent-safe wrapper:
@@ -226,6 +227,19 @@ bash operations/harness-openclaw-live-wrapper/bin/run_live_runtime_apply.sh \
 It consumes a green wrapper execution-owner run, re-loads already-approved outside-Git material sources, and applies them only inside the selected outside-Git `workspace`, `state`, and `runtime` live roots.
 This is bounded live runtime apply, not rollout orchestration, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
 
+First real rollout from green bounded live runtime apply:
+
+```bash
+bash operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh \
+  --apply-run-dir operations/harness-openclaw-live-wrapper/runs/<RUN_ID> \
+  --rollout-declaration-file <ABSOLUTE_PATH_OUTSIDE_GIT> \
+  --run-id <RUN_ID>
+```
+
+`make first-real-rollout-ci` validates this surface.
+It consumes a green bounded live runtime apply run, validates one reviewed outside-Git rollout declaration, launches one reviewed runtime command, runs one reviewed healthcheck command, and emits canonical rollout evidence.
+This is first real rollout, not an orchestration framework, not a supervisor, not deploy/migration, not Crab approval, not approval granting, and not rollback execution.
+
 ## One-command smoke
 
 ```bash
@@ -303,6 +317,8 @@ A bounded live secret-session bundle now exists for green material-resolution in
 It is secret-session only and does not create runnable live mutation, raw secret output, or a live-runtime execution owner.
 A bounded live runtime apply surface now exists for green wrapper execution-owner inputs.
 It performs bounded mutation only inside selected outside-Git live roots and does not create rollout orchestration, deploy/migration, Crab approval, approval granting, or rollback execution.
+A first real rollout surface now exists for green bounded live runtime apply inputs.
+It launches one reviewed runtime command and one reviewed healthcheck only; it does not create an orchestration framework, supervisor, deploy/migration surface, Crab approval, approval granting, or rollback execution.
 The live target identity model, operator approval model, rollback model, failure/abort model, secret handling contract, evidence retention policy, and no-secret redaction policy are contract/policy/model only.
 They do not create Crab approval, rollout orchestration, or deploy/migration surfaces.
 
@@ -352,7 +368,8 @@ rm -rf operations/harness-phase2/runs/smoke-e2e-phase2 \
        operations/harness-openclaw-live-wrapper/runs/live-wrapper-preflight-valid \
        operations/harness-openclaw-live-material-resolution/runs/live-material-resolution-valid \
        operations/harness-openclaw-live-secret-session/runs/live-secret-session-valid \
-       operations/harness-openclaw-live-wrapper/runs/live-wrapper-execution-owner-valid
+       operations/harness-openclaw-live-wrapper/runs/live-wrapper-execution-owner-valid \
+       operations/harness-openclaw-live-wrapper/runs/rollout-valid
 ```
 
 Disposable local workspace/state targets live outside Git and must only be cleaned under explicitly approved disposable roots.

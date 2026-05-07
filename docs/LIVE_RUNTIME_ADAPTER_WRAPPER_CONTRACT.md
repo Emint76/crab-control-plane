@@ -8,15 +8,16 @@ Its purpose is to ensure that live runtime apply is driven only through a dedica
 
 ## Status
 
-The wrapper execution-owner skeleton and bounded live runtime apply companion now exist under `operations/harness-openclaw-live-wrapper/`.
+The wrapper execution-owner skeleton, bounded live runtime apply companion, and first real rollout surface now exist under `operations/harness-openclaw-live-wrapper/`.
 
 They remain separate surfaces.
-No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no rollout behavior are included.
+The rollout surface launches one reviewed runtime command and one reviewed healthcheck only.
+No deploy, no migration, no Crab approval, no approval granting, no rollback execution, and no orchestration behavior are included.
 
 ## Scope
 
 This contract defines the execution-owner boundary for live runtime mutation.
-The current bounded apply surface does not approve rollout, deploy, migration, or Crab invocation.
+The current bounded apply surface does not approve deploy, migration, orchestration, supervision, or Crab invocation.
 
 ## Live-runtime adapter/wrapper definition
 
@@ -63,6 +64,9 @@ It is the first wrapper-owned canonical execution surface, but it still emits an
 A bounded live runtime apply companion may exist after a green wrapper execution-owner run.
 It consumes the execution-owner output, re-loads already-approved material sources, and applies only into selected outside-Git live roots.
 Execution-owner and apply remain separate surfaces.
+A first real rollout surface may exist after a green bounded live runtime apply run.
+It consumes apply evidence plus a reviewed outside-Git rollout declaration, launches one reviewed runtime command, runs one reviewed healthcheck, and emits rollout evidence.
+It is not orchestration, not supervision, not deploy/migration, and not Crab approval.
 
 ## Required execution ownership model
 
@@ -120,6 +124,7 @@ Before any future live execution, the wrapper must validate:
 - material-resolution bundle result when reviewed material references are resolved from a green wrapper preflight run
 - secret-session bundle result when already-resolved material is loaded in-process and redacted observations are produced
 - wrapper execution-owner skeleton result when wrapper-owned canonical evidence and an apply-request stub are prepared before any bounded live apply
+- bounded live runtime apply result when first real rollout consumes apply evidence
 - no-secret-leakage/redaction precheck
 - evidence-path validation
 - exact target-surface ambiguity check
@@ -160,6 +165,8 @@ A bounded secret-session surface may load already-resolved outside-Git material 
 That secret-session bundle does not provide the live execution owner or final wrapper-integrated redaction.
 A bounded wrapper execution-owner skeleton may consume a green secret-session bundle and emit wrapper-owned canonical evidence plus an apply-request stub.
 That execution-owner skeleton is not bounded live runtime apply and does not authorize target mutation.
+A first real rollout surface may consume only green bounded live runtime apply evidence and a reviewed outside-Git declaration.
+It must not write raw secret material into repo-local rollout evidence.
 
 ## Required rollback handoff expectations
 
@@ -293,6 +300,13 @@ Bounded live runtime apply is a separate companion surface that consumes only gr
 It emits canonical wrapper apply evidence plus rollback handoff metadata.
 It remains separate from execution-owner preparation and does not grant approval, execute rollback, approve Crab invocation, deploy, migrate, or orchestrate rollout.
 
+## Relationship to First Real Rollout
+
+`operations/harness-openclaw-live-wrapper/bin/run_first_real_rollout.sh` consumes a green bounded live runtime apply run and one reviewed outside-Git rollout declaration.
+
+It validates target and execution labels against upstream apply evidence, launches one reviewed runtime command, runs one reviewed healthcheck command, and emits canonical rollout evidence.
+It is not Crab approval, not approval granting, not rollout orchestration, not a supervisor, not deploy/migration, and not rollback execution.
+
 ## Relationship to Pre-Execution Contract Stack
 
 The future wrapper is the execution owner only.
@@ -317,6 +331,7 @@ It must not collapse the pre-execution contract stack:
 - secret-session bundle -> in-process material loading with metadata and redacted observations only
 - execution-owner skeleton -> wrapper-owned canonical execution evidence plus apply-request stub only
 - bounded live runtime apply -> target mutation only inside selected outside-Git live roots
+- first real rollout -> one reviewed launch and one reviewed healthcheck after green bounded apply
 
 approval != wrapper
 preexecution gate != execution owner
@@ -328,6 +343,8 @@ material-resolution bundle != execution owner
 secret-session bundle != execution owner
 execution-owner skeleton != bounded live runtime apply
 bounded live runtime apply != rollout orchestration
+first real rollout != rollout orchestration
+first real rollout != supervisor
 wrapper contract != failure/abort model
 secret handling != redaction
 retention != redaction
@@ -347,12 +364,16 @@ Any future Crab approval would require a separate approval decision, separate te
 - no repo-only live target inference
 - no silent secret ingestion
 - no rollout hidden inside adapter internals
+- no orchestration loop hidden inside first real rollout
 - no Crab invocation without separate approval
 
 ## Non-goals
 
 - no full live-runtime adapter expansion
 - no rollout orchestration
+- no supervisors
+- no retries
+- no schedulers
 - no deploy
 - no migration
 - no live target selector implementation
