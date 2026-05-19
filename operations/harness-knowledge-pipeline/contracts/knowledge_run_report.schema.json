@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_run_report",
+  "type": "object",
+  "required": ["run_id", "generated_at", "status", "canonical_admitted", "auto_canonical_write_performed", "live_surface_used", "openclaw_used", "docker_used", "network_used", "outside_git_paths_used", "artifacts", "checks", "blockers", "improvement_candidates"],
+  "properties": {
+    "run_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "status": {"type": "string", "enum": ["pass", "fail", "awaiting_semantic_outputs"]},
+    "canonical_admitted": {"type": "boolean", "const": false},
+    "auto_canonical_write_performed": {"type": "boolean", "const": false},
+    "live_surface_used": {"type": "boolean", "const": false},
+    "openclaw_used": {"type": "boolean", "const": false},
+    "docker_used": {"type": "boolean", "const": false},
+    "network_used": {"type": "boolean", "const": false},
+    "outside_git_paths_used": {"type": "boolean", "const": false},
+    "artifacts": {"type": "array", "items": {"type": "string"}},
+    "checks": {"type": "array", "items": {"type": "object"}},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "improvement_candidates": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "canonical_knowledge_candidate_frontmatter",
+  "type": "object",
+  "required": ["artifact_id", "artifact_type", "status", "source_capture_ref", "normalized_note_ref", "result_packet_ref", "admission_decision_ref", "canonical_admitted"],
+  "properties": {
+    "artifact_id": {"type": "string", "minLength": 3},
+    "artifact_type": {"type": "string", "const": "canonical-knowledge-candidate"},
+    "status": {"type": "string", "const": "candidate"},
+    "source_capture_ref": {"type": "string", "minLength": 1},
+    "normalized_note_ref": {"type": "string", "minLength": 1},
+    "result_packet_ref": {"type": "string", "minLength": 1},
+    "admission_decision_ref": {"type": "string", "minLength": 1},
+    "canonical_admitted": {"type": "boolean", "const": false}
+  },
+  "additionalProperties": false
+}

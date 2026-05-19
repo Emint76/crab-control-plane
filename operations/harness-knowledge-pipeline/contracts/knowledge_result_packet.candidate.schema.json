@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_result_packet_candidate",
+  "type": "object",
+  "required": ["packet_id", "artifact_type", "status", "task_id", "source_capture_ref", "normalized_note_ref", "result_summary", "claims", "gaps", "produced_artifacts", "evidence", "confidence", "improvement_candidates"],
+  "properties": {
+    "packet_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "artifact_type": {"type": "string", "const": "knowledge-result-packet"},
+    "status": {"type": "string", "enum": ["candidate", "needs-review"]},
+    "task_id": {"type": "string", "minLength": 1},
+    "source_capture_ref": {"type": "string", "minLength": 1},
+    "normalized_note_ref": {"type": "string", "minLength": 1},
+    "result_summary": {"type": "string", "minLength": 10},
+    "claims": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["claim_id", "text", "source_refs"], "properties": {"claim_id": {"type": "string"}, "text": {"type": "string", "minLength": 10}, "source_refs": {"type": "array", "minItems": 1, "items": {"type": "string"}}}, "additionalProperties": false}},
+    "gaps": {"type": "array", "items": {"type": "string", "minLength": 3}},
+    "produced_artifacts": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+    "improvement_candidates": {"type": "array", "items": {"type": "string", "minLength": 3}}
+  },
+  "additionalProperties": false
+}
