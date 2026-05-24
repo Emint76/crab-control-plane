@@ -2,6 +2,8 @@
 
 Repo-local, live-safe harness for bounded information-processing runs.
 
+See `ACCEPTED_STATE.md` for the current accepted capability, boundaries, and gaps after PR67/PR68.
+
 First supported source contour:
 
 ```text
