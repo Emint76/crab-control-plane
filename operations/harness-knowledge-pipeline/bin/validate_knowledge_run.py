@@ -123,10 +123,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--mode", choices=["capture-only", "semantic-required"], default="semantic-required")
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve(strict=True)
     run_id = args.run_id
+    semantic_outputs_required = args.mode == "semantic-required"
     run_dir = repo_root / RUNS_REF / run_id
     checks_dir = run_dir / "checks"
     checks_dir.mkdir(parents=True, exist_ok=True)
@@ -180,6 +182,12 @@ def main() -> int:
 
     missing_semantic = [ref for ref in SEMANTIC_FILES if not (run_dir / ref).is_file()]
     if missing_semantic:
+        if not semantic_outputs_required:
+            emit(checks_dir, "semantic_outputs_presence", run_id, "skipped", "semantic output files are not required in capture-only smoke mode", missing=missing_semantic)
+            emit(checks_dir, "layer_boundary_validation", run_id, "skipped", "semantic outputs are not required in capture-only smoke mode")
+            emit(checks_dir, "ref_integrity", run_id, "skipped", "semantic outputs are not required in capture-only smoke mode")
+            emit(checks_dir, "no_auto_canonical_write", run_id, "pass", "no semantic outputs available; no canonical write performed")
+            return 0 if status == "pass" else 1
         emit(checks_dir, "semantic_outputs_presence", run_id, "awaiting_semantic_outputs", "semantic output files are not all present", missing=missing_semantic)
         emit(checks_dir, "layer_boundary_validation", run_id, "pending", "semantic outputs are required before layer validation")
         emit(checks_dir, "ref_integrity", run_id, "pending", "semantic outputs are required before ref validation")

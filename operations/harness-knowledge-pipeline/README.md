@@ -1,17 +1,17 @@
 # Hermes Knowledge Pipeline Harness
 
-Repo-local, live-safe harness for a bounded information-processing run.
+Repo-local, live-safe harness for bounded information-processing runs.
 
-First supported run:
+First supported source contour:
 
 ```text
-control-plane/policy/ADMISSION_POLICY.md
+repo-local .md/.markdown/.txt source
 → source capture / evidence
-→ normalized note
-→ result packet
-→ placement/admission candidate
-→ canonical knowledge candidate
-→ wiki-derived draft
+→ optional normalized note
+→ optional result packet
+→ optional placement/admission candidate
+→ optional canonical knowledge candidate
+→ optional wiki-derived draft
 → validation/report/exit_code
 ```
 
@@ -29,15 +29,50 @@ Safety boundary:
 All first-run writes are confined to:
 
 ```text
-operations/harness-knowledge-pipeline/runs/knowledge-admission-policy-001/
+operations/harness-knowledge-pipeline/runs/<RUN_ID>/
 ```
 
-Smoke example:
+## Smoke runner
+
+```bash
+operations/harness-knowledge-pipeline/bin/run_local_source_smoke.sh \
+  [--mode capture-only|semantic-required] \
+  <run-id> \
+  <repo-local-source>
+```
+
+Default mode is `capture-only`.
+
+Example:
 
 ```bash
 operations/harness-knowledge-pipeline/bin/run_local_source_smoke.sh \
   knowledge-admission-policy-001 \
   control-plane/policy/ADMISSION_POLICY.md
+```
+
+### Python launcher
+
+The wrapper resolves Python in this order:
+
+1. use `KNOWLEDGE_PIPELINE_PYTHON_BIN` when set, and fail clearly if it is unavailable;
+2. else use `python` when available;
+3. else use `python3` when available;
+4. else fail with a clear diagnostic.
+
+### Modes
+
+`capture-only` succeeds when source capture, hashes, task packet, schema checks, report, and `exit_code` are generated and valid. Semantic outputs may be absent.
+
+`semantic-required` preserves full semantic validation. If semantic output files are absent, the run reports `awaiting_semantic_outputs` and exits `3`.
+
+### Exit codes
+
+```text
+0 = capture-only smoke pass, or semantic-required full pass
+1 = validation/runtime failure
+2 = usage, invalid mode, or unavailable Python launcher
+3 = awaiting semantic outputs in semantic-required mode
 ```
 
 Core rule:

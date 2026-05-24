@@ -1,0 +1,25 @@
+name: knowledge-pipeline-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  knowledge-pipeline-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install harness requirements
+        run: pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Run knowledge pipeline smoke tests
+        run: bash operations/harness-knowledge-pipeline/tests/test_run_local_source_smoke.sh
