@@ -61,7 +61,10 @@ def markdown_report(report: dict[str, Any]) -> str:
         "# Knowledge Pipeline Run Report",
         "",
         f"- run_id: `{report['run_id']}`",
+        f"- mode: `{report['mode']}`",
+        f"- semantic_outputs_required: `{report['semantic_outputs_required']}`",
         f"- status: `{report['status']}`",
+        f"- exit_code: `{report['exit_code']}`",
         f"- generated_at: `{report['generated_at']}`",
         f"- canonical_admitted: `{report['canonical_admitted']}`",
         f"- auto_canonical_write_performed: `{report['auto_canonical_write_performed']}`",
@@ -102,10 +105,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--mode", choices=["capture-only", "semantic-required"], default="semantic-required")
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve(strict=True)
     run_id = args.run_id
+    semantic_outputs_required = args.mode == "semantic-required"
     run_dir = repo_root / RUNS_REF / run_id
     checks_dir = run_dir / "checks"
     checks_dir.mkdir(parents=True, exist_ok=True)
@@ -120,6 +125,7 @@ def main() -> int:
             checks.append({"path": repo_ref(repo_root, path), "status": "fail", "detail": f"unreadable check: {exc}"})
 
     status = determine_status(checks)
+    code = exit_code_for(status)
     artifacts = [repo_ref(repo_root, path) for path in sorted(run_dir.rglob("*")) if path.is_file() and path.name not in {"report.json", "report.md", "exit_code"}]
     blockers = [str(check.get("detail", check.get("path"))) for check in checks if check.get("status") in {"fail", "awaiting_semantic_outputs", "pending"}]
 
@@ -154,6 +160,9 @@ def main() -> int:
 
     report = {
         "run_id": run_id,
+        "mode": args.mode,
+        "semantic_outputs_required": semantic_outputs_required,
+        "exit_code": code,
         "generated_at": now_utc(),
         "status": status,
         "canonical_admitted": False,
@@ -182,10 +191,11 @@ def main() -> int:
         report["status"] = "fail"
         report["blockers"].extend([err.message for err in errors])
         status = "fail"
+        code = exit_code_for(status)
+        report["exit_code"] = code
 
     write_json(run_dir / "report.json", report)
     (run_dir / "report.md").write_text(markdown_report(report), encoding="utf-8")
-    code = exit_code_for(status)
     (run_dir / "exit_code").write_text(f"{code}\n", encoding="utf-8")
     return code
 
