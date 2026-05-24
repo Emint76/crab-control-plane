@@ -4,6 +4,8 @@ Repo-local, live-safe harness for bounded information-processing runs.
 
 See `ACCEPTED_STATE.md` for the current accepted capability, boundaries, and gaps after PR67/PR68.
 
+See `SEMANTIC_OPERATOR_HANDOFF.md` for the operator contract for filling semantic artifacts inside a captured run directory.
+
 First supported source contour:
 
 ```text

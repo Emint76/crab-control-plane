@@ -76,6 +76,8 @@ The following are not accepted capabilities of the current harness:
 
 The next gap is semantic operator handoff:
 
+See `SEMANTIC_OPERATOR_HANDOFF.md` for the accepted docs/contract handoff shape.
+
 1. runner creates capture artifacts;
 2. Hermes/LLM fills semantic artifacts inside the run directory when explicitly instructed;
 3. runner validates and updates reports;
