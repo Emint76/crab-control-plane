@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "wiki_derived_draft_frontmatter",
+  "type": "object",
+  "required": ["artifact_id", "artifact_type", "status", "derived_from", "source_canonical_candidate_ref", "new_claims_allowed"],
+  "properties": {
+    "artifact_id": {"type": "string", "minLength": 3},
+    "artifact_type": {"type": "string", "const": "wiki-derived-draft"},
+    "status": {"type": "string", "const": "draft"},
+    "derived_from": {"type": "string", "minLength": 1},
+    "source_canonical_candidate_ref": {"type": "string", "minLength": 1},
+    "new_claims_allowed": {"type": "boolean", "const": false}
+  },
+  "additionalProperties": false
+}
