@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_pipeline_admission_decision_candidate",
+  "description": "Operator-authored admission decision candidate for semantic handoff. Even an approve decision does not mark canonical admission.",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "decision",
+    "canonical_admitted",
+    "rationale",
+    "checklist",
+    "blockers",
+    "required_follow_up"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "admission-decision-candidate"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "return_for_revision",
+        "hold",
+        "reject"
+      ]
+    },
+    "canonical_admitted": {
+      "type": "boolean",
+      "const": false
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 10
+    },
+    "checklist": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/checklist_item"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "required_follow_up": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source_ref"
+      }
+    },
+    "artifact_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/repo_ref"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "repo_ref": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {"pattern": "^/"},
+          {"pattern": "(^|/)\\.\\.(/|$)"},
+          {"pattern": "^~"}
+        ]
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "ref",
+        "description"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/repo_ref"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        },
+        "locator": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "checklist_item": {
+      "type": "object",
+      "required": [
+        "item",
+        "status"
+      ],
+      "properties": {
+        "item": {
+          "type": "string",
+          "minLength": 3
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "not_checked",
+            "not_applicable"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/repo_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
