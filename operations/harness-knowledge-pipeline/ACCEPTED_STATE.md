@@ -9,6 +9,7 @@ This document records the accepted state of `operations/harness-knowledge-pipeli
 - PR70: semantic operator handoff contract.
 - PR71: semantic artifact schema contracts.
 - PR72: `semantic-required` schema-backed validation hardening.
+- Manual semantic handoff evidence run `admission-policy-semantic-handoff-001`: capture-only `exit_code=0`, operator-filled `output/` semantic artifacts, and semantic-required `exit_code=0`.
 - Post-merge smoke result on `main`: `exit_code=0` for capture-only smoke.
 
 ## B. Current accepted capability
@@ -87,9 +88,11 @@ The following are not accepted capabilities of the current harness:
 
 ## G. Next gap
 
-The next gap is a manual semantic handoff evidence run against the hardened `semantic-required` validation path:
+The next gap is preserving the manual semantic handoff as a repeatable, docs-backed operator contour while generated run artifacts remain local/ignored.
 
 See `SEMANTIC_OPERATOR_HANDOFF.md` for the accepted docs/contract handoff shape.
+
+See `MANUAL_SEMANTIC_HANDOFF_EVIDENCE.md` for the successful evidence run `admission-policy-semantic-handoff-001`, which proved capture-only `exit_code=0` → operator-filled `output/` semantic artifacts → semantic-required `exit_code=0`.
 
 Machine-readable schema contracts for the semantic handoff artifacts live under `contracts/`; `contracts/semantic_artifact_set.schema.json` maps the expected `output/` artifact paths to JSON schemas and lists markdown artifacts without deep markdown validation yet.
 

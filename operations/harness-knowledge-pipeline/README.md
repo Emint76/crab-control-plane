@@ -6,6 +6,8 @@ See `ACCEPTED_STATE.md` for the current accepted capability, boundaries, and gap
 
 See `SEMANTIC_OPERATOR_HANDOFF.md` for the operator contract for filling semantic artifacts inside a captured run directory.
 
+See `MANUAL_SEMANTIC_HANDOFF_EVIDENCE.md` for the first successful evidence run proving the manual contour: capture-only, operator-filled `output/` artifacts, and `semantic-required` validation with `exit_code=0`.
+
 See `contracts/semantic_artifact_set.schema.json` and the linked JSON schemas in `contracts/` for the machine-readable semantic artifact contracts. These schemas are contracts only; they do not implement automatic semantic generation.
 
 First supported source contour:
