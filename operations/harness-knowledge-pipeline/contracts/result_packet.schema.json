@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_pipeline_result_packet",
+  "description": "Operator-authored semantic result packet for a bounded knowledge-pipeline run. This summarizes semantic outputs and gaps without admitting canonical KB content.",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "status",
+    "source_refs",
+    "produced_artifacts",
+    "claims",
+    "gaps",
+    "improvement_candidates"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "knowledge-result-packet"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "needs-review",
+        "blocked"
+      ]
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/source_ref"
+      }
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10
+    },
+    "produced_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/produced_artifact"
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gap"
+      }
+    },
+    "improvement_candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/improvement_candidate"
+      }
+    },
+    "validation_notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "repo_ref": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {"pattern": "^/"},
+          {"pattern": "(^|/)\\.\\.(/|$)"},
+          {"pattern": "^~"}
+        ]
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "ref",
+        "description"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/repo_ref"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        },
+        "locator": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "produced_artifact": {
+      "type": "object",
+      "required": [
+        "path",
+        "kind",
+        "schema_ref"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/output_ref"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "json",
+            "markdown"
+          ]
+        },
+        "schema_ref": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/repo_ref"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Null is allowed only for markdown artifacts that are listed but not deeply schema-validated yet."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_ref": {
+      "type": "string",
+      "enum": [
+        "output/normalized_note.md",
+        "output/normalized_note.json",
+        "output/result_packet.json",
+        "output/placement_decision.candidate.json",
+        "output/admission_decision.candidate.json",
+        "output/canonical_knowledge_candidate.md",
+        "output/wiki_derived_draft.md"
+      ]
+    },
+    "claim": {
+      "type": "object",
+      "required": [
+        "claim_id",
+        "text",
+        "source_refs"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 10
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "gap": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 3
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "improvement_candidate": {
+      "type": "object",
+      "required": [
+        "text",
+        "scope"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 3
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "schema",
+            "validation",
+            "documentation",
+            "operator-handoff",
+            "future-automation"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

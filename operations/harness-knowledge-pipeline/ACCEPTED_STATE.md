@@ -78,6 +78,8 @@ The next gap is semantic operator handoff:
 
 See `SEMANTIC_OPERATOR_HANDOFF.md` for the accepted docs/contract handoff shape.
 
+Machine-readable schema contracts for the semantic handoff artifacts live under `contracts/`; `contracts/semantic_artifact_set.schema.json` maps the expected `output/` artifact paths to JSON schemas and lists markdown artifacts without deep markdown validation yet.
+
 1. runner creates capture artifacts;
 2. Hermes/LLM fills semantic artifacts inside the run directory when explicitly instructed;
 3. runner validates and updates reports;

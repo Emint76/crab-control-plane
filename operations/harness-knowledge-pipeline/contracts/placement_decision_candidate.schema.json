@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_pipeline_placement_decision_candidate",
+  "description": "Operator-authored placement candidate for a bounded semantic handoff. It is review-required and does not authorize canonical writes.",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "status",
+    "target_layer",
+    "target_path",
+    "rationale",
+    "review_required",
+    "canonical_write_allowed",
+    "blockers",
+    "conditions"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "placement-decision-candidate"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "needs-review",
+        "blocked"
+      ]
+    },
+    "target_layer": {
+      "type": "string",
+      "enum": [
+        "notion",
+        "obsidian",
+        "kb",
+        "observability",
+        "mixed",
+        "none"
+      ]
+    },
+    "target_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Candidate repo-local or layer-local target path. Use a descriptive placeholder when target_layer is none."
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 10
+    },
+    "review_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "canonical_write_allowed": {
+      "type": "boolean",
+      "const": false
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source_ref"
+      }
+    },
+    "artifact_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/repo_ref"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "repo_ref": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {"pattern": "^/"},
+          {"pattern": "(^|/)\\.\\.(/|$)"},
+          {"pattern": "^~"}
+        ]
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "ref",
+        "description"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/repo_ref"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        },
+        "locator": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

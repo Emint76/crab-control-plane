@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_pipeline_normalized_note",
+  "description": "Operator-authored semantic normalized note for a bounded knowledge-pipeline run. This is not canonical admission.",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "status",
+    "source_refs",
+    "title",
+    "summary",
+    "claims",
+    "entities",
+    "concepts",
+    "gaps",
+    "uncertainties",
+    "provenance"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "normalized-note"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "working",
+        "candidate",
+        "needs-review"
+      ]
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/source_ref"
+      }
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/claim"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity_or_concept"
+      }
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity_or_concept"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gap_or_uncertainty"
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gap_or_uncertainty"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "source_capture_ref",
+        "task_packet_ref",
+        "captured_source_ref"
+      ],
+      "properties": {
+        "source_capture_ref": {
+          "type": "string",
+          "const": "input/source_capture_package.json"
+        },
+        "task_packet_ref": {
+          "type": "string",
+          "const": "input/task_packet.json"
+        },
+        "captured_source_ref": {
+          "type": "string",
+          "const": "input/source.md"
+        },
+        "report_ref": {
+          "type": "string",
+          "const": "report.json"
+        },
+        "operator_notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "repo_ref": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {"pattern": "^/"},
+          {"pattern": "(^|/)\\.\\.(/|$)"},
+          {"pattern": "^~"}
+        ]
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": [
+        "ref",
+        "description"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/repo_ref"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        },
+        "locator": {
+          "type": "string",
+          "description": "Optional line, heading, section, hash, or other locator inside the captured source."
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "required": [
+        "claim_id",
+        "text",
+        "source_refs",
+        "confidence"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 10
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "entity_or_concept": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "source_refs"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 3
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "gap_or_uncertainty": {
+      "type": "object",
+      "required": [
+        "text",
+        "source_refs"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 3
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "follow_up": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

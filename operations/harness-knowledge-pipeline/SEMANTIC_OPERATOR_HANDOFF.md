@@ -54,6 +54,18 @@ wiki_derived_draft.md
 
 These files are semantic handoff artifacts. They are not canonical KB admission.
 
+Machine-readable schema contracts for the JSON semantic artifacts are:
+
+```text
+operations/harness-knowledge-pipeline/contracts/normalized_note.schema.json
+operations/harness-knowledge-pipeline/contracts/result_packet.schema.json
+operations/harness-knowledge-pipeline/contracts/placement_decision_candidate.schema.json
+operations/harness-knowledge-pipeline/contracts/admission_decision_candidate.schema.json
+operations/harness-knowledge-pipeline/contracts/semantic_artifact_set.schema.json
+```
+
+The schema set fixes the expected `output/` filenames, maps each JSON artifact to its schema, and lists the markdown artifacts without deep markdown schema validation yet. It does not implement automatic semantic generation or runner validation changes.
+
 ## E. Operator rules
 
 The Hermes/LLM operator must follow these rules:
@@ -90,7 +102,6 @@ This handoff contract does not accept or implement:
 
 Likely future PRs may cover:
 
-- semantic artifact schemas;
-- semantic-required validation hardening;
+- semantic-required validation hardening against these contracts;
 - external source capture;
 - synthesis layer.

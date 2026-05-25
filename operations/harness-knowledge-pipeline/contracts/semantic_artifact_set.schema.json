@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "knowledge_pipeline_semantic_artifact_set",
+  "description": "Machine-readable manifest contract for the semantic handoff artifact set under output/. JSON artifacts map to schemas; markdown artifacts are listed but not deeply schema-validated yet.",
+  "type": "object",
+  "required": [
+    "artifact_type",
+    "required_artifacts",
+    "json_artifacts",
+    "markdown_artifacts"
+  ],
+  "properties": {
+    "artifact_type": {
+      "type": "string",
+      "const": "semantic-artifact-set"
+    },
+    "required_artifacts": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/semantic_artifact_path"
+      },
+      "allOf": [
+        {"contains": {"const": "output/normalized_note.md"}},
+        {"contains": {"const": "output/normalized_note.json"}},
+        {"contains": {"const": "output/result_packet.json"}},
+        {"contains": {"const": "output/placement_decision.candidate.json"}},
+        {"contains": {"const": "output/admission_decision.candidate.json"}},
+        {"contains": {"const": "output/canonical_knowledge_candidate.md"}},
+        {"contains": {"const": "output/wiki_derived_draft.md"}}
+      ]
+    },
+    "json_artifacts": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/json_artifact_mapping"
+      },
+      "allOf": [
+        {"contains": {"properties": {"path": {"const": "output/normalized_note.json"}, "schema_ref": {"const": "operations/harness-knowledge-pipeline/contracts/normalized_note.schema.json"}}, "required": ["path", "schema_ref"]}},
+        {"contains": {"properties": {"path": {"const": "output/result_packet.json"}, "schema_ref": {"const": "operations/harness-knowledge-pipeline/contracts/result_packet.schema.json"}}, "required": ["path", "schema_ref"]}},
+        {"contains": {"properties": {"path": {"const": "output/placement_decision.candidate.json"}, "schema_ref": {"const": "operations/harness-knowledge-pipeline/contracts/placement_decision_candidate.schema.json"}}, "required": ["path", "schema_ref"]}},
+        {"contains": {"properties": {"path": {"const": "output/admission_decision.candidate.json"}, "schema_ref": {"const": "operations/harness-knowledge-pipeline/contracts/admission_decision_candidate.schema.json"}}, "required": ["path", "schema_ref"]}}
+      ]
+    },
+    "markdown_artifacts": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/markdown_artifact"
+      },
+      "allOf": [
+        {"contains": {"properties": {"path": {"const": "output/normalized_note.md"}}, "required": ["path"]}},
+        {"contains": {"properties": {"path": {"const": "output/canonical_knowledge_candidate.md"}}, "required": ["path"]}},
+        {"contains": {"properties": {"path": {"const": "output/wiki_derived_draft.md"}}, "required": ["path"]}}
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "semantic_artifact_path": {
+      "type": "string",
+      "enum": [
+        "output/normalized_note.md",
+        "output/normalized_note.json",
+        "output/result_packet.json",
+        "output/placement_decision.candidate.json",
+        "output/admission_decision.candidate.json",
+        "output/canonical_knowledge_candidate.md",
+        "output/wiki_derived_draft.md"
+      ]
+    },
+    "schema_ref": {
+      "type": "string",
+      "enum": [
+        "operations/harness-knowledge-pipeline/contracts/normalized_note.schema.json",
+        "operations/harness-knowledge-pipeline/contracts/result_packet.schema.json",
+        "operations/harness-knowledge-pipeline/contracts/placement_decision_candidate.schema.json",
+        "operations/harness-knowledge-pipeline/contracts/admission_decision_candidate.schema.json"
+      ]
+    },
+    "json_artifact_mapping": {
+      "type": "object",
+      "required": [
+        "path",
+        "schema_ref"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "enum": [
+            "output/normalized_note.json",
+            "output/result_packet.json",
+            "output/placement_decision.candidate.json",
+            "output/admission_decision.candidate.json"
+          ]
+        },
+        "schema_ref": {
+          "$ref": "#/$defs/schema_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "markdown_artifact": {
+      "type": "object",
+      "required": [
+        "path",
+        "deep_schema_validated"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "enum": [
+            "output/normalized_note.md",
+            "output/canonical_knowledge_candidate.md",
+            "output/wiki_derived_draft.md"
+          ]
+        },
+        "deep_schema_validated": {
+          "type": "boolean",
+          "const": false
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
