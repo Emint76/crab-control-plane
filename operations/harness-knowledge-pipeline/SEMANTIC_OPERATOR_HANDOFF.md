@@ -100,10 +100,22 @@ This handoff contract does not accept or implement:
 - canonical KB write;
 - Hermes skill auto-sync.
 
-## H. Future PRs
+## H. Evidence
+
+The first successful manual semantic handoff evidence run is recorded in `MANUAL_SEMANTIC_HANDOFF_EVIDENCE.md`:
+
+```text
+admission-policy-semantic-handoff-001
+capture-only -> exit_code=0
+operator writes output/ semantic artifacts
+semantic-required -> exit_code=0
+```
+
+Generated run artifacts remain local/ignored and are not canonical KB admission.
+
+## I. Future PRs
 
 Likely future PRs may cover:
 
-- manual semantic handoff evidence run against `semantic-required` validation;
 - external source capture;
 - synthesis layer.
