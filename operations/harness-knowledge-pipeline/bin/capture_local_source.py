@@ -158,11 +158,11 @@ def main() -> int:
     task_packet = {
         "id": run_id.lower().replace("_", "-"),
         "task_type": "knowledge-extraction",
-        "title": "Extract admission policy knowledge pipeline candidate",
-        "objective": "Create bounded source-backed knowledge-pipeline candidate artifacts from the admission policy source.",
+        "title": f"Extract knowledge pipeline candidate from {source_arg.as_posix()}",
+        "objective": f"Create bounded source-backed knowledge-pipeline candidate artifacts from the repo-local knowledge source {source_arg.as_posix()}.",
         "scope": "Repo-local markdown source only; all outputs remain inside the knowledge-pipeline run directory.",
         "inputs": [
-            {"type": "policy-doc", "ref": source_arg.as_posix(), "description": "Original repo-local policy source."},
+            {"type": "document", "ref": source_arg.as_posix(), "description": "Original repo-local knowledge source."},
             {"type": "source-package", "ref": "input/source_capture_package.json", "description": "Frozen source capture package for this run."}
         ],
         "constraints": [
@@ -203,7 +203,7 @@ def main() -> int:
             "Every substantive claim must reference input/source_capture_package.json and/or input/source.md.",
             "Canonical candidate remains candidate-only until explicit review/admission."
         ],
-        "notes": "First real knowledge-pipeline run using crab-control-plane as canon.",
+        "notes": "Knowledge-pipeline capture run for a repo-local source.",
         "status_hint": "in_progress"
     }
     write_json(input_dir / "task_packet.json", task_packet)

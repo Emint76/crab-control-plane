@@ -9,8 +9,10 @@ CAPTURE_RUN_ID="knowledge-smoke-capture-only-test"
 SEMANTIC_MISSING_RUN_ID="knowledge-smoke-semantic-required-missing-test"
 SEMANTIC_INVALID_RUN_ID="knowledge-smoke-semantic-required-invalid-test"
 SEMANTIC_VALID_RUN_ID="knowledge-smoke-semantic-required-valid-test"
+GENERIC_TASK_PACKET_RUN_ID="knowledge-smoke-generic-task-packet-test"
 BAD_PYTHON_RUN_ID="knowledge-smoke-bad-python-test"
 SOURCE_REF="control-plane/policy/ADMISSION_POLICY.md"
+GENERIC_SOURCE_REF="control-plane/policy/PLACEMENT_POLICY.md"
 
 PYTHON_BIN="${KNOWLEDGE_PIPELINE_TEST_PYTHON_BIN:-${KNOWLEDGE_PIPELINE_PYTHON_BIN:-}}"
 if [[ -z "${PYTHON_BIN}" ]]; then
@@ -58,6 +60,7 @@ cleanup() {
   safe_remove_run_dir "${SEMANTIC_MISSING_RUN_ID}"
   safe_remove_run_dir "${SEMANTIC_INVALID_RUN_ID}"
   safe_remove_run_dir "${SEMANTIC_VALID_RUN_ID}"
+  safe_remove_run_dir "${GENERIC_TASK_PACKET_RUN_ID}"
   safe_remove_run_dir "${BAD_PYTHON_RUN_ID}"
 }
 
@@ -221,6 +224,43 @@ assert report["exit_code"] == 0, report
 assert not any(check.get("status") == "awaiting_semantic_outputs" for check in report["checks"]), report
 PY
 
+# Generated task packets and default report improvements must be neutral to any repo-local source.
+KNOWLEDGE_PIPELINE_PYTHON_BIN="${PYTHON_BIN}" \
+  bash operations/harness-knowledge-pipeline/bin/run_local_source_smoke.sh \
+    --mode capture-only \
+    "${GENERIC_TASK_PACKET_RUN_ID}" \
+    "${GENERIC_SOURCE_REF}"
+GENERIC_RUN_DIR="${RUNS_ROOT}/${GENERIC_TASK_PACKET_RUN_ID}"
+assert_exit_code_file "${GENERIC_TASK_PACKET_RUN_ID}" "0"
+"${PYTHON_BIN}" - "${GENERIC_RUN_DIR}/input/task_packet.json" "${GENERIC_RUN_DIR}/report.json" "${GENERIC_SOURCE_REF}" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+task_packet = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+report = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+source_ref = sys.argv[3]
+joined_task = json.dumps(task_packet, sort_keys=True).lower()
+joined_improvements = "\n".join(report["improvement_candidates"]).lower()
+for forbidden in [
+    "extract admission policy",
+    "admission policy source",
+    "first real knowledge-pipeline run",
+]:
+    assert forbidden not in joined_task, (forbidden, task_packet)
+assert task_packet["title"] == f"Extract knowledge pipeline candidate from {source_ref}", task_packet
+assert source_ref in task_packet["objective"], task_packet
+assert task_packet["inputs"][0]["type"] == "document", task_packet
+assert "repo-local knowledge source" in task_packet["inputs"][0]["description"].lower(), task_packet
+assert "exercise one manual semantic handoff evidence run" not in joined_improvements, report
+assert "admission-policy run" not in joined_improvements, report
+assert any("semantic artifact" in item.lower() for item in report["improvement_candidates"]), report
+assert any("operator handoff" in item.lower() for item in report["improvement_candidates"]), report
+assert any("external source capture" in item.lower() for item in report["improvement_candidates"]), report
+PY
+
 # Explicit semantic-required mode returns 3 while semantic artifacts are absent.
 set +e
 KNOWLEDGE_PIPELINE_PYTHON_BIN="${PYTHON_BIN}" \
@@ -339,6 +379,7 @@ assert_absent "${RUNS_ROOT}/${BAD_PYTHON_RUN_ID}"
 rm -f -- "${RUNS_ROOT}/bad-python.stdout" "${RUNS_ROOT}/bad-python.stderr"
 
 echo "PASS knowledge capture-only smoke exits 0 without semantic outputs"
+echo "PASS knowledge generated task packets and default improvements are source-neutral"
 echo "PASS knowledge semantic-required smoke exits 3 without semantic outputs"
 echo "PASS knowledge semantic-required smoke exits 1 for invalid semantic JSON"
 echo "PASS knowledge semantic-required smoke exits 0 for valid semantic artifacts"
