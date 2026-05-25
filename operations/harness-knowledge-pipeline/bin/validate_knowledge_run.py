@@ -22,6 +22,33 @@ SEMANTIC_FILES = [
     "output/canonical_knowledge_candidate.md",
     "output/wiki_derived_draft.md",
 ]
+SEMANTIC_JSON_SCHEMA_MAP = [
+    (
+        "normalized_note_schema",
+        "output/normalized_note.json",
+        "operations/harness-knowledge-pipeline/contracts/normalized_note.schema.json",
+    ),
+    (
+        "result_packet_schema",
+        "output/result_packet.json",
+        "operations/harness-knowledge-pipeline/contracts/result_packet.schema.json",
+    ),
+    (
+        "placement_decision_candidate_schema",
+        "output/placement_decision.candidate.json",
+        "operations/harness-knowledge-pipeline/contracts/placement_decision_candidate.schema.json",
+    ),
+    (
+        "admission_decision_candidate_schema",
+        "output/admission_decision.candidate.json",
+        "operations/harness-knowledge-pipeline/contracts/admission_decision_candidate.schema.json",
+    ),
+]
+SEMANTIC_MARKDOWN_FILES = [
+    "output/normalized_note.md",
+    "output/canonical_knowledge_candidate.md",
+    "output/wiki_derived_draft.md",
+]
 
 
 def now_utc() -> str:
@@ -53,70 +80,93 @@ def check_payload(run_id: str, status: str, detail: str, **extra: object) -> dic
 
 
 def validate_schema(schema_path: Path, instance: Any) -> list[str]:
-    schema = load_json(schema_path)
-    Draft202012Validator.check_schema(schema)
-    errors = sorted(Draft202012Validator(schema).iter_errors(instance), key=lambda err: list(err.path))
-    return [err.message for err in errors]
+    try:
+        schema = load_json(schema_path)
+        Draft202012Validator.check_schema(schema)
+        errors = sorted(Draft202012Validator(schema).iter_errors(instance), key=lambda err: list(err.path))
+        return [err.message for err in errors]
+    except Exception as exc:  # noqa: BLE001
+        return [str(exc)]
 
 
 def validate_schema_file(schema_path: Path, instance_path: Path) -> list[str]:
-    return validate_schema(schema_path, load_json(instance_path))
+    try:
+        instance = load_json(instance_path)
+    except Exception as exc:  # noqa: BLE001
+        return [f"could not load JSON instance: {exc}"]
+    return validate_schema(schema_path, instance)
 
 
-def parse_frontmatter(path: Path) -> dict[str, Any]:
-    lines = path.read_text(encoding="utf-8").splitlines()
-    if not lines or lines[0].strip() != "---":
-        raise ValueError("missing opening frontmatter delimiter")
-    end = None
-    for idx in range(1, len(lines)):
-        if lines[idx].strip() == "---":
-            end = idx
-            break
-    if end is None:
-        raise ValueError("missing closing frontmatter delimiter")
-    data: dict[str, Any] = {}
-    for raw in lines[1:end]:
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if ":" not in line:
-            raise ValueError(f"invalid frontmatter line: {raw}")
-        key, value = line.split(":", 1)
-        value = value.strip()
-        if value == "false":
-            parsed: Any = False
-        elif value == "true":
-            parsed = True
-        else:
-            parsed = value.strip('"\'')
-        data[key.strip()] = parsed
-    return data
+def looks_external_ref(ref: str) -> bool:
+    return "://" in ref or ref.startswith(("http:", "https:", "file:", "mailto:"))
 
 
 def safe_rel_ref(ref: str) -> bool:
     p = Path(ref)
-    return bool(ref) and not p.is_absolute() and ".." not in p.parts and not ref.startswith("~")
+    return bool(ref) and not looks_external_ref(ref) and not p.is_absolute() and ".." not in p.parts and not ref.startswith("~")
 
 
 def collect_refs(obj: Any) -> list[str]:
     refs: list[str] = []
     if isinstance(obj, dict):
-        for key, value in obj.items():
-            if key.endswith("ref") or key.endswith("refs") or key in {"evidence", "produced_artifacts", "derived_from", "source_canonical_candidate_ref"}:
-                refs.extend(collect_refs(value))
-            else:
-                refs.extend(collect_refs(value))
+        for value in obj.values():
+            refs.extend(collect_refs(value))
     elif isinstance(obj, list):
         for item in obj:
             refs.extend(collect_refs(item))
     elif isinstance(obj, str):
-        if obj.endswith(('.json', '.md', '.sha256')) or obj.startswith(("input/", "output/", "checks/", "operations/", "knowledge/")):
+        if looks_external_ref(obj) or obj.endswith((".json", ".md", ".sha256")) or obj.startswith(("input/", "output/", "checks/", "operations/", "knowledge/")):
             refs.append(obj)
     return refs
 
 
+def object_or_empty(payload: Any) -> dict[str, Any]:
+    return payload if isinstance(payload, dict) else {}
+
+
 def emit(checks_dir: Path, name: str, run_id: str, status: str, detail: str, **extra: object) -> None:
     write_json(checks_dir / f"{name}.json", check_payload(run_id, status, detail, **extra))
+
+
+def semantic_artifact_set_instance() -> dict[str, object]:
+    return {
+        "artifact_type": "semantic-artifact-set",
+        "required_artifacts": SEMANTIC_FILES,
+        "json_artifacts": [
+            {"path": instance_ref, "schema_ref": schema_ref}
+            for _, instance_ref, schema_ref in SEMANTIC_JSON_SCHEMA_MAP
+        ],
+        "markdown_artifacts": [
+            {
+                "path": ref,
+                "deep_schema_validated": False,
+                "note": "Presence and non-empty validation only; markdown is not deeply schema-validated in this runner.",
+            }
+            for ref in SEMANTIC_MARKDOWN_FILES
+        ],
+    }
+
+
+def output_path_boundary_errors(run_dir: Path) -> list[str]:
+    output_dir = (run_dir / "output").resolve(strict=False)
+    errors: list[str] = []
+    for ref in SEMANTIC_FILES:
+        path = (run_dir / ref).resolve(strict=False)
+        if not ref.startswith("output/"):
+            errors.append(f"semantic artifact ref is outside output/: {ref}")
+            continue
+        try:
+            path.relative_to(output_dir)
+        except ValueError:
+            errors.append(f"semantic artifact resolves outside output/: {ref}")
+    return errors
+
+
+def load_optional_json(path: Path) -> Any:
+    try:
+        return load_json(path)
+    except Exception:
+        return {}
 
 
 def main() -> int:
@@ -158,7 +208,6 @@ def main() -> int:
         return 1
     emit(checks_dir, "expected_core_files", run_id, "pass", "core files exist", files=core_files)
 
-    # Re-validate upstream canon schemas for captured inputs.
     schema_checks = [
         ("source_capture_schema", repo_root / "control-plane/contracts/schemas/source_capture_package.schema.json", run_dir / "input/source_capture_package.json"),
         ("task_packet_schema", repo_root / "control-plane/contracts/schemas/task_packet.schema.json", run_dir / "input/task_packet.json"),
@@ -184,76 +233,97 @@ def main() -> int:
     if missing_semantic:
         if not semantic_outputs_required:
             emit(checks_dir, "semantic_outputs_presence", run_id, "skipped", "semantic output files are not required in capture-only smoke mode", missing=missing_semantic)
+            emit(checks_dir, "semantic_artifact_set_schema", run_id, "skipped", "semantic artifact set validation is not required in capture-only smoke mode")
+            emit(checks_dir, "semantic_markdown_artifacts", run_id, "skipped", "semantic markdown artifacts are not required in capture-only smoke mode")
             emit(checks_dir, "layer_boundary_validation", run_id, "skipped", "semantic outputs are not required in capture-only smoke mode")
             emit(checks_dir, "ref_integrity", run_id, "skipped", "semantic outputs are not required in capture-only smoke mode")
             emit(checks_dir, "no_auto_canonical_write", run_id, "pass", "no semantic outputs available; no canonical write performed")
+            write_json(checks_dir / "validation_summary.json", check_payload(run_id, status, "knowledge run validation complete"))
             return 0 if status == "pass" else 1
         emit(checks_dir, "semantic_outputs_presence", run_id, "awaiting_semantic_outputs", "semantic output files are not all present", missing=missing_semantic)
+        emit(checks_dir, "semantic_artifact_set_schema", run_id, "pending", "semantic artifacts are required before artifact-set validation")
+        emit(checks_dir, "semantic_markdown_artifacts", run_id, "pending", "semantic markdown artifacts are required before markdown presence validation")
         emit(checks_dir, "layer_boundary_validation", run_id, "pending", "semantic outputs are required before layer validation")
         emit(checks_dir, "ref_integrity", run_id, "pending", "semantic outputs are required before ref validation")
         emit(checks_dir, "no_auto_canonical_write", run_id, "pass", "no semantic outputs available; no canonical write performed")
+        write_json(checks_dir / "validation_summary.json", check_payload(run_id, "awaiting_semantic_outputs" if status == "pass" else status, "knowledge run validation complete"))
         return 3 if status == "pass" else 1
     emit(checks_dir, "semantic_outputs_presence", run_id, "pass", "all semantic output files exist", files=SEMANTIC_FILES)
 
+    boundary_errors = output_path_boundary_errors(run_dir)
+    if boundary_errors:
+        status = "fail"
+    emit(checks_dir, "semantic_output_path_boundary", run_id, "fail" if boundary_errors else "pass", "semantic artifact paths are under output/", errors=boundary_errors)
+    if boundary_errors:
+        emit(checks_dir, "semantic_artifact_set_schema", run_id, "skipped", "semantic artifact set validation skipped because semantic artifact paths failed boundary checks")
+        emit(checks_dir, "semantic_markdown_artifacts", run_id, "skipped", "semantic markdown validation skipped because semantic artifact paths failed boundary checks")
+        emit(checks_dir, "ref_integrity", run_id, "fail", "semantic artifact refs were not read because artifact paths failed boundary checks", errors=boundary_errors)
+        emit(checks_dir, "layer_boundary_validation", run_id, "fail", "semantic layer validation skipped because artifact paths failed boundary checks", errors=boundary_errors)
+        emit(checks_dir, "no_auto_canonical_write", run_id, "fail", "semantic canonical-write validation skipped because artifact paths failed boundary checks", errors=boundary_errors)
+        write_json(checks_dir / "validation_summary.json", check_payload(run_id, status, "knowledge run validation complete"))
+        return 1
+
     harness_contracts = repo_root / HARNESS_REF / "contracts"
-    semantic_schema_checks = [
-        ("normalized_note_schema", harness_contracts / "normalized_note.candidate.schema.json", run_dir / "output/normalized_note.json"),
-        ("result_packet_schema", harness_contracts / "knowledge_result_packet.candidate.schema.json", run_dir / "output/result_packet.json"),
-        ("placement_decision_schema", repo_root / "control-plane/contracts/schemas/placement_decision.schema.json", run_dir / "output/placement_decision.candidate.json"),
-        ("admission_decision_schema", repo_root / "control-plane/contracts/schemas/admission_decision.schema.json", run_dir / "output/admission_decision.candidate.json"),
-    ]
-    for name, schema_path, instance_path in semantic_schema_checks:
+    artifact_set_errors = validate_schema(harness_contracts / "semantic_artifact_set.schema.json", semantic_artifact_set_instance())
+    if artifact_set_errors:
+        status = "fail"
+    emit(checks_dir, "semantic_artifact_set_schema", run_id, "fail" if artifact_set_errors else "pass", "semantic artifact set path/schema mapping validation complete", schema=repo_ref(repo_root, harness_contracts / "semantic_artifact_set.schema.json"), errors=artifact_set_errors)
+
+    for name, instance_ref, schema_ref in SEMANTIC_JSON_SCHEMA_MAP:
+        schema_path = repo_root / schema_ref
+        instance_path = run_dir / instance_ref
         errors = validate_schema_file(schema_path, instance_path)
-        emit(checks_dir, name, run_id, "fail" if errors else "pass", "schema validation complete", schema=repo_ref(repo_root, schema_path), instance=repo_ref(repo_root, instance_path), errors=errors)
+        emit(checks_dir, name, run_id, "fail" if errors else "pass", "schema validation complete", schema=schema_ref, instance=instance_ref, errors=errors)
         if errors:
             status = "fail"
 
-    try:
-        canonical_fm = parse_frontmatter(run_dir / "output/canonical_knowledge_candidate.md")
-        errors = validate_schema(harness_contracts / "canonical_knowledge_candidate.frontmatter.schema.json", canonical_fm)
-    except Exception as exc:  # noqa: BLE001
-        canonical_fm = {}
-        errors = [str(exc)]
-    emit(checks_dir, "canonical_candidate_frontmatter", run_id, "fail" if errors else "pass", "canonical candidate frontmatter validation complete", errors=errors, frontmatter=canonical_fm)
-    if errors:
+    markdown_errors = []
+    for ref in SEMANTIC_MARKDOWN_FILES:
+        text = (run_dir / ref).read_text(encoding="utf-8")
+        if not text.strip():
+            markdown_errors.append(f"markdown artifact is empty: {ref}")
+    if markdown_errors:
         status = "fail"
+    emit(checks_dir, "semantic_markdown_artifacts", run_id, "fail" if markdown_errors else "pass", "markdown semantic artifacts exist and are non-empty; deep markdown schema validation is not performed", files=SEMANTIC_MARKDOWN_FILES, errors=markdown_errors)
 
-    try:
-        wiki_fm = parse_frontmatter(run_dir / "output/wiki_derived_draft.md")
-        errors = validate_schema(harness_contracts / "wiki_derived_draft.frontmatter.schema.json", wiki_fm)
-    except Exception as exc:  # noqa: BLE001
-        wiki_fm = {}
-        errors = [str(exc)]
-    emit(checks_dir, "wiki_draft_frontmatter", run_id, "fail" if errors else "pass", "wiki draft frontmatter validation complete", errors=errors, frontmatter=wiki_fm)
-    if errors:
-        status = "fail"
+    normalized = object_or_empty(load_optional_json(run_dir / "output/normalized_note.json"))
+    result_packet = object_or_empty(load_optional_json(run_dir / "output/result_packet.json"))
+    placement = object_or_empty(load_optional_json(run_dir / "output/placement_decision.candidate.json"))
+    admission = object_or_empty(load_optional_json(run_dir / "output/admission_decision.candidate.json"))
 
-    normalized = load_json(run_dir / "output/normalized_note.json")
-    result_packet = load_json(run_dir / "output/result_packet.json")
-    placement = load_json(run_dir / "output/placement_decision.candidate.json")
-    admission = load_json(run_dir / "output/admission_decision.candidate.json")
     ref_errors: list[str] = []
-    if normalized.get("source_capture_ref") != "input/source_capture_package.json":
-        ref_errors.append("normalized_note.source_capture_ref must be input/source_capture_package.json")
-    if result_packet.get("source_capture_ref") != "input/source_capture_package.json":
-        ref_errors.append("result_packet.source_capture_ref must be input/source_capture_package.json")
-    if result_packet.get("normalized_note_ref") != "output/normalized_note.json":
-        ref_errors.append("result_packet.normalized_note_ref must be output/normalized_note.json")
-    if canonical_fm.get("source_capture_ref") != "input/source_capture_package.json":
-        ref_errors.append("canonical candidate must reference source capture package")
-    if canonical_fm.get("normalized_note_ref") != "output/normalized_note.json":
-        ref_errors.append("canonical candidate must reference normalized note")
-    if canonical_fm.get("result_packet_ref") != "output/result_packet.json":
-        ref_errors.append("canonical candidate must reference result packet")
-    if canonical_fm.get("admission_decision_ref") != "output/admission_decision.candidate.json":
-        ref_errors.append("canonical candidate must reference admission candidate")
-    if wiki_fm.get("derived_from") != "output/canonical_knowledge_candidate.md" or wiki_fm.get("source_canonical_candidate_ref") != "output/canonical_knowledge_candidate.md":
-        ref_errors.append("wiki draft must derive from output/canonical_knowledge_candidate.md")
-    all_refs = collect_refs(normalized) + collect_refs(result_packet) + collect_refs(placement) + collect_refs(admission) + collect_refs(canonical_fm) + collect_refs(wiki_fm)
+    provenance = normalized.get("provenance", {}) if isinstance(normalized, dict) else {}
+    if provenance.get("source_capture_ref") != "input/source_capture_package.json":
+        ref_errors.append("normalized_note.provenance.source_capture_ref must be input/source_capture_package.json")
+    if provenance.get("task_packet_ref") != "input/task_packet.json":
+        ref_errors.append("normalized_note.provenance.task_packet_ref must be input/task_packet.json")
+    if provenance.get("captured_source_ref") != "input/source.md":
+        ref_errors.append("normalized_note.provenance.captured_source_ref must be input/source.md")
+
+    produced_artifacts = result_packet.get("produced_artifacts", [])
+    produced_paths = sorted({str(item.get("path")) for item in produced_artifacts if isinstance(item, dict) and item.get("path")})
+    if produced_paths != sorted(SEMANTIC_FILES):
+        ref_errors.append("result_packet.produced_artifacts must list exactly the required semantic output artifacts")
+    expected_schema_refs: dict[str, str | None] = {instance_ref: schema_ref for _, instance_ref, schema_ref in SEMANTIC_JSON_SCHEMA_MAP}
+    expected_schema_refs.update({ref: None for ref in SEMANTIC_MARKDOWN_FILES})
+    for item in produced_artifacts:
+        if not isinstance(item, dict):
+            continue
+        path = item.get("path")
+        if path in expected_schema_refs and item.get("schema_ref") != expected_schema_refs[path]:
+            ref_errors.append(f"result_packet.produced_artifacts schema_ref mismatch for {path}")
+
+    for name, payload in [("placement", placement), ("admission", admission)]:
+        if isinstance(payload, dict):
+            artifact_refs = sorted(payload.get("artifact_refs", []))
+            if artifact_refs and artifact_refs != sorted(SEMANTIC_FILES):
+                ref_errors.append(f"{name}.artifact_refs must list the required semantic output artifacts when present")
+
+    all_refs = collect_refs(normalized) + collect_refs(result_packet) + collect_refs(placement) + collect_refs(admission)
     unsafe_refs = sorted({ref for ref in all_refs if not safe_rel_ref(ref)})
     if unsafe_refs:
         ref_errors.append(f"unsafe refs: {unsafe_refs}")
-    emit(checks_dir, "ref_integrity", run_id, "fail" if ref_errors else "pass", "artifact refs checked", errors=ref_errors, refs=sorted(set(all_refs)))
+    emit(checks_dir, "ref_integrity", run_id, "fail" if ref_errors else "pass", "semantic artifact refs checked", errors=ref_errors, refs=sorted(set(all_refs)))
     if ref_errors:
         status = "fail"
 
@@ -261,11 +331,11 @@ def main() -> int:
     layer_errors: list[str] = []
     if "input/source.md" in wiki_text or "input/source_capture_package.json" in wiki_text:
         layer_errors.append("wiki draft must not reference raw source or source capture directly")
-    if wiki_fm.get("new_claims_allowed") is not False:
-        layer_errors.append("wiki draft must set new_claims_allowed: false")
-    if canonical_fm.get("canonical_admitted") is not False:
-        layer_errors.append("canonical candidate must set canonical_admitted: false")
-    emit(checks_dir, "layer_boundary_validation", run_id, "fail" if layer_errors else "pass", "layer boundaries checked", errors=layer_errors)
+    if placement.get("canonical_write_allowed") is not False:
+        layer_errors.append("placement candidate must set canonical_write_allowed: false")
+    if admission.get("canonical_admitted") is not False:
+        layer_errors.append("admission candidate must set canonical_admitted: false")
+    emit(checks_dir, "layer_boundary_validation", run_id, "fail" if layer_errors else "pass", "semantic layer boundaries checked", errors=layer_errors)
     if layer_errors:
         status = "fail"
 
@@ -275,12 +345,15 @@ def main() -> int:
         status = "fail"
 
     auto_canonical_errors: list[str] = []
-    if admission.get("decision") == "approved":
-        auto_canonical_errors.append("first run admission candidate must not be approved automatically")
-    if canonical_fm.get("canonical_admitted") is not False:
-        auto_canonical_errors.append("canonical candidate must remain unadmitted")
-    if any(str(ref).startswith(("knowledge/kb/", "knowledge/canonical/")) for ref in result_packet.get("produced_artifacts", [])):
-        auto_canonical_errors.append("produced artifacts must not be canonical KB writes")
+    if admission.get("canonical_admitted") is not False:
+        auto_canonical_errors.append("admission candidate must keep canonical_admitted false")
+    if placement.get("canonical_write_allowed") is not False:
+        auto_canonical_errors.append("placement candidate must keep canonical_write_allowed false")
+    produced = result_packet.get("produced_artifacts", []) if isinstance(result_packet, dict) else []
+    for item in produced:
+        path = item.get("path") if isinstance(item, dict) else item
+        if str(path).startswith(("knowledge/kb/", "knowledge/canonical/")):
+            auto_canonical_errors.append("produced artifacts must not be canonical KB writes")
     emit(checks_dir, "no_auto_canonical_write", run_id, "fail" if auto_canonical_errors else "pass", "no automatic canonical admission/write checked", errors=auto_canonical_errors)
     if auto_canonical_errors:
         status = "fail"
