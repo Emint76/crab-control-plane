@@ -64,7 +64,9 @@ operations/harness-knowledge-pipeline/contracts/admission_decision_candidate.sch
 operations/harness-knowledge-pipeline/contracts/semantic_artifact_set.schema.json
 ```
 
-The schema set fixes the expected `output/` filenames, maps each JSON artifact to its schema, and lists the markdown artifacts without deep markdown schema validation yet. It does not implement automatic semantic generation or runner validation changes.
+The schema set fixes the expected `output/` filenames, maps each JSON artifact to its schema, and lists the markdown artifacts without deep markdown schema validation yet. It does not implement automatic semantic generation.
+
+In `semantic-required` mode, the runner validates this schema-backed artifact set: missing semantic outputs produce `awaiting_semantic_outputs` with exit code `3`, invalid semantic JSON or boundary failures produce `fail` with exit code `1`, and a complete valid semantic handoff produces `pass` with exit code `0`.
 
 ## E. Operator rules
 
@@ -102,6 +104,6 @@ This handoff contract does not accept or implement:
 
 Likely future PRs may cover:
 
-- semantic-required validation hardening against these contracts;
+- manual semantic handoff evidence run against `semantic-required` validation;
 - external source capture;
 - synthesis layer.

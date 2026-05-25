@@ -70,7 +70,23 @@ The wrapper resolves Python in this order:
 
 `capture-only` succeeds when source capture, hashes, task packet, schema checks, report, and `exit_code` are generated and valid. Semantic outputs may be absent.
 
-`semantic-required` preserves full semantic validation. If semantic output files are absent, the run reports `awaiting_semantic_outputs` and exits `3`.
+`semantic-required` validates operator-authored semantic artifacts under `operations/harness-knowledge-pipeline/runs/<RUN_ID>/output/`.
+
+Expected semantic artifacts:
+
+```text
+output/normalized_note.md
+output/normalized_note.json
+output/result_packet.json
+output/placement_decision.candidate.json
+output/admission_decision.candidate.json
+output/canonical_knowledge_candidate.md
+output/wiki_derived_draft.md
+```
+
+JSON artifacts are validated against the schemas in `contracts/`; the artifact-set/path mapping is validated against `contracts/semantic_artifact_set.schema.json`. Markdown artifacts are presence/non-empty checked only; they are not deeply markdown-schema validated yet.
+
+If semantic output files are absent, the run reports `awaiting_semantic_outputs` and exits `3`. If semantic artifacts are present but invalid, the run reports `fail` and exits `1`. If they are present and valid, the run reports `pass` and exits `0`.
 
 ### Exit codes
 

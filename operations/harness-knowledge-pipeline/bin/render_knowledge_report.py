@@ -14,9 +14,8 @@ RUNS_REF = Path("operations/harness-knowledge-pipeline/runs")
 HARNESS_REF = Path("operations/harness-knowledge-pipeline")
 
 DEFAULT_IMPROVEMENT_CANDIDATES = [
-    "Promote normalized_note.candidate.schema.json into control-plane/contracts/schemas/ after one or more evidence-backed runs.",
-    "Promote knowledge_result_packet.candidate.schema.json or extend result_packet.schema.json with claim-level fields.",
-    "Add canonical knowledge candidate and wiki-derived draft contracts to repo canon if this run shape holds.",
+    "Exercise one manual semantic handoff evidence run against semantic-required validation.",
+    "Harden markdown artifact validation if evidence shows a stable frontmatter or section contract is needed.",
     "Add knowledge-specific admission/placement policy vocabulary distinct from runtime/apply vocabulary.",
     "Add a Phase3-like knowledge evidence-owner contract and Phase4-like knowledge wrapper contract after this harness proves useful."
 ]
@@ -36,7 +35,18 @@ def load_json(path: Path) -> Any:
 
 
 def repo_ref(repo_root: Path, path: Path) -> str:
-    return path.resolve(strict=False).relative_to(repo_root.resolve(strict=False)).as_posix()
+    try:
+        return path.resolve(strict=False).relative_to(repo_root.resolve(strict=False)).as_posix()
+    except ValueError:
+        return path.relative_to(repo_root).as_posix()
+
+
+def is_safe_run_file(run_dir: Path, path: Path) -> bool:
+    try:
+        path.resolve(strict=False).relative_to(run_dir.resolve(strict=False))
+    except ValueError:
+        return False
+    return path.is_file()
 
 
 def determine_status(checks: list[dict[str, Any]]) -> str:
@@ -126,22 +136,26 @@ def main() -> int:
 
     status = determine_status(checks)
     code = exit_code_for(status)
-    artifacts = [repo_ref(repo_root, path) for path in sorted(run_dir.rglob("*")) if path.is_file() and path.name not in {"report.json", "report.md", "exit_code"}]
+    artifacts = [repo_ref(repo_root, path) for path in sorted(run_dir.rglob("*")) if is_safe_run_file(run_dir, path) and path.name not in {"report.json", "report.md", "exit_code"}]
     blockers = [str(check.get("detail", check.get("path"))) for check in checks if check.get("status") in {"fail", "awaiting_semantic_outputs", "pending"}]
 
     improvement_candidates = list(DEFAULT_IMPROVEMENT_CANDIDATES)
     result_packet_path = run_dir / "output/result_packet.json"
-    if result_packet_path.is_file():
+    if is_safe_run_file(run_dir, result_packet_path):
         try:
             for item in load_json(result_packet_path).get("improvement_candidates", []):
-                if item not in improvement_candidates:
-                    improvement_candidates.append(item)
+                if isinstance(item, dict):
+                    candidate = str(item.get("text", "")).strip()
+                else:
+                    candidate = str(item).strip()
+                if candidate and candidate not in improvement_candidates:
+                    improvement_candidates.append(candidate)
         except Exception:  # noqa: BLE001
             pass
 
     admission_candidate = None
     admission_candidate_path = run_dir / "output/admission_decision.candidate.json"
-    if admission_candidate_path.is_file():
+    if is_safe_run_file(run_dir, admission_candidate_path):
         try:
             admission_payload = load_json(admission_candidate_path)
             admission_candidate = {
