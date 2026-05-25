@@ -14,10 +14,10 @@ RUNS_REF = Path("operations/harness-knowledge-pipeline/runs")
 HARNESS_REF = Path("operations/harness-knowledge-pipeline")
 
 DEFAULT_IMPROVEMENT_CANDIDATES = [
-    "Exercise one manual semantic handoff evidence run against semantic-required validation.",
-    "Harden markdown artifact validation if evidence shows a stable frontmatter or section contract is needed.",
-    "Add knowledge-specific admission/placement policy vocabulary distinct from runtime/apply vocabulary.",
-    "Add a Phase3-like knowledge evidence-owner contract and Phase4-like knowledge wrapper contract after this harness proves useful."
+    "Keep semantic artifact schemas and markdown presence validation aligned with evidence from repeatable operator handoffs.",
+    "Keep semantic-required validation source-neutral across repo-local knowledge sources.",
+    "Keep knowledge placement/admission stage vocabulary distinct from runtime/apply vocabulary.",
+    "Define a future external source capture contract before enabling any non-repo-local source retrieval."
 ]
 
 
