@@ -8,7 +8,7 @@ See `SEMANTIC_OPERATOR_HANDOFF.md` for the operator contract for filling semanti
 
 See `MANUAL_SEMANTIC_HANDOFF_EVIDENCE.md` for the first successful evidence run proving the manual contour: capture-only, operator-filled `output/` artifacts, and `semantic-required` validation with `exit_code=0`.
 
-See `EXTERNAL_SOURCE_BOUNDARY.md` for the docs-only adaptation boundary for future external HTTP/HTTPS source candidates. External URL capture is not an accepted executable capability of the current runner.
+See `EXTERNAL_SOURCE_BOUNDARY.md` for the external-source adaptation boundary. The accepted executable external-source capability is limited to the PR76 no-network, fixture-backed URL capture smoke; real HTTP/HTTPS fetching remains not accepted.
 
 See `contracts/semantic_artifact_set.schema.json` and the linked JSON schemas in `contracts/` for the machine-readable semantic artifact contracts. These schemas are contracts only; they do not implement automatic semantic generation.
 
@@ -24,6 +24,18 @@ repo-local .md/.markdown/.txt source
 → optional wiki-derived draft
 → validation/report/exit_code
 ```
+
+Accepted fixture-backed external URL smoke contour:
+
+```text
+repo-local HTML fixture standing in for an HTTP/HTTPS URL
+→ preserved raw snapshot under the run dir
+→ extracted text compatibility artifact
+→ SOURCE_CAPTURE_PACKAGE-compatible capture package
+→ validation/report/exit_code
+```
+
+This external URL smoke is no-network only. It does not accept real HTTP/HTTPS fetching, scraping, semantic generation, admission, or canonical KB writes.
 
 Safety boundary:
 
@@ -42,7 +54,9 @@ All first-run writes are confined to:
 operations/harness-knowledge-pipeline/runs/<RUN_ID>/
 ```
 
-## Smoke runner
+## Smoke runners
+
+### Repo-local source smoke
 
 ```bash
 operations/harness-knowledge-pipeline/bin/run_local_source_smoke.sh \
@@ -59,6 +73,26 @@ Example:
 operations/harness-knowledge-pipeline/bin/run_local_source_smoke.sh \
   knowledge-admission-policy-001 \
   control-plane/policy/ADMISSION_POLICY.md
+```
+
+### External URL fixture smoke
+
+```bash
+operations/harness-knowledge-pipeline/bin/run_external_url_capture_smoke.sh \
+  <run-id> \
+  <http-or-https-url> \
+  <repo-local-html-fixture>
+```
+
+The external URL fixture smoke always runs in `capture-only` mode and performs no real network access. The fixture HTML is copied to `input/raw_snapshot.html`; `input/source.md` is extracted text for compatibility with the existing knowledge-pipeline contour. In `input/source_capture_package.json`, `stable_representation` must point to the preserved raw snapshot, not the extracted text.
+
+Example:
+
+```bash
+operations/harness-knowledge-pipeline/bin/run_external_url_capture_smoke.sh \
+  knowledge-external-url-fixture-001 \
+  https://example.com/source \
+  operations/harness-knowledge-pipeline/tests/fixtures/external-url/example.html
 ```
 
 ### Python launcher
@@ -97,7 +131,7 @@ If semantic output files are absent, the run reports `awaiting_semantic_outputs`
 ```text
 0 = capture-only smoke pass, or semantic-required full pass
 1 = validation/runtime failure
-2 = usage, invalid mode, or unavailable Python launcher
+2 = usage, invalid mode, invalid external fixture URL/input, or unavailable Python launcher
 3 = awaiting semantic outputs in semantic-required mode
 ```
 

@@ -17,7 +17,7 @@ DEFAULT_IMPROVEMENT_CANDIDATES = [
     "Keep semantic artifact schemas and markdown presence validation aligned with evidence from repeatable operator handoffs.",
     "Keep semantic-required validation source-neutral across repo-local knowledge sources.",
     "Keep knowledge placement/admission stage vocabulary distinct from runtime/apply vocabulary.",
-    "Define a future external source capture contract before enabling any non-repo-local source retrieval."
+    "Keep fixture-backed external source capture smoke distinct from any future real HTTP/HTTPS capture layer."
 ]
 
 
