@@ -8,6 +8,8 @@ See `SEMANTIC_OPERATOR_HANDOFF.md` for the operator contract for filling semanti
 
 See `MANUAL_SEMANTIC_HANDOFF_EVIDENCE.md` for the first successful evidence run proving the manual contour: capture-only, operator-filled `output/` artifacts, and `semantic-required` validation with `exit_code=0`.
 
+See `EXTERNAL_SOURCE_BOUNDARY.md` for the docs-only adaptation boundary for future external HTTP/HTTPS source candidates. External URL capture is not an accepted executable capability of the current runner.
+
 See `contracts/semantic_artifact_set.schema.json` and the linked JSON schemas in `contracts/` for the machine-readable semantic artifact contracts. These schemas are contracts only; they do not implement automatic semantic generation.
 
 First supported source contour:

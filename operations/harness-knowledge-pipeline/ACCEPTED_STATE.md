@@ -1,6 +1,6 @@
 # Knowledge Pipeline Accepted State
 
-This document records the accepted state of `operations/harness-knowledge-pipeline/` after PR67, PR68, PR70, PR71, and PR72. It is a state marker, not a new feature proposal.
+This document records the accepted state of `operations/harness-knowledge-pipeline/` after PR67, PR68, PR70, PR71, PR72, and PR75. It is a state marker, not a new feature proposal.
 
 ## A. Accepted after
 
@@ -9,6 +9,7 @@ This document records the accepted state of `operations/harness-knowledge-pipeli
 - PR70: semantic operator handoff contract.
 - PR71: semantic artifact schema contracts.
 - PR72: `semantic-required` schema-backed validation hardening.
+- PR75: docs-only external source boundary/adaptation over the repo-wide `SOURCE_CAPTURE_PACKAGE` contract; no executable external URL capture is accepted by this marker.
 - Manual semantic handoff evidence run `admission-policy-semantic-handoff-001`: capture-only `exit_code=0`, operator-filled `output/` semantic artifacts, and semantic-required `exit_code=0`.
 - Post-merge smoke result on `main`: `exit_code=0` for capture-only smoke.
 
@@ -66,6 +67,8 @@ The accepted harness state does not permit:
 - canonical KB automatic writes;
 - external URL ingestion in the current harness.
 
+See `EXTERNAL_SOURCE_BOUNDARY.md` for the docs-only adaptation rules that tie future external HTTP/HTTPS source candidates back to the repo-wide `SOURCE_CAPTURE_PACKAGE` contract without enabling executable URL capture.
+
 ## E. Not accepted yet
 
 The following are not accepted capabilities of the current harness:
@@ -86,9 +89,11 @@ The following are not accepted capabilities of the current harness:
 2 = usage, invalid mode, or unavailable Python launcher
 ```
 
-## G. Next gap
+## G. Next gaps
 
-The next gap is preserving the manual semantic handoff as a repeatable, docs-backed operator contour while generated run artifacts remain local/ignored.
+The repo-local semantic handoff contour remains operator-mediated and docs-backed while generated run artifacts remain local/ignored.
+
+The external-source gap after PR75 is a separately reviewed executable HTTP/HTTPS capture smoke that uses the existing `SOURCE_CAPTURE_PACKAGE` contract and remains evidence-only by default.
 
 See `SEMANTIC_OPERATOR_HANDOFF.md` for the accepted docs/contract handoff shape.
 
