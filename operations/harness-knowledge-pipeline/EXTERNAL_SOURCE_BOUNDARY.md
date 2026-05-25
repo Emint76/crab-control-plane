@@ -2,7 +2,7 @@
 
 This document records the knowledge-pipeline boundary for future external HTTP/HTTPS source candidates.
 
-It is an adaptation layer only. It does not introduce a new source-capture contract and does not make external URL capture an accepted executable capability of this harness.
+It is an adaptation layer over the repo-wide source-capture contract. PR76 accepts only a no-network, fixture-backed external URL capture smoke. It does not introduce a new source-capture contract and does not make real HTTP/HTTPS fetching, scraping, or `network_used=true` external URL capture an accepted executable capability of this harness.
 
 ## Source authority
 
@@ -18,9 +18,10 @@ This document only defines how `operations/harness-knowledge-pipeline/` should a
 The current executable runner remains repo-local and no-network:
 
 - accepted source inputs are repo-local `.md`, `.markdown`, and `.txt` files;
-- no external URL capture is accepted as an executable capability;
-- no URL fetcher, scraper, or external-source runner mode is defined here;
-- external URL handling remains a future candidate contour until a separately reviewed executable PR exists.
+- PR76 also accepts a no-network, fixture-backed external URL capture smoke using a repo-local HTML fixture;
+- the fixture smoke preserves `input/raw_snapshot.html`, emits `input/source.md` as extracted text compatibility evidence, and validates the existing `SOURCE_CAPTURE_PACKAGE` shape;
+- no real HTTP/HTTPS fetcher, scraper, redirect-following, DNS resolution, cookies, auth headers, or external-source runner mode with network access is accepted here;
+- real external URL handling remains a future candidate contour, likely PR77, until a separately reviewed executable PR exists.
 
 ## Existing package mapping for external URL candidates
 
@@ -33,7 +34,7 @@ Future external URL capture must produce a package compatible with the existing 
 - `content_type`: captured HTTP content type, including charset when available.
 - `stable_representation`: pointer to the preserved raw snapshot or other durable captured representation used for later inspection. This must identify the preserved form, not only the volatile URL.
 - `human_identifier`: operator-readable label such as page title, document title, or other stable human-facing source name.
-- `capture_method`: existing contract value appropriate to the capture path, normally `web-capture` for automated HTTP/HTTPS retrieval or `manual-download` for an operator-provided captured file.
+- `capture_method`: existing contract value appropriate to the capture path, `manual-download` for the PR76 fixture-backed smoke and normally `web-capture` for a later accepted automated HTTP/HTTPS retrieval layer.
 - `hash`: integrity hash for the stable representation, using a clear algorithm prefix such as `sha256:<hex>`.
 - `provenance_notes`: concise notes for external-source specifics that do not have dedicated fields in the repo-wide contract, including requested URL, normalized URL, final URL, redirect evidence, extraction limitations, retention notes, robots/terms/copyright notes, and known capture warnings.
 - `linkage`: related run id, task packet id, review artifact id, or other cross-layer identifiers when an executable run exists.
@@ -56,14 +57,17 @@ A future executable external capture PR must preserve enough evidence to review 
 
 Run-local evidence may provide details that do not fit directly into the repo-wide `SOURCE_CAPTURE_PACKAGE` fields, but the provenance package remains the authoritative shape for captured-source provenance.
 
-## Explicit non-actions in this PR
+## Explicit non-actions in PR76
 
-This boundary document does not add or authorize:
+The fixture-backed smoke does not add or authorize:
 
 - a new external source schema;
-- a URL fetcher;
+- a real URL fetcher;
 - an ad-hoc scraper;
-- a runner mode for external URLs;
+- network access or `network_used=true` report semantics;
+- cookies, auth headers, or secret-bearing retrieval;
+- redirect-following implementation;
+- DNS/private-network resolution beyond practical literal/hostname URL rejection;
 - automatic semantic generation;
 - external URL admission;
 - canonical KB writes;
@@ -81,4 +85,4 @@ The existence of a valid `SOURCE_CAPTURE_PACKAGE`-compatible object is necessary
 
 ## Deferred executable work
 
-A later executable external capture PR may define safe HTTP/HTTPS retrieval, URL safety checks, snapshot retention, extraction behavior, and validation against the existing repo-wide source-capture schema. That later PR must keep external capture evidence-only unless the operator separately approves admission or canonical-write behavior.
+A later executable external capture PR (likely PR77) may define safe HTTP/HTTPS retrieval, URL safety checks, DNS/private-network guards, redirect-chain evidence, snapshot retention, extraction behavior, and validation against the existing repo-wide source-capture schema. That later PR must keep external capture evidence-only unless the operator separately approves admission or canonical-write behavior.
