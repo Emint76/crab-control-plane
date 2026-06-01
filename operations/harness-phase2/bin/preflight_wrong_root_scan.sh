@@ -78,9 +78,17 @@ phase2_artifact_names=(
   "conformance_validation.json"
 )
 
+is_allowed_phase3_frozen_input_artifact() {
+  local rel_path="$1"
+  [[ "${rel_path}" =~ ^operations/harness-phase3/runs/[A-Za-z0-9._-]+/input/(validation_report\.json|admission_decision\.json|placement_decision\.json|apply_plan\.json|handoff_ready\.json|smoke_validation\.json|conformance_validation\.json)$ ]]
+}
+
 for artifact_name in "${phase2_artifact_names[@]}"; do
   while IFS= read -r artifact_path; do
     rel_path="${artifact_path#${REPO_ROOT}/}"
+    if is_allowed_phase3_frozen_input_artifact "${rel_path}"; then
+      continue
+    fi
     STATUS="FAIL"
     ISSUES+=("${rel_path}")
   done < <(

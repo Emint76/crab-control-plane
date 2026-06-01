@@ -41,6 +41,14 @@ prepare_case() {
   case "${case_name}" in
     clean)
       ;;
+    phase3-frozen-validation-report)
+      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input"
+      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input/validation_report.json"
+      ;;
+    phase3-frozen-admission-decision)
+      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input"
+      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input/admission_decision.json"
+      ;;
     root-contracts)
       mkdir -p "${repo}/contracts"
       ;;
@@ -67,6 +75,20 @@ prepare_case() {
       ;;
     validation-report-outside)
       printf '{}\n' > "${repo}/knowledge/kb/validation_report.json"
+      ;;
+    docs-validation-report)
+      printf '{}\n' > "${repo}/docs/validation_report.json"
+      ;;
+    root-validation-report)
+      printf '{}\n' > "${repo}/validation_report.json"
+      ;;
+    phase3-not-input-validation-report)
+      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/not-input"
+      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/not-input/validation_report.json"
+      ;;
+    phase3-nested-input-validation-report)
+      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/input/nested"
+      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/input/nested/validation_report.json"
       ;;
     *)
       fail "unknown case: ${case_name}"
@@ -111,6 +133,8 @@ run_case() {
 }
 
 run_case clean pass
+run_case phase3-frozen-validation-report pass
+run_case phase3-frozen-admission-decision pass
 run_case root-contracts fail "contracts/"
 run_case operations-harness fail "operations/harness/"
 run_case root-policy fail "policy/"
@@ -120,3 +144,7 @@ run_case state-harness-phase2 fail "state/harness-phase2/"
 run_case state-control-plane-harness-phase2 fail "state/control-plane/harness-phase2/"
 run_case phase2-report-outside fail "docs/PHASE2_REPORT.md"
 run_case validation-report-outside fail "knowledge/kb/validation_report.json"
+run_case docs-validation-report fail "docs/validation_report.json"
+run_case root-validation-report fail "validation_report.json"
+run_case phase3-not-input-validation-report fail "operations/harness-phase3/runs/phase3-frozen-input-bad/not-input/validation_report.json"
+run_case phase3-nested-input-validation-report fail "operations/harness-phase3/runs/phase3-frozen-input-bad/input/nested/validation_report.json"
