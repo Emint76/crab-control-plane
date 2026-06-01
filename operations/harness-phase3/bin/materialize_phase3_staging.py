@@ -34,6 +34,16 @@ def main() -> int:
 
     repo_root = Path(sys.argv[1]).resolve(strict=False)
     run_dir = Path(sys.argv[2]).resolve(strict=False)
+    try:
+        execution_target = read_json_object(run_dir / "input" / "execution_target.json")
+    except (OSError, ValueError, json.JSONDecodeError):
+        execution_target = {}
+
+    if execution_target.get("target_kind") == "repo_admission":
+        marker_dir = run_dir / "staging" / "runtime-ready-applied"
+        marker_dir.mkdir(parents=True, exist_ok=True)
+        return 0
+
     run_meta = read_json_object(run_dir / "run_meta.json")
 
     source_dir = resolve_from_run_meta(repo_root, run_meta.get("phase2_runtime_ready_ref"))

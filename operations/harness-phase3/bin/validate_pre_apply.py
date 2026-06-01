@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Validate the external execution target contract before Phase 3 materialization/apply."""
+"""Validate the execution target before Phase 3 materialization/apply."""
 
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -106,13 +107,7 @@ class CheckRecorder:
         }
 
 
-def main() -> int:
-    if len(sys.argv) != 3:
-        print("usage: validate_pre_apply.py <repo-root> <run-dir>", file=sys.stderr)
-        return 2
-
-    repo_root = Path(sys.argv[1]).resolve(strict=False)
-    run_dir = Path(sys.argv[2]).resolve(strict=False)
+def validate_staging(repo_root: Path, run_dir: Path) -> int:
     run_id = run_dir.name
     checks_dir = run_dir / "checks"
     checks_dir.mkdir(parents=True, exist_ok=True)
@@ -157,55 +152,19 @@ def main() -> int:
     approval_ref = execution_target_payload.get("approval_ref") if execution_target_payload else None
 
     if target_runtime == "openclaw":
-        recorder.pass_check(
-            "target_runtime.allowed",
-            "Only openclaw is allowed for the Phase 3 scaffold target runtime.",
-            source_refs=source_refs,
-            expected="openclaw",
-            actual=target_runtime,
-        )
+        recorder.pass_check("target_runtime.allowed", "Only openclaw is allowed for the Phase 3 scaffold target runtime.", source_refs=source_refs, expected="openclaw", actual=target_runtime)
     else:
-        recorder.fail_check(
-            "target_runtime.allowed",
-            "Phase 3 scaffold only allows target_runtime=openclaw.",
-            source_refs=source_refs,
-            expected="openclaw",
-            actual=target_runtime,
-        )
+        recorder.fail_check("target_runtime.allowed", "Phase 3 scaffold only allows target_runtime=openclaw.", source_refs=source_refs, expected="openclaw", actual=target_runtime)
 
     if target_kind == "phase3_staging":
-        recorder.pass_check(
-            "target_kind.allowed",
-            "Only phase3_staging is allowed for the scaffold target kind.",
-            source_refs=source_refs,
-            expected="phase3_staging",
-            actual=target_kind,
-        )
+        recorder.pass_check("target_kind.allowed", "Only phase3_staging is allowed for the scaffold target kind.", source_refs=source_refs, expected="phase3_staging", actual=target_kind)
     else:
-        recorder.fail_check(
-            "target_kind.allowed",
-            "Phase 3 scaffold only allows target_kind=phase3_staging.",
-            source_refs=source_refs,
-            expected="phase3_staging",
-            actual=target_kind,
-        )
+        recorder.fail_check("target_kind.allowed", "Phase 3 scaffold only allows target_kind=phase3_staging.", source_refs=source_refs, expected="phase3_staging", actual=target_kind)
 
     if apply_mode in {"dry_run", "staged"}:
-        recorder.pass_check(
-            "apply_mode.allowed",
-            "Phase 3 scaffold only allows dry_run or staged apply modes.",
-            source_refs=source_refs,
-            expected=["dry_run", "staged"],
-            actual=apply_mode,
-        )
+        recorder.pass_check("apply_mode.allowed", "Phase 3 scaffold only allows dry_run or staged apply modes.", source_refs=source_refs, expected=["dry_run", "staged"], actual=apply_mode)
     else:
-        recorder.fail_check(
-            "apply_mode.allowed",
-            "Phase 3 scaffold only allows dry_run or staged apply modes.",
-            source_refs=source_refs,
-            expected=["dry_run", "staged"],
-            actual=apply_mode,
-        )
+        recorder.fail_check("apply_mode.allowed", "Phase 3 scaffold only allows dry_run or staged apply modes.", source_refs=source_refs, expected=["dry_run", "staged"], actual=apply_mode)
 
     approval_ok = False
     if apply_mode == "staged":
@@ -213,59 +172,40 @@ def main() -> int:
     elif apply_mode == "dry_run":
         approval_ok = approval_ref is None or is_non_empty_string(approval_ref)
     if approval_ok:
-        recorder.pass_check(
-            "approval_ref.allowed_for_apply_mode",
-            "approval_ref satisfies the narrow scaffold policy for the requested apply mode.",
-            source_refs=source_refs,
-            expected="staged requires a non-empty approval_ref; dry_run allows null or a non-empty string",
-            actual=approval_ref,
-        )
+        recorder.pass_check("approval_ref.allowed_for_apply_mode", "approval_ref satisfies the narrow scaffold policy for the requested apply mode.", source_refs=source_refs, expected="staged requires a non-empty approval_ref; dry_run allows null or a non-empty string", actual=approval_ref)
     else:
-        recorder.fail_check(
-            "approval_ref.allowed_for_apply_mode",
-            "approval_ref does not satisfy the narrow scaffold policy for the requested apply mode.",
-            source_refs=source_refs,
-            expected="staged requires a non-empty approval_ref; dry_run allows null or a non-empty string",
-            actual=approval_ref,
-        )
+        recorder.fail_check("approval_ref.allowed_for_apply_mode", "approval_ref does not satisfy the narrow scaffold policy for the requested apply mode.", source_refs=source_refs, expected="staged requires a non-empty approval_ref; dry_run allows null or a non-empty string", actual=approval_ref)
 
     if target_ref == canonical_target_ref:
-        recorder.pass_check(
-            "target_ref.phase3_run_scoped",
-            "Validated runs target the canonical Phase 3-owned staging path.",
-            source_refs=source_refs,
-            expected=canonical_target_ref,
-            actual=target_ref,
-        )
+        recorder.pass_check("target_ref.phase3_run_scoped", "Validated runs target the canonical Phase 3-owned staging path.", source_refs=source_refs, expected=canonical_target_ref, actual=target_ref)
     else:
-        recorder.fail_check(
-            "target_ref.phase3_run_scoped",
-            "Validated runs must target the canonical Phase 3-owned staging path.",
-            source_refs=source_refs,
-            expected=canonical_target_ref,
-            actual=target_ref,
-        )
+        recorder.fail_check("target_ref.phase3_run_scoped", "Validated runs must target the canonical Phase 3-owned staging path.", source_refs=source_refs, expected=canonical_target_ref, actual=target_ref)
 
     if not looks_like_phase2_runtime_ready(target_ref, phase2_runtime_ready_ref):
-        recorder.pass_check(
-            "target_ref.not_phase2_runtime_ready",
-            "Execution target does not point at the upstream Phase 2 runtime-ready package.",
-            source_refs=source_refs,
-            expected="target outside Phase 2 runtime-ready/",
-            actual=target_ref,
-        )
+        recorder.pass_check("target_ref.not_phase2_runtime_ready", "Execution target does not point at the upstream Phase 2 runtime-ready package.", source_refs=source_refs, expected="target outside Phase 2 runtime-ready/", actual=target_ref)
     else:
-        recorder.fail_check(
-            "target_ref.not_phase2_runtime_ready",
-            "Execution target must not point at the upstream Phase 2 runtime-ready package.",
-            source_refs=source_refs,
-            expected="target outside Phase 2 runtime-ready/",
-            actual=target_ref,
-        )
+        recorder.fail_check("target_ref.not_phase2_runtime_ready", "Execution target must not point at the upstream Phase 2 runtime-ready package.", source_refs=source_refs, expected="target outside Phase 2 runtime-ready/", actual=target_ref)
 
     report = recorder.build_report()
     write_json(report_path, report)
     return 0 if report["status"] == "pass" else 1
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print("usage: validate_pre_apply.py <repo-root> <run-dir>", file=sys.stderr)
+        return 2
+
+    repo_root = Path(sys.argv[1]).resolve(strict=False)
+    run_dir = Path(sys.argv[2]).resolve(strict=False)
+    try:
+        execution_target = read_json_object(run_dir / "input" / "execution_target.json")
+    except (OSError, ValueError, json.JSONDecodeError):
+        return validate_staging(repo_root, run_dir)
+    if execution_target.get("target_kind") == "repo_admission":
+        script_path = Path(__file__).resolve(strict=False).parent / "validate_repo_admission_pre_apply.py"
+        return subprocess.run([sys.executable, str(script_path), str(repo_root), str(run_dir)], check=False).returncode
+    return validate_staging(repo_root, run_dir)
 
 
 if __name__ == "__main__":

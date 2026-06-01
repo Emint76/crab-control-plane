@@ -33,5 +33,8 @@ jobs:
       - name: Run Phase 3 execution target schema contract test
         run: bash operations/harness-phase3/tests/test_execution_target_schema_contract.sh
 
+      - name: Run Phase 3 repo admission test
+        run: bash operations/harness-phase3/tests/test_repo_admission.sh
+
       - name: Run Phase 3 report shape test
         run: bash operations/harness-phase3/tests/test_report_shape.sh

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operations/harness-phase3/contracts/admission_manifest.schema.json",
+  "title": "Phase 3 repo admission manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "admission_type",
+    "lineage",
+    "copy_operation",
+    "artifacts"
+  ],
+  "properties": {
+    "admission_type": {
+      "type": "string",
+      "enum": [
+        "source_capture",
+        "knowledge_asset"
+      ]
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_ref",
+        "captured_from",
+        "captured_at"
+      ],
+      "properties": {
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "captured_from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "captured_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        }
+      }
+    },
+    "copy_operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_type",
+        "content_mode",
+        "overwrite_policy"
+      ],
+      "properties": {
+        "operation_type": {
+          "type": "string",
+          "const": "copy"
+        },
+        "content_mode": {
+          "type": "string",
+          "const": "byte_for_byte"
+        },
+        "overwrite_policy": {
+          "type": "string",
+          "const": "fail_closed_on_hash_mismatch"
+        },
+        "requested_by": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input_artifact_ref",
+          "expected_sha256",
+          "destination_kb_path"
+        ],
+        "properties": {
+          "input_artifact_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "destination_kb_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "copy_metadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "notes": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
