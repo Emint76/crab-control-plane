@@ -18,7 +18,6 @@ ALLOWED_DESTINATION_PREFIXES = (
     "knowledge/kb/sources/",
     "knowledge/kb/knowledge/",
 )
-HEX_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 class AdmissionError(ValueError):
@@ -77,22 +76,10 @@ def normalize_repo_ref(ref: str, *, field_name: str) -> str:
     return path.as_posix()
 
 
-def resolve_repo_path(repo_root: Path, ref: str, *, field_name: str) -> Path:
-    normalized = normalize_repo_ref(ref, field_name=field_name)
+def reject_symlink_chain(repo_root: Path, raw_path: Path, *, field_name: str, include_leaf: bool) -> None:
     repo_root = repo_root.resolve(strict=False)
-    resolved = (repo_root / normalized).resolve(strict=False)
     try:
-        resolved.relative_to(repo_root)
-    except ValueError as exc:
-        raise AdmissionError(f"{field_name} must resolve inside the repository") from exc
-    return resolved
-
-
-def reject_symlink_chain(repo_root: Path, path: Path, *, field_name: str, include_leaf: bool) -> None:
-    repo_root = repo_root.resolve(strict=False)
-    target = path.resolve(strict=False)
-    try:
-        relative = target.relative_to(repo_root)
+        relative = raw_path.relative_to(repo_root)
     except ValueError as exc:
         raise AdmissionError(f"{field_name} must resolve inside the repository") from exc
 
@@ -105,20 +92,30 @@ def reject_symlink_chain(repo_root: Path, path: Path, *, field_name: str, includ
             raise AdmissionError(f"{field_name} must not traverse symlinks")
 
 
+def checked_raw_and_resolved(repo_root: Path, ref: str, *, field_name: str, include_leaf_symlink: bool) -> tuple[str, Path]:
+    normalized = normalize_repo_ref(ref, field_name=field_name)
+    repo_root = repo_root.resolve(strict=False)
+    raw_path = repo_root / normalized
+    reject_symlink_chain(repo_root, raw_path, field_name=field_name, include_leaf=include_leaf_symlink)
+    resolved = raw_path.resolve(strict=False)
+    try:
+        resolved.relative_to(repo_root)
+    except ValueError as exc:
+        raise AdmissionError(f"{field_name} must resolve inside the repository") from exc
+    return normalized, resolved
+
+
 def resolve_existing_repo_file(repo_root: Path, ref: str, *, field_name: str) -> Path:
-    path = resolve_repo_path(repo_root, ref, field_name=field_name)
-    reject_symlink_chain(repo_root, path, field_name=field_name, include_leaf=True)
+    _normalized, path = checked_raw_and_resolved(repo_root, ref, field_name=field_name, include_leaf_symlink=True)
     if not path.is_file():
         raise AdmissionError(f"{field_name} must reference an existing repository file")
     return path
 
 
 def resolve_destination_path(repo_root: Path, ref: str) -> Path:
-    normalized = normalize_repo_ref(ref, field_name="destination_kb_path")
+    normalized, path = checked_raw_and_resolved(repo_root, ref, field_name="destination_kb_path", include_leaf_symlink=False)
     if not any(normalized.startswith(prefix) and len(normalized) > len(prefix) for prefix in ALLOWED_DESTINATION_PREFIXES):
         raise AdmissionError("destination_kb_path must be under knowledge/kb/sources/ or knowledge/kb/knowledge/")
-    path = resolve_repo_path(repo_root, normalized, field_name="destination_kb_path")
-    reject_symlink_chain(repo_root, path, field_name="destination_kb_path", include_leaf=False)
     if path.is_symlink():
         raise AdmissionError("destination_kb_path must not be a symlink")
     return path
