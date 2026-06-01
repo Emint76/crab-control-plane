@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from repo_admission_lib import AdmissionError, resolve_existing_repo_file, sha256_file
+
 
 REQUIRED_PHASE2_FILES = {
     "run_meta.phase2.json": "run_meta.json",
@@ -43,12 +45,43 @@ def path_ref(repo_root: Path, path: Path) -> str:
         return resolved.as_posix()
 
 
-def sha256_file(path: Path) -> str:
+def local_sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(65536), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def read_json_object(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8-sig") as handle:
+        payload = json.load(handle)
+    if not isinstance(payload, dict):
+        raise ValueError("top-level JSON value must be an object")
+    return payload
+
+
+def freeze_admission_manifest_if_needed(repo_root: Path, execution_target_json: Path, input_dir: Path) -> None:
+    try:
+        target_payload = read_json_object(execution_target_json)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise AdmissionError(f"external execution target JSON is invalid or unreadable: {exc}") from exc
+
+    if target_payload.get("target_kind") != "repo_admission":
+        return
+
+    manifest_ref = target_payload.get("admission_manifest_ref")
+    manifest_path = resolve_existing_repo_file(repo_root, manifest_ref, field_name="admission_manifest_ref")
+    shutil.copyfile(manifest_path, input_dir / "admission_manifest.json")
+    write_json(
+        input_dir / "admission_manifest_freeze.json",
+        {
+            "generated_at": now_utc(),
+            "admission_manifest_ref": manifest_ref,
+            "frozen_manifest_ref": "input/admission_manifest.json",
+            "manifest_hash": sha256_file(manifest_path),
+        },
+    )
 
 
 def main() -> int:
@@ -88,6 +121,12 @@ def main() -> int:
         print(f"upstream runtime-ready package is empty: {runtime_ready_dir}", file=sys.stderr)
         return 1
 
+    try:
+        freeze_admission_manifest_if_needed(repo_root, execution_target_json, input_dir)
+    except AdmissionError as exc:
+        print(f"invalid repo admission manifest ref: {exc}", file=sys.stderr)
+        return 1
+
     for frozen_name, source_rel_path in REQUIRED_PHASE2_FILES.items():
         shutil.copyfile(phase2_run_dir / source_rel_path, input_dir / frozen_name)
 
@@ -97,7 +136,7 @@ def main() -> int:
     hash_lines: list[str] = []
     for package_file in package_files:
         rel_path = package_file.relative_to(runtime_ready_dir).as_posix()
-        digest = sha256_file(package_file)
+        digest = local_sha256_file(package_file)
         manifest_entries.append(
             {
                 "path": rel_path,
