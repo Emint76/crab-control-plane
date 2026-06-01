@@ -13,6 +13,8 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
+from repo_admission_lib import AdmissionError, normalize_repo_ref
+
 
 def now_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -121,6 +123,37 @@ class Recorder:
         }
 
 
+def validate_phase3_staging(payload: dict[str, Any], recorder: Recorder, run_id: str) -> None:
+    canonical_target_ref = f"operations/harness-phase3/runs/{run_id}/staging/runtime-ready-applied"
+    recorder.require_equal(payload, "target_runtime", "openclaw")
+    recorder.require_equal(payload, "target_kind", "phase3_staging")
+    recorder.require_equal(payload, "apply_mode", "staged")
+    recorder.require_equal(payload, "target_ref", canonical_target_ref)
+    recorder.require_non_empty_string(payload, "approval_ref")
+    recorder.require_optional_string(payload, "invoked_by")
+    recorder.reject_unsafe_paths(
+        payload,
+        ["target_runtime", "target_kind", "apply_mode", "target_ref", "approval_ref", "invoked_by"],
+    )
+
+
+def validate_repo_admission(payload: dict[str, Any], recorder: Recorder, run_dir: Path) -> None:
+    recorder.require_equal(payload, "target_runtime", "repo")
+    recorder.require_equal(payload, "target_kind", "repo_admission")
+    recorder.require_non_empty_string(payload, "admission_manifest_ref")
+    recorder.require_optional_string(payload, "invoked_by")
+    recorder.reject_unsafe_paths(payload, ["target_runtime", "target_kind", "admission_manifest_ref", "invoked_by"])
+    try:
+        normalize_repo_ref(str(payload.get("admission_manifest_ref")), field_name="admission_manifest_ref")
+        recorder.add("admission_manifest_ref.repo_relative", "pass", "admission_manifest_ref is a repository-relative ref.")
+    except AdmissionError as exc:
+        recorder.add("admission_manifest_ref.repo_relative", "fail", str(exc))
+    if (run_dir / "input" / "admission_manifest.json").is_file():
+        recorder.add("admission_manifest.frozen", "pass", "Admission manifest is frozen under the Phase 3 run input directory.")
+    else:
+        recorder.add("admission_manifest.frozen", "fail", "Admission manifest must be frozen before target validation completes.")
+
+
 def main() -> int:
     if len(sys.argv) != 3:
         print("usage: validate_execution_target.py <repo-root> <run-dir>", file=sys.stderr)
@@ -174,17 +207,10 @@ def main() -> int:
         "Frozen execution_target.json conforms to execution_target.schema.json.",
     )
 
-    canonical_target_ref = f"operations/harness-phase3/runs/{run_id}/staging/runtime-ready-applied"
-    recorder.require_equal(payload, "target_runtime", "openclaw")
-    recorder.require_equal(payload, "target_kind", "phase3_staging")
-    recorder.require_equal(payload, "apply_mode", "staged")
-    recorder.require_equal(payload, "target_ref", canonical_target_ref)
-    recorder.require_non_empty_string(payload, "approval_ref")
-    recorder.require_optional_string(payload, "invoked_by")
-    recorder.reject_unsafe_paths(
-        payload,
-        ["target_runtime", "target_kind", "apply_mode", "target_ref", "approval_ref", "invoked_by"],
-    )
+    if payload.get("target_kind") == "repo_admission":
+        validate_repo_admission(payload, recorder, run_dir)
+    else:
+        validate_phase3_staging(payload, recorder, run_id)
 
     report = recorder.report()
     write_json(report_path, report)
