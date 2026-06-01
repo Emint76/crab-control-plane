@@ -19,7 +19,11 @@ KB_KNOWLEDGE_TEST_ROOT="${REPO_ROOT}/knowledge/kb/knowledge/phase3-repo-admissio
 
 RUN_IDS=(
   "phase3-repo-admission-source-pass"
+  "phase3-repo-admission-source-wrong-policy"
   "phase3-repo-admission-knowledge-pass"
+  "phase3-repo-admission-knowledge-wrong-policy"
+  "phase3-repo-admission-legacy-alias-pass"
+  "phase3-repo-admission-both-destination-fields"
   "phase3-repo-admission-unsafe-destination"
   "phase3-repo-admission-unsafe-overwrite"
   "phase3-repo-admission-atomic-preflight"
@@ -72,12 +76,13 @@ write_repo_admission_target() {
 EOF
 }
 
-write_manifest() {
+write_manifest_with_field() {
   local path="$1"
   local admission_type="$2"
   local source_ref="$3"
   local expected_sha="$4"
   local destination_ref="$5"
+  local destination_field="$6"
   mkdir -p "$(dirname "${path}")"
   cat > "${path}" <<EOF
 {
@@ -98,9 +103,50 @@ write_manifest() {
     {
       "input_artifact_ref": "${source_ref}",
       "expected_sha256": "${expected_sha}",
-      "destination_kb_path": "${destination_ref}",
+      "${destination_field}": "${destination_ref}",
       "copy_metadata": {
         "label": "${admission_type} fixture"
+      }
+    }
+  ]
+}
+EOF
+}
+
+write_manifest() {
+  write_manifest_with_field "$1" "$2" "$3" "$4" "$5" "destination_repo_path"
+}
+
+write_both_destination_fields_manifest() {
+  local path="$1"
+  local admission_type="$2"
+  local source_ref="$3"
+  local expected_sha="$4"
+  local destination_ref="$5"
+  mkdir -p "$(dirname "${path}")"
+  cat > "${path}" <<EOF
+{
+  "admission_type": "${admission_type}",
+  "lineage": {
+    "source_ref": "test://phase3-repo-admission/both-fields",
+    "captured_from": "repo-test-fixture",
+    "captured_at": "2026-06-01T00:00:00Z",
+    "parent_refs": []
+  },
+  "copy_operation": {
+    "operation_type": "copy",
+    "content_mode": "byte_for_byte",
+    "overwrite_policy": "fail_closed_on_hash_mismatch",
+    "requested_by": "test://phase3-repo-admission"
+  },
+  "artifacts": [
+    {
+      "input_artifact_ref": "${source_ref}",
+      "expected_sha256": "${expected_sha}",
+      "destination_repo_path": "${destination_ref}",
+      "destination_kb_path": "${destination_ref}",
+      "copy_metadata": {
+        "label": "both destination fields fixture"
       }
     }
   ]
@@ -136,7 +182,7 @@ write_two_artifact_manifest() {
     {
       "input_artifact_ref": "${source_ref_1}",
       "expected_sha256": "${expected_sha_1}",
-      "destination_kb_path": "${destination_ref_1}",
+      "destination_repo_path": "${destination_ref_1}",
       "copy_metadata": {
         "label": "atomic preflight would copy"
       }
@@ -144,7 +190,7 @@ write_two_artifact_manifest() {
     {
       "input_artifact_ref": "${source_ref_2}",
       "expected_sha256": "${expected_sha_2}",
-      "destination_kb_path": "${destination_ref_2}",
+      "destination_repo_path": "${destination_ref_2}",
       "copy_metadata": {
         "label": "atomic preflight blocks overwrite"
       }
@@ -195,11 +241,27 @@ payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
 item = payload["evidence"][0]
 assert item["manifest_hash"], payload
 assert item["source_artifact_hash"], payload
+assert item["destination_repo_path"], payload
 assert item["destination_path"], payload
+assert item["destination_repo_path"] == item["destination_path"], payload
 assert item["action"] == sys.argv[2], payload
 assert item["overwrite_verdict"] == sys.argv[3], payload
 if sys.argv[2] != "failed_closed":
     assert item["final_destination_hash"], payload
+PY
+}
+
+assert_pre_apply_failed() {
+  local run_id="$1"
+  "${PYTHON_BIN}" - "${PHASE3_ROOT}/runs/${run_id}/checks/pre_apply_validation.json" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
+assert payload["status"] == "fail", payload
 PY
 }
 
@@ -221,10 +283,12 @@ assert items[0]["planned_action"] == "would_copy", payload
 assert items[0]["action"] == "failed_closed", payload
 assert items[0]["execution_status"] == "not_executed", payload
 assert items[0]["overwrite_verdict"] == "destination_missing", payload
+assert items[0]["destination_repo_path"] == items[0]["destination_path"], payload
 assert items[1]["planned_action"] == "failed_closed", payload
 assert items[1]["action"] == "failed_closed", payload
 assert items[1]["execution_status"] == "not_executed", payload
 assert items[1]["overwrite_verdict"] == "different_hash_existing", payload
+assert items[1]["destination_repo_path"] == items[1]["destination_path"], payload
 PY
 }
 
@@ -252,6 +316,16 @@ assert_exit_code "${SOURCE_PASS_RUN}" "0"
 [[ -f "${PHASE3_ROOT}/runs/${SOURCE_PASS_RUN}/input/admission_manifest.json" ]] || fail "missing frozen admission manifest"
 assert_repo_evidence_action "${SOURCE_PASS_RUN}" "copied" "destination_missing"
 
+SOURCE_WRONG_RUN="phase3-repo-admission-source-wrong-policy"
+SOURCE_WRONG_DEST="knowledge/kb/knowledge/phase3-repo-admission-test/source-wrong-policy.txt"
+SOURCE_WRONG_MANIFEST="${PHASE3_ROOT}/runs/${SOURCE_WRONG_RUN}-target/admission_manifest.json"
+write_manifest "${SOURCE_WRONG_MANIFEST}" "source_capture" "${SOURCE_PASS_REF}" "${SOURCE_PASS_HASH}" "${SOURCE_WRONG_DEST}"
+write_repo_admission_target "${SOURCE_WRONG_RUN}" "$(repo_ref "${SOURCE_WRONG_MANIFEST}")"
+run_repo_admission_expect_failure "${SOURCE_WRONG_RUN}"
+assert_exit_code "${SOURCE_WRONG_RUN}" "1"
+assert_pre_apply_failed "${SOURCE_WRONG_RUN}"
+[[ ! -e "${REPO_ROOT}/${SOURCE_WRONG_DEST}" ]] || fail "source_capture wrote outside source policy"
+
 KNOWLEDGE_PASS_RUN="phase3-repo-admission-knowledge-pass"
 KNOWLEDGE_PASS_FILE="${FIXTURE_DIR}/knowledge-pass.md"
 KNOWLEDGE_PASS_DEST="knowledge/kb/knowledge/phase3-repo-admission-test/knowledge-pass.md"
@@ -266,6 +340,36 @@ write_repo_admission_target "${KNOWLEDGE_PASS_RUN}" "$(repo_ref "${KNOWLEDGE_PAS
 run_repo_admission "${KNOWLEDGE_PASS_RUN}"
 assert_exit_code "${KNOWLEDGE_PASS_RUN}" "0"
 assert_repo_evidence_action "${KNOWLEDGE_PASS_RUN}" "idempotent" "same_hash_existing"
+
+KNOWLEDGE_WRONG_RUN="phase3-repo-admission-knowledge-wrong-policy"
+KNOWLEDGE_WRONG_DEST="knowledge/kb/sources/phase3-repo-admission-test/knowledge-wrong-policy.md"
+KNOWLEDGE_WRONG_MANIFEST="${PHASE3_ROOT}/runs/${KNOWLEDGE_WRONG_RUN}-target/admission_manifest.json"
+write_manifest "${KNOWLEDGE_WRONG_MANIFEST}" "knowledge_asset" "${KNOWLEDGE_PASS_REF}" "${KNOWLEDGE_PASS_HASH}" "${KNOWLEDGE_WRONG_DEST}"
+write_repo_admission_target "${KNOWLEDGE_WRONG_RUN}" "$(repo_ref "${KNOWLEDGE_WRONG_MANIFEST}")"
+run_repo_admission_expect_failure "${KNOWLEDGE_WRONG_RUN}"
+assert_exit_code "${KNOWLEDGE_WRONG_RUN}" "1"
+assert_pre_apply_failed "${KNOWLEDGE_WRONG_RUN}"
+[[ ! -e "${REPO_ROOT}/${KNOWLEDGE_WRONG_DEST}" ]] || fail "knowledge_asset wrote outside knowledge policy"
+
+LEGACY_RUN="phase3-repo-admission-legacy-alias-pass"
+LEGACY_DEST="knowledge/kb/sources/phase3-repo-admission-test/legacy-alias.txt"
+LEGACY_MANIFEST="${PHASE3_ROOT}/runs/${LEGACY_RUN}-target/admission_manifest.json"
+write_manifest_with_field "${LEGACY_MANIFEST}" "source_capture" "${SOURCE_PASS_REF}" "${SOURCE_PASS_HASH}" "${LEGACY_DEST}" "destination_kb_path"
+write_repo_admission_target "${LEGACY_RUN}" "$(repo_ref "${LEGACY_MANIFEST}")"
+run_repo_admission "${LEGACY_RUN}"
+assert_exit_code "${LEGACY_RUN}" "0"
+[[ "$(sha256_of "${REPO_ROOT}/${LEGACY_DEST}")" == "${SOURCE_PASS_HASH}" ]] || fail "legacy destination_kb_path destination hash mismatch"
+assert_repo_evidence_action "${LEGACY_RUN}" "copied" "destination_missing"
+
+BOTH_FIELDS_RUN="phase3-repo-admission-both-destination-fields"
+BOTH_FIELDS_DEST="knowledge/kb/sources/phase3-repo-admission-test/both-fields.txt"
+BOTH_FIELDS_MANIFEST="${PHASE3_ROOT}/runs/${BOTH_FIELDS_RUN}-target/admission_manifest.json"
+write_both_destination_fields_manifest "${BOTH_FIELDS_MANIFEST}" "source_capture" "${SOURCE_PASS_REF}" "${SOURCE_PASS_HASH}" "${BOTH_FIELDS_DEST}"
+write_repo_admission_target "${BOTH_FIELDS_RUN}" "$(repo_ref "${BOTH_FIELDS_MANIFEST}")"
+run_repo_admission_expect_failure "${BOTH_FIELDS_RUN}"
+assert_exit_code "${BOTH_FIELDS_RUN}" "1"
+assert_pre_apply_failed "${BOTH_FIELDS_RUN}"
+[[ ! -e "${REPO_ROOT}/${BOTH_FIELDS_DEST}" ]] || fail "both destination fields manifest wrote destination"
 
 UNSAFE_DEST_RUN="phase3-repo-admission-unsafe-destination"
 UNSAFE_DEST_MANIFEST="${PHASE3_ROOT}/runs/${UNSAFE_DEST_RUN}-target/admission_manifest.json"
@@ -349,8 +453,12 @@ bash "${PHASE3_ROOT}/bin/run_phase3_bundle.sh" \
 assert_exit_code "${STAGING_RUN}" "0"
 
 
-echo "PASS repo admission source_capture copy"
-echo "PASS repo admission knowledge_asset idempotent copy"
+echo "PASS repo admission source_capture canonical destination"
+echo "PASS repo admission source_capture rejects knowledge path"
+echo "PASS repo admission knowledge_asset canonical destination"
+echo "PASS repo admission knowledge_asset rejects source path"
+echo "PASS repo admission legacy destination_kb_path alias"
+echo "PASS repo admission rejects both destination fields"
 echo "PASS repo admission unsafe destination fails"
 echo "PASS repo admission unsafe overwrite fails closed"
 echo "PASS repo admission atomic preflight prevents partial writes"
