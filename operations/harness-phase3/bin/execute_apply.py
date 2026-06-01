@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Perform the minimal deterministic scaffold apply against the staged surface only."""
+"""Perform deterministic Phase 3 apply for supported target kinds."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from repo_admission_lib import execute_repo_admission
 
 
 REQUIRED_STAGED_FILES = [
@@ -32,12 +34,7 @@ def read_json_object(path: Path) -> dict[str, Any]:
     return payload
 
 
-def main() -> int:
-    if len(sys.argv) != 3:
-        print("usage: execute_apply.py <repo-root> <run-dir>", file=sys.stderr)
-        return 2
-
-    run_dir = Path(sys.argv[2]).resolve(strict=False)
+def execute_staging(run_dir: Path) -> int:
     run_meta = read_json_object(run_dir / "run_meta.json")
     staging_dir = run_dir / "staging" / "runtime-ready-applied"
     apply_log_path = run_dir / "logs" / "apply.log"
@@ -74,6 +71,19 @@ def main() -> int:
     ]
     apply_log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
     return status
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print("usage: execute_apply.py <repo-root> <run-dir>", file=sys.stderr)
+        return 2
+
+    repo_root = Path(sys.argv[1]).resolve(strict=False)
+    run_dir = Path(sys.argv[2]).resolve(strict=False)
+    execution_target = read_json_object(run_dir / "input" / "execution_target.json")
+    if execution_target.get("target_kind") == "repo_admission":
+        return execute_repo_admission(repo_root, run_dir)
+    return execute_staging(run_dir)
 
 
 if __name__ == "__main__":
