@@ -187,50 +187,33 @@ def validate_manifest_paths_and_hashes(repo_root: Path, manifest: dict[str, Any]
     return violations, artifacts_report
 
 
-def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
-    manifest_path = run_dir / "input" / "admission_manifest.json"
-    evidence_path = run_dir / "checks" / "repo_admission_evidence.json"
-    apply_log_path = run_dir / "logs" / "apply.log"
-    apply_log_path.parent.mkdir(parents=True, exist_ok=True)
-    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+def base_plan_item(index: int, manifest_digest: str, artifact: Any) -> dict[str, Any]:
+    return {
+        "artifact_index": index,
+        "manifest_hash": manifest_digest,
+        "input_artifact_ref": artifact.get("input_artifact_ref") if isinstance(artifact, dict) else None,
+        "destination_path": artifact.get("destination_kb_path") if isinstance(artifact, dict) else None,
+        "expected_hash": artifact.get("expected_sha256") if isinstance(artifact, dict) else None,
+        "source_artifact_hash": None,
+        "final_destination_hash": None,
+        "planned_action": "failed_closed",
+        "action": "failed_closed",
+        "execution_status": "not_executed",
+        "overwrite_verdict": "not_attempted",
+    }
 
-    evidence_items: list[dict[str, Any]] = []
-    log_lines = [f"timestamp={now_utc()}", f"run_id={run_dir.name}", "target_kind=repo_admission"]
-    overall_status = "pass"
 
-    try:
-        manifest = read_json_object(manifest_path)
-        current_manifest_hash = sha256_file(manifest_path)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        payload = {
-            "run_id": run_dir.name,
-            "generated_at": now_utc(),
-            "status": "fail",
-            "manifest_hash": None,
-            "evidence": [
-                {
-                    "action": "failed_closed",
-                    "overwrite_verdict": "manifest_unreadable",
-                    "error": str(exc),
-                }
-            ],
-        }
-        write_json(evidence_path, payload)
-        apply_log_path.write_text("\n".join([*log_lines, "result=fail"]) + "\n", encoding="utf-8")
-        return 1
+def build_copy_plan(repo_root: Path, manifest: dict[str, Any], manifest_digest: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    plan: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        item = base_plan_item(0, manifest_digest, None)
+        item["error"] = "manifest artifacts must be an array"
+        return [item], [item]
 
-    for index, artifact in enumerate(manifest.get("artifacts", [])):
-        item = {
-            "artifact_index": index,
-            "manifest_hash": current_manifest_hash,
-            "input_artifact_ref": artifact.get("input_artifact_ref") if isinstance(artifact, dict) else None,
-            "destination_path": artifact.get("destination_kb_path") if isinstance(artifact, dict) else None,
-            "expected_hash": artifact.get("expected_sha256") if isinstance(artifact, dict) else None,
-            "source_artifact_hash": None,
-            "final_destination_hash": None,
-            "action": "failed_closed",
-            "overwrite_verdict": "not_attempted",
-        }
+    for index, artifact in enumerate(artifacts):
+        item = base_plan_item(index, manifest_digest, artifact)
         try:
             if not isinstance(artifact, dict):
                 raise AdmissionError("artifact entry must be an object")
@@ -239,6 +222,8 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
             source_hash = sha256_file(source_path)
             item["source_artifact_hash"] = source_hash
             item["destination_path"] = repo_ref(repo_root, destination_path)
+            item["source_path"] = str(source_path)
+            item["destination_fs_path"] = str(destination_path)
             if source_hash != artifact.get("expected_sha256"):
                 item["overwrite_verdict"] = "source_hash_mismatch"
                 raise AdmissionError("source artifact hash does not match expected_sha256")
@@ -249,23 +234,148 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
                 destination_hash = sha256_file(destination_path)
                 item["final_destination_hash"] = destination_hash
                 if destination_hash == source_hash:
-                    item["action"] = "idempotent"
+                    item["planned_action"] = "would_idempotent"
                     item["overwrite_verdict"] = "same_hash_existing"
                 else:
                     item["overwrite_verdict"] = "different_hash_existing"
                     raise AdmissionError("destination exists with a different hash")
             else:
+                item["planned_action"] = "would_copy"
+                item["overwrite_verdict"] = "destination_missing"
+        except AdmissionError as exc:
+            item["planned_action"] = "failed_closed"
+            item["action"] = "failed_closed"
+            item["execution_status"] = "not_executed"
+            item["error"] = str(exc)
+            failures.append(item)
+        plan.append(item)
+    return plan, failures
+
+
+def public_evidence_item(item: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in item.items() if key not in {"source_path", "destination_fs_path"}}
+
+
+def preflight_failed_items(plan: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    evidence_items: list[dict[str, Any]] = []
+    for item in plan:
+        evidence = public_evidence_item(item)
+        evidence["action"] = "failed_closed"
+        evidence["execution_status"] = "not_executed"
+        if "error" not in evidence:
+            evidence["error"] = "manifest preflight failed; no artifact operations were executed"
+        evidence_items.append(evidence)
+    return evidence_items
+
+
+def write_apply_log(apply_log_path: Path, log_lines: list[str], manifest_digest: str | None, evidence_items: list[dict[str, Any]], status: str) -> None:
+    action_summary = ",".join(str(item.get("action")) for item in evidence_items) if evidence_items else "none"
+    if manifest_digest is not None:
+        log_lines.append(f"manifest_hash={manifest_digest}")
+    log_lines.extend([
+        f"actions={action_summary}",
+        f"result={'success' if status == 'pass' else 'fail'}",
+    ])
+    apply_log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
+
+
+def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
+    manifest_path = run_dir / "input" / "admission_manifest.json"
+    evidence_path = run_dir / "checks" / "repo_admission_evidence.json"
+    apply_log_path = run_dir / "logs" / "apply.log"
+    apply_log_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+
+    log_lines = [f"timestamp={now_utc()}", f"run_id={run_dir.name}", "target_kind=repo_admission"]
+
+    try:
+        manifest = read_json_object(manifest_path)
+        current_manifest_hash = sha256_file(manifest_path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        evidence_items = [
+            {
+                "action": "failed_closed",
+                "execution_status": "not_executed",
+                "overwrite_verdict": "manifest_unreadable",
+                "error": str(exc),
+            }
+        ]
+        payload = {
+            "run_id": run_dir.name,
+            "generated_at": now_utc(),
+            "status": "fail",
+            "failure_stage": "manifest_read",
+            "manifest_hash": None,
+            "evidence": evidence_items,
+        }
+        write_json(evidence_path, payload)
+        write_apply_log(apply_log_path, log_lines, None, evidence_items, "fail")
+        return 1
+
+    schema_violations = validate_manifest_schema(repo_root, manifest)
+    if schema_violations:
+        evidence_items = [
+            {
+                "manifest_hash": current_manifest_hash,
+                "action": "failed_closed",
+                "execution_status": "not_executed",
+                "overwrite_verdict": "schema_invalid",
+                "error": ",".join(schema_violations),
+            }
+        ]
+        payload = {
+            "run_id": run_dir.name,
+            "generated_at": now_utc(),
+            "status": "fail",
+            "failure_stage": "manifest_schema",
+            "manifest_hash": current_manifest_hash,
+            "evidence": evidence_items,
+        }
+        write_json(evidence_path, payload)
+        write_apply_log(apply_log_path, log_lines, current_manifest_hash, evidence_items, "fail")
+        return 1
+
+    plan, failures = build_copy_plan(repo_root, manifest, current_manifest_hash)
+    if failures:
+        evidence_items = preflight_failed_items(plan)
+        payload = {
+            "run_id": run_dir.name,
+            "generated_at": now_utc(),
+            "status": "fail",
+            "failure_stage": "copy_plan_preflight",
+            "manifest_hash": current_manifest_hash,
+            "evidence": evidence_items,
+        }
+        write_json(evidence_path, payload)
+        write_apply_log(apply_log_path, log_lines, current_manifest_hash, evidence_items, "fail")
+        return 1
+
+    evidence_items: list[dict[str, Any]] = []
+    overall_status = "pass"
+    for plan_item in plan:
+        item = public_evidence_item(plan_item)
+        try:
+            source_path = Path(str(plan_item["source_path"]))
+            destination_path = Path(str(plan_item["destination_fs_path"]))
+            if plan_item["planned_action"] == "would_idempotent":
+                item["action"] = "idempotent"
+                item["execution_status"] = "executed"
+            elif plan_item["planned_action"] == "would_copy":
                 destination_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source_path, destination_path)
                 final_hash = sha256_file(destination_path)
                 item["final_destination_hash"] = final_hash
-                if final_hash != source_hash:
+                if final_hash != plan_item["source_artifact_hash"]:
                     item["overwrite_verdict"] = "final_hash_mismatch"
                     raise AdmissionError("destination hash after copy does not match source hash")
                 item["action"] = "copied"
-                item["overwrite_verdict"] = "destination_missing"
+                item["execution_status"] = "executed"
+            else:
+                raise AdmissionError("invalid planned action")
         except AdmissionError as exc:
             overall_status = "fail"
+            item["action"] = "failed_closed"
+            item["execution_status"] = "execution_failed"
             item["error"] = str(exc)
         evidence_items.append(item)
 
@@ -273,15 +383,10 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
         "run_id": run_dir.name,
         "generated_at": now_utc(),
         "status": overall_status,
+        "failure_stage": None if overall_status == "pass" else "copy_execution",
         "manifest_hash": current_manifest_hash,
         "evidence": evidence_items,
     }
     write_json(evidence_path, payload)
-    action_summary = ",".join(str(item.get("action")) for item in evidence_items) if evidence_items else "none"
-    log_lines.extend([
-        f"manifest_hash={current_manifest_hash}",
-        f"actions={action_summary}",
-        f"result={'success' if overall_status == 'pass' else 'fail'}",
-    ])
-    apply_log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
+    write_apply_log(apply_log_path, log_lines, current_manifest_hash, evidence_items, overall_status)
     return 0 if overall_status == "pass" else 1
