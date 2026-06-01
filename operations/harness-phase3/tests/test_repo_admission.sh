@@ -22,6 +22,7 @@ RUN_IDS=(
   "phase3-repo-admission-knowledge-pass"
   "phase3-repo-admission-unsafe-destination"
   "phase3-repo-admission-unsafe-overwrite"
+  "phase3-repo-admission-atomic-preflight"
   "phase3-repo-admission-hash-mismatch"
   "phase3-repo-admission-staging-still-passes"
 )
@@ -107,6 +108,52 @@ write_manifest() {
 EOF
 }
 
+write_two_artifact_manifest() {
+  local path="$1"
+  local source_ref_1="$2"
+  local expected_sha_1="$3"
+  local destination_ref_1="$4"
+  local source_ref_2="$5"
+  local expected_sha_2="$6"
+  local destination_ref_2="$7"
+  mkdir -p "$(dirname "${path}")"
+  cat > "${path}" <<EOF
+{
+  "admission_type": "source_capture",
+  "lineage": {
+    "source_ref": "test://phase3-repo-admission/atomic-preflight",
+    "captured_from": "repo-test-fixture",
+    "captured_at": "2026-06-01T00:00:00Z",
+    "parent_refs": []
+  },
+  "copy_operation": {
+    "operation_type": "copy",
+    "content_mode": "byte_for_byte",
+    "overwrite_policy": "fail_closed_on_hash_mismatch",
+    "requested_by": "test://phase3-repo-admission"
+  },
+  "artifacts": [
+    {
+      "input_artifact_ref": "${source_ref_1}",
+      "expected_sha256": "${expected_sha_1}",
+      "destination_kb_path": "${destination_ref_1}",
+      "copy_metadata": {
+        "label": "atomic preflight would copy"
+      }
+    },
+    {
+      "input_artifact_ref": "${source_ref_2}",
+      "expected_sha256": "${expected_sha_2}",
+      "destination_kb_path": "${destination_ref_2}",
+      "copy_metadata": {
+        "label": "atomic preflight blocks overwrite"
+      }
+    }
+  ]
+}
+EOF
+}
+
 run_repo_admission() {
   local run_id="$1"
   bash "${PHASE3_ROOT}/bin/run_phase3_bundle.sh" \
@@ -153,6 +200,31 @@ assert item["action"] == sys.argv[2], payload
 assert item["overwrite_verdict"] == sys.argv[3], payload
 if sys.argv[2] != "failed_closed":
     assert item["final_destination_hash"], payload
+PY
+}
+
+assert_atomic_preflight_evidence() {
+  local run_id="$1"
+  "${PYTHON_BIN}" - "${PHASE3_ROOT}/runs/${run_id}/checks/repo_admission_evidence.json" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
+assert payload["status"] == "fail", payload
+assert payload["failure_stage"] == "copy_plan_preflight", payload
+items = payload["evidence"]
+assert len(items) == 2, payload
+assert items[0]["planned_action"] == "would_copy", payload
+assert items[0]["action"] == "failed_closed", payload
+assert items[0]["execution_status"] == "not_executed", payload
+assert items[0]["overwrite_verdict"] == "destination_missing", payload
+assert items[1]["planned_action"] == "failed_closed", payload
+assert items[1]["action"] == "failed_closed", payload
+assert items[1]["execution_status"] == "not_executed", payload
+assert items[1]["overwrite_verdict"] == "different_hash_existing", payload
 PY
 }
 
@@ -219,6 +291,35 @@ assert_exit_code "${UNSAFE_OVERWRITE_RUN}" "1"
 assert_repo_evidence_action "${UNSAFE_OVERWRITE_RUN}" "failed_closed" "different_hash_existing"
 [[ "$(cat "${REPO_ROOT}/${UNSAFE_OVERWRITE_DEST}")" == "existing different bytes" ]] || fail "unsafe overwrite mutated destination"
 
+ATOMIC_RUN="phase3-repo-admission-atomic-preflight"
+ATOMIC_FILE_1="${FIXTURE_DIR}/atomic-would-copy.txt"
+ATOMIC_FILE_2="${FIXTURE_DIR}/atomic-blocked-overwrite.txt"
+ATOMIC_DEST_1="knowledge/kb/sources/phase3-repo-admission-test/atomic-would-copy.txt"
+ATOMIC_DEST_2="knowledge/kb/sources/phase3-repo-admission-test/atomic-blocked-overwrite.txt"
+printf 'atomic would copy bytes\n' > "${ATOMIC_FILE_1}"
+printf 'atomic new bytes\n' > "${ATOMIC_FILE_2}"
+ATOMIC_REF_1="$(repo_ref "${ATOMIC_FILE_1}")"
+ATOMIC_REF_2="$(repo_ref "${ATOMIC_FILE_2}")"
+ATOMIC_HASH_1="$(sha256_of "${ATOMIC_FILE_1}")"
+ATOMIC_HASH_2="$(sha256_of "${ATOMIC_FILE_2}")"
+mkdir -p "$(dirname "${REPO_ROOT}/${ATOMIC_DEST_2}")"
+printf 'existing atomic different bytes\n' > "${REPO_ROOT}/${ATOMIC_DEST_2}"
+ATOMIC_MANIFEST="${PHASE3_ROOT}/runs/${ATOMIC_RUN}-target/admission_manifest.json"
+write_two_artifact_manifest \
+  "${ATOMIC_MANIFEST}" \
+  "${ATOMIC_REF_1}" \
+  "${ATOMIC_HASH_1}" \
+  "${ATOMIC_DEST_1}" \
+  "${ATOMIC_REF_2}" \
+  "${ATOMIC_HASH_2}" \
+  "${ATOMIC_DEST_2}"
+write_repo_admission_target "${ATOMIC_RUN}" "$(repo_ref "${ATOMIC_MANIFEST}")"
+run_repo_admission_expect_failure "${ATOMIC_RUN}"
+assert_exit_code "${ATOMIC_RUN}" "1"
+[[ ! -e "${REPO_ROOT}/${ATOMIC_DEST_1}" ]] || fail "atomic preflight created first destination before full plan passed"
+[[ "$(cat "${REPO_ROOT}/${ATOMIC_DEST_2}")" == "existing atomic different bytes" ]] || fail "atomic preflight mutated blocked destination"
+assert_atomic_preflight_evidence "${ATOMIC_RUN}"
+
 HASH_MISMATCH_RUN="phase3-repo-admission-hash-mismatch"
 HASH_MISMATCH_DEST="knowledge/kb/sources/phase3-repo-admission-test/hash-mismatch.txt"
 HASH_MISMATCH_MANIFEST="${PHASE3_ROOT}/runs/${HASH_MISMATCH_RUN}-target/admission_manifest.json"
@@ -252,5 +353,6 @@ echo "PASS repo admission source_capture copy"
 echo "PASS repo admission knowledge_asset idempotent copy"
 echo "PASS repo admission unsafe destination fails"
 echo "PASS repo admission unsafe overwrite fails closed"
+echo "PASS repo admission atomic preflight prevents partial writes"
 echo "PASS repo admission hash mismatch fails"
 echo "PASS existing phase3_staging behavior still passes"
