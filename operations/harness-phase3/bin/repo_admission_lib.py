@@ -14,10 +14,10 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 
-ALLOWED_DESTINATION_PREFIXES = (
-    "knowledge/kb/sources/",
-    "knowledge/kb/knowledge/",
-)
+REPO_ADMISSION_POLICY_REGISTRY = {
+    "source_capture": ("knowledge/kb/sources/",),
+    "knowledge_asset": ("knowledge/kb/knowledge/",),
+}
 
 
 class AdmissionError(ValueError):
@@ -112,12 +112,32 @@ def resolve_existing_repo_file(repo_root: Path, ref: str, *, field_name: str) ->
     return path
 
 
-def resolve_destination_path(repo_root: Path, ref: str) -> Path:
-    normalized, path = checked_raw_and_resolved(repo_root, ref, field_name="destination_kb_path", include_leaf_symlink=False)
-    if not any(normalized.startswith(prefix) and len(normalized) > len(prefix) for prefix in ALLOWED_DESTINATION_PREFIXES):
-        raise AdmissionError("destination_kb_path must be under knowledge/kb/sources/ or knowledge/kb/knowledge/")
+def allowed_prefixes_for_admission_type(admission_type: Any) -> tuple[str, ...]:
+    if not isinstance(admission_type, str) or admission_type not in REPO_ADMISSION_POLICY_REGISTRY:
+        raise AdmissionError("admission_type is not registered in the repo admission policy registry")
+    return REPO_ADMISSION_POLICY_REGISTRY[admission_type]
+
+
+def artifact_destination_ref(artifact: dict[str, Any]) -> tuple[str, str]:
+    has_canonical = "destination_repo_path" in artifact
+    has_legacy = "destination_kb_path" in artifact
+    if has_canonical and has_legacy:
+        raise AdmissionError("artifact must not set both destination_repo_path and destination_kb_path")
+    if has_canonical:
+        return "destination_repo_path", artifact["destination_repo_path"]
+    if has_legacy:
+        return "destination_kb_path", artifact["destination_kb_path"]
+    raise AdmissionError("artifact must set destination_repo_path or legacy destination_kb_path")
+
+
+def resolve_destination_path(repo_root: Path, ref: str, *, admission_type: str) -> Path:
+    normalized, path = checked_raw_and_resolved(repo_root, ref, field_name="destination_repo_path", include_leaf_symlink=False)
+    allowed_prefixes = allowed_prefixes_for_admission_type(admission_type)
+    if not any(normalized.startswith(prefix) and len(normalized) > len(prefix) for prefix in allowed_prefixes):
+        allowed_display = ", ".join(f"{prefix}**" for prefix in allowed_prefixes)
+        raise AdmissionError(f"destination_repo_path for admission_type={admission_type} must be under {allowed_display}")
     if path.is_symlink():
-        raise AdmissionError("destination_kb_path must not be a symlink")
+        raise AdmissionError("destination_repo_path must not be a symlink")
     return path
 
 
@@ -149,6 +169,7 @@ def validate_manifest_paths_and_hashes(repo_root: Path, manifest: dict[str, Any]
     violations: list[str] = []
     artifacts_report: list[dict[str, Any]] = []
     artifacts = manifest.get("artifacts") if isinstance(manifest, dict) else None
+    admission_type = manifest.get("admission_type") if isinstance(manifest, dict) else None
     if not isinstance(artifacts, list):
         return ["manifest.artifacts.invalid"], artifacts_report
 
@@ -159,15 +180,21 @@ def validate_manifest_paths_and_hashes(repo_root: Path, manifest: dict[str, Any]
             artifacts_report.append(item_report)
             continue
         source_ref = artifact.get("input_artifact_ref")
-        destination_ref = artifact.get("destination_kb_path")
         expected_hash = artifact.get("expected_sha256")
         item_report.update(
             {
                 "input_artifact_ref": source_ref,
-                "destination_kb_path": destination_ref,
                 "expected_sha256": expected_hash,
             }
         )
+        try:
+            destination_field, destination_ref = artifact_destination_ref(artifact)
+            item_report["destination_field"] = destination_field
+            item_report["destination_repo_path"] = destination_ref
+        except AdmissionError as exc:
+            destination_ref = None
+            violations.append(f"artifact[{index}].destination_ref_unsafe")
+            item_report["destination_error"] = str(exc)
         try:
             source_path = resolve_existing_repo_file(repo_root, source_ref, field_name="input_artifact_ref")
             source_hash = sha256_file(source_path)
@@ -178,21 +205,39 @@ def validate_manifest_paths_and_hashes(repo_root: Path, manifest: dict[str, Any]
             violations.append(f"artifact[{index}].source_ref_unsafe")
             item_report["source_error"] = str(exc)
         try:
-            destination_path = resolve_destination_path(repo_root, destination_ref)
-            item_report["destination_path"] = repo_ref(repo_root, destination_path)
+            if destination_ref is None:
+                raise AdmissionError("destination ref is unavailable")
+            destination_path = resolve_destination_path(repo_root, destination_ref, admission_type=str(admission_type))
+            canonical_destination = repo_ref(repo_root, destination_path)
+            item_report["destination_repo_path"] = canonical_destination
+            item_report["destination_path"] = canonical_destination
         except AdmissionError as exc:
             violations.append(f"artifact[{index}].destination_ref_unsafe")
             item_report["destination_error"] = str(exc)
         artifacts_report.append(item_report)
-    return violations, artifacts_report
+    return sorted(set(violations)), artifacts_report
 
 
-def base_plan_item(index: int, manifest_digest: str, artifact: Any) -> dict[str, Any]:
+def base_plan_item(index: int, manifest_digest: str, artifact: Any, admission_type: Any) -> dict[str, Any]:
+    destination_repo_path = None
+    destination_kb_path = None
+    destination_field = None
+    if isinstance(artifact, dict):
+        destination_repo_path = artifact.get("destination_repo_path") or artifact.get("destination_kb_path")
+        destination_kb_path = artifact.get("destination_kb_path")
+        if "destination_repo_path" in artifact:
+            destination_field = "destination_repo_path"
+        elif "destination_kb_path" in artifact:
+            destination_field = "destination_kb_path"
     return {
         "artifact_index": index,
         "manifest_hash": manifest_digest,
+        "admission_type": admission_type,
         "input_artifact_ref": artifact.get("input_artifact_ref") if isinstance(artifact, dict) else None,
-        "destination_path": artifact.get("destination_kb_path") if isinstance(artifact, dict) else None,
+        "destination_repo_path": destination_repo_path,
+        "destination_kb_path": destination_kb_path,
+        "destination_path": destination_repo_path,
+        "destination_field": destination_field,
         "expected_hash": artifact.get("expected_sha256") if isinstance(artifact, dict) else None,
         "source_artifact_hash": None,
         "final_destination_hash": None,
@@ -207,23 +252,39 @@ def build_copy_plan(repo_root: Path, manifest: dict[str, Any], manifest_digest: 
     plan: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
     artifacts = manifest.get("artifacts")
+    admission_type = manifest.get("admission_type")
+    try:
+        allowed_prefixes_for_admission_type(admission_type)
+    except AdmissionError as exc:
+        item = base_plan_item(0, manifest_digest, None, admission_type)
+        item["error"] = str(exc)
+        return [item], [item]
     if not isinstance(artifacts, list):
-        item = base_plan_item(0, manifest_digest, None)
+        item = base_plan_item(0, manifest_digest, None, admission_type)
         item["error"] = "manifest artifacts must be an array"
         return [item], [item]
 
+    planned_destinations: set[str] = set()
     for index, artifact in enumerate(artifacts):
-        item = base_plan_item(index, manifest_digest, artifact)
+        item = base_plan_item(index, manifest_digest, artifact, admission_type)
         try:
             if not isinstance(artifact, dict):
                 raise AdmissionError("artifact entry must be an object")
+            destination_field, destination_ref = artifact_destination_ref(artifact)
+            item["destination_field"] = destination_field
             source_path = resolve_existing_repo_file(repo_root, artifact.get("input_artifact_ref"), field_name="input_artifact_ref")
-            destination_path = resolve_destination_path(repo_root, artifact.get("destination_kb_path"))
+            destination_path = resolve_destination_path(repo_root, destination_ref, admission_type=str(admission_type))
             source_hash = sha256_file(source_path)
+            canonical_destination = repo_ref(repo_root, destination_path)
             item["source_artifact_hash"] = source_hash
-            item["destination_path"] = repo_ref(repo_root, destination_path)
+            item["destination_repo_path"] = canonical_destination
+            item["destination_path"] = canonical_destination
             item["source_path"] = str(source_path)
             item["destination_fs_path"] = str(destination_path)
+            if canonical_destination in planned_destinations:
+                item["overwrite_verdict"] = "duplicate_destination_in_manifest"
+                raise AdmissionError("destination_repo_path appears more than once in the manifest")
+            planned_destinations.add(canonical_destination)
             if source_hash != artifact.get("expected_sha256"):
                 item["overwrite_verdict"] = "source_hash_mismatch"
                 raise AdmissionError("source artifact hash does not match expected_sha256")
@@ -306,6 +367,7 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
             "status": "fail",
             "failure_stage": "manifest_read",
             "manifest_hash": None,
+            "policy_registry": REPO_ADMISSION_POLICY_REGISTRY,
             "evidence": evidence_items,
         }
         write_json(evidence_path, payload)
@@ -317,6 +379,7 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
         evidence_items = [
             {
                 "manifest_hash": current_manifest_hash,
+                "admission_type": manifest.get("admission_type"),
                 "action": "failed_closed",
                 "execution_status": "not_executed",
                 "overwrite_verdict": "schema_invalid",
@@ -329,6 +392,7 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
             "status": "fail",
             "failure_stage": "manifest_schema",
             "manifest_hash": current_manifest_hash,
+            "policy_registry": REPO_ADMISSION_POLICY_REGISTRY,
             "evidence": evidence_items,
         }
         write_json(evidence_path, payload)
@@ -344,6 +408,7 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
             "status": "fail",
             "failure_stage": "copy_plan_preflight",
             "manifest_hash": current_manifest_hash,
+            "policy_registry": REPO_ADMISSION_POLICY_REGISTRY,
             "evidence": evidence_items,
         }
         write_json(evidence_path, payload)
@@ -385,6 +450,7 @@ def execute_repo_admission(repo_root: Path, run_dir: Path) -> int:
         "status": overall_status,
         "failure_stage": None if overall_status == "pass" else "copy_execution",
         "manifest_hash": current_manifest_hash,
+        "policy_registry": REPO_ADMISSION_POLICY_REGISTRY,
         "evidence": evidence_items,
     }
     write_json(evidence_path, payload)

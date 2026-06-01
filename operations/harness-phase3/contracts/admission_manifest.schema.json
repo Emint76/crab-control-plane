@@ -84,8 +84,29 @@
         "additionalProperties": false,
         "required": [
           "input_artifact_ref",
-          "expected_sha256",
-          "destination_kb_path"
+          "expected_sha256"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "destination_repo_path"
+            ],
+            "not": {
+              "required": [
+                "destination_kb_path"
+              ]
+            }
+          },
+          {
+            "required": [
+              "destination_kb_path"
+            ],
+            "not": {
+              "required": [
+                "destination_repo_path"
+              ]
+            }
+          }
         ],
         "properties": {
           "input_artifact_ref": {
@@ -95,6 +116,10 @@
           "expected_sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
+          },
+          "destination_repo_path": {
+            "type": "string",
+            "minLength": 1
           },
           "destination_kb_path": {
             "type": "string",
