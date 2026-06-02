@@ -36,5 +36,8 @@ jobs:
       - name: Run Phase 3 repo admission test
         run: bash operations/harness-phase3/tests/test_repo_admission.sh
 
+      - name: Run Phase 3 KB admission test
+        run: bash operations/harness-phase3/tests/test_kb_admission.sh
+
       - name: Run Phase 3 report shape test
         run: bash operations/harness-phase3/tests/test_report_shape.sh
