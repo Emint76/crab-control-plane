@@ -16,7 +16,7 @@ import yaml
 from jsonschema import Draft202012Validator
 
 
-class KBAdmissionError(ValueError):
+class KBAdmissionError(Exception):
     pass
 
 
@@ -112,8 +112,7 @@ def reject_existing_symlink_chain(root: Path, raw_path: Path, *, field_name: str
         raise KBAdmissionError(f"{field_name} must resolve inside the configured KB root") from exc
     current = root
     parts = list(relative.parts)
-    check_parts = parts if include_leaf else parts[:-1]
-    for part in check_parts:
+    for part in (parts if include_leaf else parts[:-1]):
         current = current / part
         if current.exists() or current.is_symlink():
             if current.is_symlink():
@@ -136,7 +135,7 @@ def resolve_workspace_path(kb_root: Path, value: Any, *, field_name: str, must_e
     return resolved
 
 
-def validate_kb_root(repo_root: Path, root_text: Any, *, field_name: str = "kb_root") -> Path:
+def validate_kb_root(repo_root: Path, root_text: Any, *, field_name: str) -> Path:
     if not isinstance(root_text, str) or not root_text.strip():
         raise KBAdmissionError(f"{field_name} must be a non-empty environment value")
     if "\\" in root_text or is_windows_path(root_text):
@@ -150,14 +149,30 @@ def validate_kb_root(repo_root: Path, root_text: Any, *, field_name: str = "kb_r
     if not resolved_root.is_dir():
         raise KBAdmissionError(f"{field_name} must exist before admission starts")
     repo_resolved = repo_root.resolve(strict=False)
-    try:
-        resolved_root.relative_to(repo_resolved)
-        raise KBAdmissionError(f"{field_name} must not be inside the crab-control-plane repository")
-    except ValueError:
-        pass
     if resolved_root == repo_resolved:
         raise KBAdmissionError(f"{field_name} must not be the crab-control-plane repository")
-    return resolved_root
+    try:
+        resolved_root.relative_to(repo_resolved)
+    except ValueError:
+        return resolved_root
+    raise KBAdmissionError(f"{field_name} must not be inside the crab-control-plane repository")
+
+
+def fallback_context(run_dir: Path) -> dict[str, Any]:
+    context: dict[str, Any] = {}
+    integration_path = run_dir / "input" / "kb_integration.yaml"
+    manifest_path = run_dir / "input" / "admission_manifest.json"
+    if integration_path.is_file():
+        context["kb_integration_hash"] = sha256_file(integration_path)
+        try:
+            integration = read_yaml_object(integration_path)
+            if isinstance(integration.get("root_path_env"), str):
+                context["kb_root_env"] = integration["root_path_env"]
+        except (OSError, yaml.YAMLError, KBAdmissionError):
+            pass
+    if manifest_path.is_file():
+        context["manifest_hash"] = sha256_file(manifest_path)
+    return context
 
 
 def load_and_validate_integration(repo_root: Path, integration_path: Path) -> tuple[dict[str, Any], list[str]]:
@@ -176,24 +191,25 @@ def resolve_runtime_context(repo_root: Path, run_dir: Path) -> dict[str, Any]:
     integration_path = run_dir / "input" / "kb_integration.yaml"
     manifest_path = run_dir / "input" / "admission_manifest.json"
     integration, integration_violations = load_and_validate_integration(repo_root, integration_path)
+    context: dict[str, Any] = {
+        "integration": integration,
+        "kb_integration_hash": sha256_file(integration_path),
+        "manifest_hash": sha256_file(manifest_path),
+    }
     if integration_violations:
         raise KBAdmissionError("kb integration schema invalid: " + ",".join(integration_violations))
     root_path_env = integration.get("root_path_env")
     if not isinstance(root_path_env, str) or not root_path_env:
         raise KBAdmissionError("kb integration root_path_env must be a non-empty string")
-    root_text = os.environ.get(root_path_env)
-    kb_root = validate_kb_root(repo_root, root_text, field_name=root_path_env)
-    return {
-        "integration": integration,
-        "kb_root": kb_root,
-        "kb_root_env": root_path_env,
-        "kb_root_resolved": redacted_path(kb_root),
-        "kb_integration_hash": sha256_file(integration_path),
-        "manifest_hash": sha256_file(manifest_path),
-    }
+    context["kb_root_env"] = root_path_env
+    kb_root = validate_kb_root(repo_root, os.environ.get(root_path_env), field_name=root_path_env)
+    context["kb_root"] = kb_root
+    context["kb_root_resolved"] = redacted_path(kb_root)
+    return context
 
 
 def base_evidence(run_dir: Path, context: dict[str, Any] | None, *, status: str, failure_stage: str | None, evidence: list[dict[str, Any]]) -> dict[str, Any]:
+    context = context or fallback_context(run_dir)
     return {
         "run_id": run_dir.name,
         "generated_at": now_utc(),
@@ -201,19 +217,20 @@ def base_evidence(run_dir: Path, context: dict[str, Any] | None, *, status: str,
         "target_kind": "kb_admission",
         "status": status,
         "failure_stage": failure_stage,
-        "kb_root_env": context.get("kb_root_env") if context else None,
-        "kb_root_resolved": context.get("kb_root_resolved") if context else None,
-        "kb_integration_hash": context.get("kb_integration_hash") if context else None,
-        "manifest_hash": context.get("manifest_hash") if context else None,
+        "kb_root_env": context.get("kb_root_env"),
+        "kb_root_resolved": context.get("kb_root_resolved"),
+        "kb_integration_hash": context.get("kb_integration_hash"),
+        "manifest_hash": context.get("manifest_hash"),
         "layout_enforcement": "descriptive_metadata_only",
         "evidence": evidence,
     }
 
 
 def write_failure_evidence(run_dir: Path, *, failure_stage: str, error: str, context: dict[str, Any] | None = None) -> None:
+    context = context or fallback_context(run_dir)
     item = {
-        "manifest_hash": context.get("manifest_hash") if context else None,
-        "kb_integration_hash": context.get("kb_integration_hash") if context else None,
+        "manifest_hash": context.get("manifest_hash"),
+        "kb_integration_hash": context.get("kb_integration_hash"),
         "source_artifact_hash": None,
         "destination_kb_path": None,
         "final_destination_hash": None,
@@ -273,20 +290,8 @@ def build_copy_plan(kb_root: Path, manifest: dict[str, Any], context: dict[str, 
                 raise KBAdmissionError("artifact entry must be an object")
             source_rel = normalize_kb_relative_path(artifact.get("input_workspace_path"), field_name="input_workspace_path")
             destination_rel = normalize_kb_relative_path(artifact.get("destination_kb_path"), field_name="destination_kb_path")
-            source_path = resolve_workspace_path(
-                kb_root,
-                source_rel,
-                field_name="input_workspace_path",
-                must_exist_file=True,
-                include_leaf_symlink=True,
-            )
-            destination_path = resolve_workspace_path(
-                kb_root,
-                destination_rel,
-                field_name="destination_kb_path",
-                must_exist_file=False,
-                include_leaf_symlink=False,
-            )
+            source_path = resolve_workspace_path(kb_root, source_rel, field_name="input_workspace_path", must_exist_file=True, include_leaf_symlink=True)
+            destination_path = resolve_workspace_path(kb_root, destination_rel, field_name="destination_kb_path", must_exist_file=False, include_leaf_symlink=False)
             if source_path == destination_path:
                 item["overwrite_verdict"] = "same_source_and_destination"
                 raise KBAdmissionError("source and destination must resolve to distinct files")
@@ -295,11 +300,7 @@ def build_copy_plan(kb_root: Path, manifest: dict[str, Any], context: dict[str, 
                 raise KBAdmissionError("destination_kb_path appears more than once in the manifest")
             planned_destinations.add(destination_rel)
             source_hash = sha256_file(source_path)
-            item["input_workspace_path"] = source_rel
-            item["destination_kb_path"] = destination_rel
-            item["source_artifact_hash"] = source_hash
-            item["source_path"] = str(source_path)
-            item["destination_fs_path"] = str(destination_path)
+            item.update({"input_workspace_path": source_rel, "destination_kb_path": destination_rel, "source_artifact_hash": source_hash, "source_path": str(source_path), "destination_fs_path": str(destination_path)})
             if source_hash != artifact.get("expected_sha256"):
                 item["overwrite_verdict"] = "source_hash_mismatch"
                 raise KBAdmissionError("source artifact hash does not match expected_sha256")
@@ -322,8 +323,7 @@ def build_copy_plan(kb_root: Path, manifest: dict[str, Any], context: dict[str, 
                 item["planned_action"] = "would_copy"
                 item["overwrite_verdict"] = "destination_missing"
         except KBAdmissionError as exc:
-            item["planned_action"] = item.get("planned_action", "failed_closed")
-            if item["planned_action"] not in {"would_copy", "would_idempotent"}:
+            if item.get("planned_action") not in {"would_copy", "would_idempotent"}:
                 item["planned_action"] = "failed_closed"
             item["action"] = "failed_closed"
             item["execution_status"] = "not_executed"
@@ -339,53 +339,34 @@ def preflight_failed_items(plan: list[dict[str, Any]]) -> list[dict[str, Any]]:
         evidence = public_plan_item(item)
         evidence["action"] = "failed_closed"
         evidence["execution_status"] = "not_executed"
-        if "error" not in evidence:
-            evidence["error"] = "manifest preflight failed; no artifact operations were executed"
+        evidence.setdefault("error", "manifest preflight failed; no artifact operations were executed")
         evidence_items.append(evidence)
     return evidence_items
 
 
 def validate_pre_apply(repo_root: Path, run_dir: Path) -> tuple[dict[str, Any] | None, list[str], list[dict[str, Any]]]:
-    violations: list[str] = []
-    artifacts_report: list[dict[str, Any]] = []
     context: dict[str, Any] | None = None
     manifest_path = run_dir / "input" / "admission_manifest.json"
-    integration_path = run_dir / "input" / "kb_integration.yaml"
-
     try:
         context = resolve_runtime_context(repo_root, run_dir)
     except (OSError, ValueError, yaml.YAMLError, json.JSONDecodeError, KBAdmissionError) as exc:
         write_failure_evidence(run_dir, failure_stage="kb_integration_or_root_validation", error=str(exc), context=context)
-        return context, ["kb_integration_or_root_validation"], artifacts_report
+        return context, ["kb_integration_or_root_validation"], []
 
     try:
         manifest, schema_violations = load_and_validate_manifest(repo_root, manifest_path)
     except (OSError, ValueError, json.JSONDecodeError, KBAdmissionError) as exc:
         write_failure_evidence(run_dir, failure_stage="manifest_read", error=str(exc), context=context)
-        return context, ["manifest_read"], artifacts_report
+        return context, ["manifest_read"], []
 
     if schema_violations:
-        write_failure_evidence(
-            run_dir,
-            failure_stage="manifest_schema",
-            error=",".join(schema_violations),
-            context=context,
-        )
-        return context, schema_violations, artifacts_report
+        write_failure_evidence(run_dir, failure_stage="manifest_schema", error=",".join(schema_violations), context=context)
+        return context, schema_violations, []
 
     plan, failures = build_copy_plan(context["kb_root"], manifest, context)
     artifacts_report = [public_plan_item(item) for item in plan]
     if failures:
-        write_json(
-            run_dir / "checks" / "kb_admission_evidence.json",
-            base_evidence(
-                run_dir,
-                context,
-                status="fail",
-                failure_stage="copy_plan_preflight",
-                evidence=preflight_failed_items(plan),
-            ),
-        )
+        write_json(run_dir / "checks" / "kb_admission_evidence.json", base_evidence(run_dir, context, status="fail", failure_stage="copy_plan_preflight", evidence=preflight_failed_items(plan)))
         return context, ["copy_plan_preflight"], artifacts_report
     return context, [], artifacts_report
 
@@ -393,17 +374,8 @@ def validate_pre_apply(repo_root: Path, run_dir: Path) -> tuple[dict[str, Any] |
 def write_apply_log(apply_log_path: Path, log_lines: list[str], evidence_items: list[dict[str, Any]], status: str, context: dict[str, Any] | None) -> None:
     action_summary = ",".join(str(item.get("action")) for item in evidence_items) if evidence_items else "none"
     if context is not None:
-        log_lines.extend(
-            [
-                f"kb_root_env={context.get('kb_root_env')}",
-                f"kb_integration_hash={context.get('kb_integration_hash')}",
-                f"manifest_hash={context.get('manifest_hash')}",
-            ]
-        )
-    log_lines.extend([
-        f"actions={action_summary}",
-        f"result={'success' if status == 'pass' else 'fail'}",
-    ])
+        log_lines.extend([f"kb_root_env={context.get('kb_root_env')}", f"kb_integration_hash={context.get('kb_integration_hash')}", f"manifest_hash={context.get('manifest_hash')}"])
+    log_lines.extend([f"actions={action_summary}", f"result={'success' if status == 'pass' else 'fail'}"])
     apply_log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
 
 
@@ -428,10 +400,7 @@ def execute_kb_admission(repo_root: Path, run_dir: Path) -> int:
     plan, failures = build_copy_plan(context["kb_root"], manifest, context)
     if failures:
         evidence_items = preflight_failed_items(plan)
-        write_json(
-            evidence_path,
-            base_evidence(run_dir, context, status="fail", failure_stage="copy_plan_preflight", evidence=evidence_items),
-        )
+        write_json(evidence_path, base_evidence(run_dir, context, status="fail", failure_stage="copy_plan_preflight", evidence=evidence_items))
         write_apply_log(apply_log_path, log_lines, evidence_items, "fail", context)
         return 1
 
@@ -464,15 +433,6 @@ def execute_kb_admission(repo_root: Path, run_dir: Path) -> int:
             item["error"] = str(exc)
         evidence_items.append(item)
 
-    write_json(
-        evidence_path,
-        base_evidence(
-            run_dir,
-            context,
-            status=overall_status,
-            failure_stage=None if overall_status == "pass" else "copy_execution",
-            evidence=evidence_items,
-        ),
-    )
+    write_json(evidence_path, base_evidence(run_dir, context, status=overall_status, failure_stage=None if overall_status == "pass" else "copy_execution", evidence=evidence_items))
     write_apply_log(apply_log_path, log_lines, evidence_items, overall_status, context)
     return 0 if overall_status == "pass" else 1
