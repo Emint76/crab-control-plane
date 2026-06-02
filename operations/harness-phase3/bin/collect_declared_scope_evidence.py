@@ -168,6 +168,84 @@ def collect_repo_admission(repo_root: Path, run_dir: Path, recorder: CheckRecord
     }
 
 
+def collect_kb_admission(repo_root: Path, run_dir: Path, recorder: CheckRecorder) -> dict[str, Any]:
+    evidence_path = run_dir / "checks" / "kb_admission_evidence.json"
+    apply_log_path = run_dir / "logs" / "apply.log"
+    destination_paths: list[str] = []
+    actions: list[str] = []
+    kb_root_env: str | None = None
+    kb_root_resolved: str | None = None
+
+    try:
+        admission_evidence = read_json_object(evidence_path)
+        items = admission_evidence.get("evidence")
+        if not isinstance(items, list):
+            raise ValueError("kb_admission_evidence.json must contain evidence array")
+        kb_root_env = admission_evidence.get("kb_root_env") if isinstance(admission_evidence.get("kb_root_env"), str) else None
+        kb_root_resolved = admission_evidence.get("kb_root_resolved") if isinstance(admission_evidence.get("kb_root_resolved"), str) else None
+        for item in items:
+            if isinstance(item, dict):
+                destination_path = item.get("destination_kb_path")
+                action = item.get("action")
+                if isinstance(destination_path, str):
+                    destination_paths.append(destination_path)
+                if isinstance(action, str):
+                    actions.append(action)
+        if admission_evidence.get("status") == "pass" and destination_paths:
+            recorder.pass_check(
+                "declared_scope.kb_admission_evidence.pass",
+                "KB admission evidence passed and destinations are relative to the configured workspace KB root.",
+                source_refs=[path_ref(repo_root, evidence_path)],
+                expected={"status": "pass", "target_runtime": "workspace"},
+                actual={"status": admission_evidence.get("status"), "destinations": destination_paths},
+            )
+        else:
+            recorder.fail_check(
+                "declared_scope.kb_admission_evidence.pass",
+                "KB admission evidence must pass with at least one relative destination under the configured workspace KB root.",
+                source_refs=[path_ref(repo_root, evidence_path)],
+                expected={"status": "pass", "target_runtime": "workspace"},
+                actual={"status": admission_evidence.get("status"), "destinations": destination_paths},
+            )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        recorder.fail_check(
+            "declared_scope.kb_admission_evidence.present",
+            f"KB admission evidence must be present and parseable: {exc}",
+            source_refs=[path_ref(repo_root, evidence_path)],
+            expected="parseable kb_admission_evidence.json",
+            actual="invalid or unreadable",
+        )
+
+    if apply_log_path.is_file():
+        recorder.pass_check(
+            "declared_scope.apply_log.present",
+            "apply.log is present for KB admission execution.",
+            source_refs=[path_ref(repo_root, apply_log_path)],
+            expected="present",
+            actual="present",
+        )
+    else:
+        recorder.fail_check(
+            "declared_scope.apply_log.present",
+            "apply.log must be present for KB admission execution.",
+            source_refs=[path_ref(repo_root, apply_log_path)],
+            expected="present",
+            actual="missing",
+        )
+
+    return {
+        "engine_mode": "kb_admission",
+        "declared_target_kind": "kb_admission",
+        "target_runtime": "workspace",
+        "kb_root_env": kb_root_env,
+        "kb_root_resolved": kb_root_resolved,
+        "layout_enforcement": "descriptive_metadata_only",
+        "destination_paths": destination_paths,
+        "actions": actions,
+        "writes_outside_scope": [],
+    }
+
+
 def collect_staging(repo_root: Path, run_dir: Path, recorder: CheckRecorder) -> dict[str, Any]:
     staging_root = run_dir / "staging"
     target_dir = staging_root / "runtime-ready-applied"
@@ -266,6 +344,8 @@ def main() -> int:
 
     if execution_target.get("target_kind") == "repo_admission":
         evidence = collect_repo_admission(repo_root, run_dir, recorder)
+    elif execution_target.get("target_kind") == "kb_admission":
+        evidence = collect_kb_admission(repo_root, run_dir, recorder)
     else:
         evidence = collect_staging(repo_root, run_dir, recorder)
 
