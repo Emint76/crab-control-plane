@@ -15,6 +15,7 @@ phase3-ci:
 	bash operations/harness-phase3/tests/test_fail_closed_and_evidence.sh
 	bash operations/harness-phase3/tests/test_execution_target_schema_contract.sh
 	bash operations/harness-phase3/tests/test_repo_admission.sh
+	bash operations/harness-phase3/tests/test_kb_admission.sh
 	bash operations/harness-phase3/tests/test_report_shape.sh
 
 phase4-ci:
