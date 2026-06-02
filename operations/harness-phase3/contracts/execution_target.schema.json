@@ -66,6 +66,38 @@
           "minLength": 1
         }
       }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_runtime",
+        "target_kind",
+        "kb_integration_ref",
+        "admission_manifest_ref"
+      ],
+      "properties": {
+        "target_runtime": {
+          "type": "string",
+          "const": "workspace"
+        },
+        "target_kind": {
+          "type": "string",
+          "const": "kb_admission"
+        },
+        "kb_integration_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "admission_manifest_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "invoked_by": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   ]
 }
