@@ -10,7 +10,7 @@ if [[ "$#" -ne 2 ]]; then
   exit 2
 fi
 
-PYTHON_BIN="${PHASE2_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON:-python3}}"
 if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
   echo "FAIL python runtime not found: ${PYTHON_BIN}" >&2
   exit 1

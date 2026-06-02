@@ -43,7 +43,7 @@ done
 [[ -n "${PHASE2_RUN_DIR}" ]] || { echo "FAIL missing --phase2-run-dir" >&2; usage; exit 2; }
 [[ -n "${EXECUTION_TARGET_JSON}" ]] || { echo "FAIL missing --execution-target-json" >&2; usage; exit 2; }
 
-PYTHON_BIN="${PHASE3_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE3_PYTHON_BIN:-${PYTHON:-python3}}"
 
 validate_run_id() {
   local run_id="$1"

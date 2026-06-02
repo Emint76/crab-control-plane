@@ -7,7 +7,7 @@ REPO_ROOT="$(cd "${PHASE2_ROOT}/../.." && pwd)"
 RUNS_ROOT="${PHASE2_ROOT}/runs"
 TMP_DIR="$(mktemp -d)"
 
-PYTHON_BIN="${PHASE2_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON:-python3}}"
 export PHASE2_PYTHON_BIN="${PYTHON_BIN}"
 
 BUNDLE_RUN_ID="phase2-run-dir-bundle-valid"

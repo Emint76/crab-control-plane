@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PHASE2_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PHASE2_ROOT}/../.." && pwd)"
-PYTHON_BIN="${PHASE2_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON:-python3}}"
 RUN_ID="observability-emitter-test"
 REPORT_PATH="${PHASE2_ROOT}/reports/observability-sample.jsonl"
 

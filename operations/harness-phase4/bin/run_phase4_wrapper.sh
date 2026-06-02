@@ -4,7 +4,7 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PHASE4_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PHASE4_ROOT}/../.." && pwd)"
-PYTHON_BIN="${PHASE4_PYTHON_BIN:-${PHASE3_PYTHON_BIN:-python}}"
+PYTHON_BIN="${PHASE4_PYTHON_BIN:-${PHASE3_PYTHON_BIN:-${PYTHON:-python3}}}"
 
 usage() {
   cat <<'EOF' >&2
@@ -407,7 +407,7 @@ def main(argv: list[str]) -> int:
     phase3_env["PATH"] = python_dir + os.pathsep + phase3_env.get("PATH", "")
     phase3_env["PHASE3_PYTHON_BIN"] = phase3_env.get(
         "PHASE4_PYTHON_BIN_RESOLVED",
-        phase3_env.get("PHASE3_PYTHON_BIN", "python"),
+        phase3_env.get("PHASE3_PYTHON_BIN", phase3_env.get("PYTHON", "python3")),
     )
     phase3_result = subprocess.run(phase3_command, cwd=repo_root, env=phase3_env, check=False)
     phase3_exit_status = phase3_result.returncode

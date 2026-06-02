@@ -1,3 +1,12 @@
+PYTHON ?= python3
+PHASE2_PYTHON_BIN ?= $(PYTHON)
+PHASE3_PYTHON_BIN ?= $(PYTHON)
+PHASE4_PYTHON_BIN ?= $(PYTHON)
+export PYTHON
+export PHASE2_PYTHON_BIN
+export PHASE3_PYTHON_BIN
+export PHASE4_PYTHON_BIN
+
 smoke-e2e:
 	bash operations/harness-e2e/tests/test_smoke_e2e.sh
 
@@ -10,7 +19,7 @@ phase2-ci:
 	bash operations/harness-phase2/tests/test_observability_emitter.sh
 
 phase3-ci:
-	python -m compileall operations/harness-phase3/bin
+	$(PYTHON) -m compileall operations/harness-phase3/bin
 	bash operations/harness-phase3/tests/test_run_dir_invariants.sh
 	bash operations/harness-phase3/tests/test_fail_closed_and_evidence.sh
 	bash operations/harness-phase3/tests/test_execution_target_schema_contract.sh
@@ -19,7 +28,7 @@ phase3-ci:
 	bash operations/harness-phase3/tests/test_report_shape.sh
 
 phase4-ci:
-	python -m compileall operations/harness-phase3/bin
+	$(PYTHON) -m compileall operations/harness-phase3/bin
 	bash operations/harness-phase4/tests/test_phase4_wrapper.sh
 
 orchestration-ci:

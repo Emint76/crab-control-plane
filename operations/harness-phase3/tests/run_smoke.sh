@@ -8,14 +8,8 @@ TMP_DIR="${SCRIPT_DIR}/tmp"
 
 mkdir -p "${TMP_DIR}"
 
-if [[ -z "${PHASE3_PYTHON_BIN:-}" ]]; then
-  if command -v python >/dev/null 2>&1; then
-    export PHASE3_PYTHON_BIN="python"
-  elif [[ -x "/c/Program Files/LibreOffice/program/python.exe" ]]; then
-    export PHASE3_PYTHON_BIN="/c/Program Files/LibreOffice/program/python.exe"
-  fi
-fi
-PYTHON_BIN="${PHASE3_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE3_PYTHON_BIN:-${PYTHON:-python3}}"
+export PHASE3_PYTHON_BIN="${PYTHON_BIN}"
 
 PHASE2_RUN_DIR="${REPO_ROOT}/operations/harness-phase2/runs/pr2d-pass"
 POS_RUN_ID="phase3-smoke-positive"
