@@ -205,6 +205,9 @@ def main() -> int:
     if execution_target.get("target_kind") == "repo_admission":
         script_path = Path(__file__).resolve(strict=False).parent / "validate_repo_admission_pre_apply.py"
         return subprocess.run([sys.executable, str(script_path), str(repo_root), str(run_dir)], check=False).returncode
+    if execution_target.get("target_kind") == "kb_admission":
+        script_path = Path(__file__).resolve(strict=False).parent / "validate_kb_admission_pre_apply.py"
+        return subprocess.run([sys.executable, str(script_path), str(repo_root), str(run_dir)], check=False).returncode
     return validate_staging(repo_root, run_dir)
 
 
