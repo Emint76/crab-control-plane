@@ -6,9 +6,9 @@ PHASE3_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PHASE3_ROOT}/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
 
-PHASE3_PYTHON_BIN="${PHASE3_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE3_PYTHON_BIN:-${PYTHON:-python3}}"
+PHASE3_PYTHON_BIN="${PYTHON_BIN}"
 export PHASE3_PYTHON_BIN
-PYTHON_BIN="${PHASE3_PYTHON_BIN}"
 export PHASE2_PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON_BIN}}"
 
 PHASE2_RUN_ID="phase3-run-dir-invariants-phase2-input"
