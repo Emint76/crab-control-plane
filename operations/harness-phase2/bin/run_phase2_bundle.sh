@@ -35,7 +35,7 @@ validate_run_id "${RUN_ID}" || exit 2
 
 GENERATED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-PYTHON_BIN="${PHASE2_PYTHON_BIN:-python}"
+PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON:-python3}}"
 if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
   echo "FAIL python runtime not found: ${PYTHON_BIN}" >&2
   exit 1
