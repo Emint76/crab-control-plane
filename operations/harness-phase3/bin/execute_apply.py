@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from kb_admission_lib import execute_kb_admission
 from repo_admission_lib import execute_repo_admission
 
 
@@ -83,6 +84,8 @@ def main() -> int:
     execution_target = read_json_object(run_dir / "input" / "execution_target.json")
     if execution_target.get("target_kind") == "repo_admission":
         return execute_repo_admission(repo_root, run_dir)
+    if execution_target.get("target_kind") == "kb_admission":
+        return execute_kb_admission(repo_root, run_dir)
     return execute_staging(run_dir)
 
 
