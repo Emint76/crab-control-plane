@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/crab-control-plane/kb_runtime_integration.schema.json",
+  "title": "KB Runtime Integration Template",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "integration",
+    "enabled",
+    "target_runtime",
+    "root_path_env",
+    "default_root_hint",
+    "root_path_policy",
+    "layout"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "integration": {
+      "type": "string",
+      "const": "kb"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "target_runtime": {
+      "type": "string",
+      "const": "workspace"
+    },
+    "root_path_env": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
+    },
+    "default_root_hint": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Example/default root hint only. This is not repo-owned state and is not required to be an absolute path."
+    },
+    "root_path_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "configured_at_runtime",
+        "repo_payload",
+        "default_root_hint_is_required",
+        "repo_owns_root",
+        "secrets_allowed"
+      ],
+      "properties": {
+        "configured_at_runtime": {
+          "type": "boolean",
+          "const": true
+        },
+        "repo_payload": {
+          "type": "boolean",
+          "const": false
+        },
+        "default_root_hint_is_required": {
+          "type": "boolean",
+          "const": false
+        },
+        "repo_owns_root": {
+          "type": "boolean",
+          "const": false
+        },
+        "secrets_allowed": {
+          "type": "boolean",
+          "const": false
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sources",
+        "knowledge",
+        "collections"
+      ],
+      "properties": {
+        "sources": {
+          "$ref": "#/$defs/layout_entry_sources"
+        },
+        "knowledge": {
+          "$ref": "#/$defs/layout_entry_knowledge"
+        },
+        "collections": {
+          "$ref": "#/$defs/layout_entry_collections"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "layout_entry_sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "description"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "const": "sources"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "layout_entry_knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "description"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "const": "knowledge"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "layout_entry_collections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "description"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "const": "collections"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
