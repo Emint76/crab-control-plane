@@ -3,8 +3,12 @@
 ## Purpose
 Define the threshold for allowing assets into the KB and distinguish source-bearing assets from knowledge assets.
 
+Admission means accepting a prepared asset into the KB.
+
 ## Scope
 Applies to all proposed KB entries, including source capture packages, curated source-bearing assets, and approved knowledge assets.
+
+For the live KB corpus, the KB target is the OpenClaw workspace KB root configured at runtime, not the `crab-control-plane` repository. Existing `repo_admission` behavior remains a bounded repository admission surface for repo-owned layout discipline and curated examples; it is not the storage path for the full live KB corpus.
 
 ## Allowed behavior
 - Admit a **source-bearing asset** when it preserves external source provenance in stable form.
@@ -17,6 +21,8 @@ Applies to all proposed KB entries, including source capture packages, curated s
 - Admitting semantic drafts that have not passed review.
 - Admitting source-bearing assets without canonical pointer, retrieval status, retrieval timestamp, content type, stable representation, and human identifier.
 - Treating Notion or Obsidian as the canonical KB.
+- Treating `repo_admission` as the live KB corpus storage path.
+- Storing the full live KB corpus in this repository unless an asset is explicitly curated as an example.
 
 ## Required checkpoints
 1. Classify the candidate as `source-bearing` or `knowledge`.
@@ -24,11 +30,13 @@ Applies to all proposed KB entries, including source capture packages, curated s
 3. Confirm provenance minimums.
 4. Confirm a review decision authorizes KB placement.
 5. Confirm the asset is expressed in stable representation rather than transient workflow form.
+6. Confirm live-corpus storage targets the runtime-configured workspace KB root unless the asset is explicitly curated as a repository example.
 
 ## Interaction with adjacent layers
 - **Notion:** tracks the admission request and review status, but not the sanctioned asset itself.
 - **Obsidian:** may hold draft semantic notes that later mature into KB knowledge assets.
 - **Contracts:** source capture package and knowledge note contract provide admission inputs.
+- **Runtime integration:** identifies the workspace KB root configuration surface for live corpus storage.
 - **Retrieval:** admitted assets become preferred retrieval sources over drafts.
 
 ## Examples
@@ -41,3 +49,4 @@ Applies to all proposed KB entries, including source capture packages, curated s
 - Omitting stable representation and leaving only a volatile URL.
 - Admitting a draft Obsidian note directly into KB without review.
 - Losing linkage between knowledge assets and the sources that justify them.
+- Confusing repository examples or repo admission discipline with the live workspace KB corpus.

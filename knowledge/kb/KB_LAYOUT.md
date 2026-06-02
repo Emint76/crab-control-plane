@@ -3,7 +3,13 @@
 ## Purpose
 Define the high-level layout and discipline for sanctioned assets in the KB.
 
+## Storage boundary
+The live KB corpus lives under the OpenClaw workspace KB root configured at runtime.
+The repository path `knowledge/kb/` documents layout, admission discipline, and curated examples only. It must not be treated as the storage location for the full live KB corpus.
+
 ## Layout
+The workspace KB root uses these top-level layout entries:
+
 - `sources/` for sanctioned source-bearing assets and source capture packages
 - `knowledge/` for sanctioned knowledge assets
 - `collections/` for curated groupings over sanctioned assets
@@ -40,3 +46,4 @@ Collections organize sanctioned assets for retrieval or navigation. They do not 
 - Raw workflow and task objects do not belong in the KB because they encode transient operational state, not reusable sanctioned knowledge.
 - Draft semantic notes stay in Obsidian until reviewed and admitted.
 - Source-bearing and knowledge assets must stay distinguishable; a synthesis note is not a source package, and a captured page is not a final knowledge asset simply because it is useful.
+- Full live corpus payloads belong in the runtime-configured workspace KB root, not in this repository, unless explicitly curated as examples.

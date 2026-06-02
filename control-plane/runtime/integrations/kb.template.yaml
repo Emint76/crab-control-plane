@@ -1,6 +1,27 @@
 version: 1
 integration: kb
 enabled: true
+target_runtime: workspace
+root_path_env: OPENCLAW_WORKSPACE_KB_ROOT
+default_root_hint: /home/gennady/.openclaw/workspace/kb
+root_path_policy:
+  configured_at_runtime: true
+  repo_payload: false
+  default_root_hint_is_required: false
+  repo_owns_root: false
+  secrets_allowed: false
+layout:
+  sources:
+    path: sources
+    description: Sanctioned source-bearing assets and source capture packages.
+  knowledge:
+    path: knowledge
+    description: Sanctioned knowledge assets approved for retrieval.
+  collections:
+    path: collections
+    description: Curated groupings over sanctioned KB assets.
 notes:
-  - template only
-  - fill with non-secret project values later
+  - This template is non-secret runtime integration metadata only.
+  - The live KB corpus lives under the configured OpenClaw workspace KB root.
+  - The default_root_hint is an example/default hint, not repo-owned state.
+  - This repository stores contracts, policies, templates, layout discipline, and curated examples only.
