@@ -67,19 +67,39 @@ def freeze_admission_manifest_if_needed(repo_root: Path, execution_target_json: 
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise AdmissionError(f"external execution target JSON is invalid or unreadable: {exc}") from exc
 
-    if target_payload.get("target_kind") != "repo_admission":
+    target_kind = target_payload.get("target_kind")
+    if target_kind not in {"repo_admission", "kb_admission"}:
         return
 
     manifest_ref = target_payload.get("admission_manifest_ref")
     manifest_path = resolve_existing_repo_file(repo_root, manifest_ref, field_name="admission_manifest_ref")
     shutil.copyfile(manifest_path, input_dir / "admission_manifest.json")
+
+    if target_kind == "repo_admission":
+        write_json(
+            input_dir / "admission_manifest_freeze.json",
+            {
+                "generated_at": now_utc(),
+                "admission_manifest_ref": manifest_ref,
+                "frozen_manifest_ref": "input/admission_manifest.json",
+                "manifest_hash": sha256_file(manifest_path),
+            },
+        )
+        return
+
+    kb_integration_ref = target_payload.get("kb_integration_ref")
+    kb_integration_path = resolve_existing_repo_file(repo_root, kb_integration_ref, field_name="kb_integration_ref")
+    shutil.copyfile(kb_integration_path, input_dir / "kb_integration.yaml")
     write_json(
-        input_dir / "admission_manifest_freeze.json",
+        input_dir / "kb_admission_freeze.json",
         {
             "generated_at": now_utc(),
             "admission_manifest_ref": manifest_ref,
             "frozen_manifest_ref": "input/admission_manifest.json",
             "manifest_hash": sha256_file(manifest_path),
+            "kb_integration_ref": kb_integration_ref,
+            "frozen_kb_integration_ref": "input/kb_integration.yaml",
+            "kb_integration_hash": sha256_file(kb_integration_path),
         },
     )
 
@@ -124,7 +144,7 @@ def main() -> int:
     try:
         freeze_admission_manifest_if_needed(repo_root, execution_target_json, input_dir)
     except AdmissionError as exc:
-        print(f"invalid repo admission manifest ref: {exc}", file=sys.stderr)
+        print(f"invalid admission input ref: {exc}", file=sys.stderr)
         return 1
 
     for frozen_name, source_rel_path in REQUIRED_PHASE2_FILES.items():
