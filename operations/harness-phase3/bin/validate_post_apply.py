@@ -127,6 +127,27 @@ def validate_declared_scope(repo_root: Path, run_dir: Path, recorder: CheckRecor
         evidence = declared_scope.get("evidence")
         if not isinstance(evidence, dict):
             raise ValueError("declared_scope_evidence.json must contain an evidence object")
+        if evidence.get("engine_mode") == "kb_admission":
+            destination_paths = evidence.get("destination_paths", [])
+            writes_outside_scope = evidence.get("writes_outside_scope", [])
+            if declared_scope.get("status") == "pass" and is_string_list(destination_paths) and destination_paths and writes_outside_scope == []:
+                recorder.pass_check(
+                    "declared_scope.only",
+                    "Declared scope evidence confirms KB admission wrote only relative destinations under the configured workspace KB root.",
+                    source_refs=[path_ref(repo_root, declared_scope_path)],
+                    expected={"status": "pass", "writes_outside_scope": [], "target_runtime": "workspace"},
+                    actual={"status": declared_scope.get("status"), "destination_paths": destination_paths},
+                )
+            else:
+                recorder.fail_check(
+                    "declared_scope.only",
+                    "KB admission declared scope evidence must pass with relative destinations and no writes outside scope.",
+                    source_refs=[path_ref(repo_root, declared_scope_path)],
+                    expected={"status": "pass", "writes_outside_scope": [], "target_runtime": "workspace"},
+                    actual={"status": declared_scope.get("status"), "destination_paths": destination_paths, "writes_outside_scope": writes_outside_scope},
+                )
+            return
+
         observed_paths = evidence.get("observed_paths", evidence.get("destination_paths", []))
         allowlist = evidence.get("allowlist")
         writes_outside_scope = evidence.get("writes_outside_scope", [])
@@ -235,6 +256,51 @@ def validate_repo_admission_evidence(repo_root: Path, run_dir: Path, recorder: C
         )
 
 
+def validate_kb_admission_evidence(repo_root: Path, run_dir: Path, recorder: CheckRecorder) -> None:
+    evidence_path = run_dir / "checks" / "kb_admission_evidence.json"
+    try:
+        payload = read_json_object(evidence_path)
+        items = payload.get("evidence")
+        if not isinstance(items, list) or not items:
+            raise ValueError("kb_admission_evidence.json must contain a non-empty evidence array")
+        actions = [item.get("action") for item in items if isinstance(item, dict)]
+        verdicts = [item.get("overwrite_verdict") for item in items if isinstance(item, dict)]
+        hash_fields_present = all(
+            isinstance(item, dict)
+            and item.get("manifest_hash")
+            and item.get("kb_integration_hash")
+            and item.get("source_artifact_hash")
+            and item.get("destination_kb_path")
+            and item.get("final_destination_hash")
+            for item in items
+        )
+        root_fields_present = bool(payload.get("kb_root_env") and payload.get("kb_root_resolved") and payload.get("kb_integration_hash") and payload.get("manifest_hash"))
+        if payload.get("status") == "pass" and root_fields_present and hash_fields_present and all(action in {"copied", "idempotent"} for action in actions):
+            recorder.pass_check(
+                "kb_admission.evidence.complete",
+                "KB admission evidence records root metadata, hashes, destination path, action, and overwrite verdict.",
+                source_refs=[path_ref(repo_root, evidence_path)],
+                expected="complete copied or idempotent workspace KB evidence",
+                actual={"actions": actions, "overwrite_verdicts": verdicts},
+            )
+        else:
+            recorder.fail_check(
+                "kb_admission.evidence.complete",
+                "KB admission evidence must pass with copied or idempotent actions and complete root/hash fields.",
+                source_refs=[path_ref(repo_root, evidence_path)],
+                expected="complete copied or idempotent workspace KB evidence",
+                actual={"status": payload.get("status"), "actions": actions, "overwrite_verdicts": verdicts},
+            )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        recorder.fail_check(
+            "kb_admission.evidence.complete",
+            f"KB admission evidence must be present and parseable: {exc}",
+            source_refs=[path_ref(repo_root, evidence_path)],
+            expected="parseable kb_admission_evidence.json",
+            actual="invalid or unreadable",
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("repo_root")
@@ -256,6 +322,9 @@ def main() -> int:
     if execution_target.get("target_kind") == "repo_admission":
         validate_repo_admission_evidence(repo_root, run_dir, recorder)
         engine_mode = "repo_admission"
+    elif execution_target.get("target_kind") == "kb_admission":
+        validate_kb_admission_evidence(repo_root, run_dir, recorder)
+        engine_mode = "kb_admission"
     else:
         validate_staging_materialization(repo_root, run_dir, recorder)
         engine_mode = "scaffold"

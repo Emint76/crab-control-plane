@@ -113,6 +113,13 @@ class Recorder:
         else:
             self.add("target_fields.safe_path_values", "pass", "Target fields do not contain unsafe path values.")
 
+    def require_repo_relative_ref(self, payload: dict[str, Any], field: str) -> None:
+        try:
+            normalize_repo_ref(str(payload.get(field)), field_name=field)
+            self.add(f"{field}.repo_relative", "pass", f"{field} is a repository-relative ref.")
+        except AdmissionError as exc:
+            self.add(f"{field}.repo_relative", "fail", str(exc))
+
     def report(self) -> dict[str, Any]:
         return {
             "status": "fail" if self.violations else "pass",
@@ -143,15 +150,30 @@ def validate_repo_admission(payload: dict[str, Any], recorder: Recorder, run_dir
     recorder.require_non_empty_string(payload, "admission_manifest_ref")
     recorder.require_optional_string(payload, "invoked_by")
     recorder.reject_unsafe_paths(payload, ["target_runtime", "target_kind", "admission_manifest_ref", "invoked_by"])
-    try:
-        normalize_repo_ref(str(payload.get("admission_manifest_ref")), field_name="admission_manifest_ref")
-        recorder.add("admission_manifest_ref.repo_relative", "pass", "admission_manifest_ref is a repository-relative ref.")
-    except AdmissionError as exc:
-        recorder.add("admission_manifest_ref.repo_relative", "fail", str(exc))
+    recorder.require_repo_relative_ref(payload, "admission_manifest_ref")
     if (run_dir / "input" / "admission_manifest.json").is_file():
         recorder.add("admission_manifest.frozen", "pass", "Admission manifest is frozen under the Phase 3 run input directory.")
     else:
         recorder.add("admission_manifest.frozen", "fail", "Admission manifest must be frozen before target validation completes.")
+
+
+def validate_kb_admission(payload: dict[str, Any], recorder: Recorder, run_dir: Path) -> None:
+    recorder.require_equal(payload, "target_runtime", "workspace")
+    recorder.require_equal(payload, "target_kind", "kb_admission")
+    recorder.require_non_empty_string(payload, "kb_integration_ref")
+    recorder.require_non_empty_string(payload, "admission_manifest_ref")
+    recorder.require_optional_string(payload, "invoked_by")
+    recorder.reject_unsafe_paths(payload, ["target_runtime", "target_kind", "kb_integration_ref", "admission_manifest_ref", "invoked_by"])
+    recorder.require_repo_relative_ref(payload, "kb_integration_ref")
+    recorder.require_repo_relative_ref(payload, "admission_manifest_ref")
+    if (run_dir / "input" / "admission_manifest.json").is_file():
+        recorder.add("admission_manifest.frozen", "pass", "Admission manifest is frozen under the Phase 3 run input directory.")
+    else:
+        recorder.add("admission_manifest.frozen", "fail", "Admission manifest must be frozen before target validation completes.")
+    if (run_dir / "input" / "kb_integration.yaml").is_file():
+        recorder.add("kb_integration.frozen", "pass", "KB integration template is frozen under the Phase 3 run input directory.")
+    else:
+        recorder.add("kb_integration.frozen", "fail", "KB integration template must be frozen before target validation completes.")
 
 
 def main() -> int:
@@ -209,6 +231,8 @@ def main() -> int:
 
     if payload.get("target_kind") == "repo_admission":
         validate_repo_admission(payload, recorder, run_dir)
+    elif payload.get("target_kind") == "kb_admission":
+        validate_kb_admission(payload, recorder, run_dir)
     else:
         validate_phase3_staging(payload, recorder, run_id)
 

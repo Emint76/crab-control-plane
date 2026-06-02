@@ -39,7 +39,7 @@ def main() -> int:
     except (OSError, ValueError, json.JSONDecodeError):
         execution_target = {}
 
-    if execution_target.get("target_kind") == "repo_admission":
+    if execution_target.get("target_kind") in {"repo_admission", "kb_admission"}:
         marker_dir = run_dir / "staging" / "runtime-ready-applied"
         marker_dir.mkdir(parents=True, exist_ok=True)
         return 0
