@@ -14,6 +14,16 @@ The repository path `knowledge/kb/` documents layout, admission discipline, and 
 
 Examples in this document are illustrative path shapes only. They are not live KB assets.
 
+## Knowledge distillation references
+
+Proposed knowledge distillation documentation lives in:
+
+* `knowledge/kb/KNOWLEDGE_ASSET_TYPES.md` - knowledge asset type registry and template links
+* `knowledge/kb/asset-templates/` - markdown templates for knowledge candidates and future admitted knowledge assets
+* `knowledge/kb/domain-profiles/` - proposed Domain Knowledge Profiles for candidate structure and semantic distillation expectations
+
+These references do not change live KB layout semantics and do not authorize KB admission.
+
 ## Repo-defined live KB top-level layout
 
 The workspace KB root uses a domain-first layout.
