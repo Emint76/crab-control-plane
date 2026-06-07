@@ -1,17 +1,24 @@
-# recipe_formula_distillation template
+# recipe_formula_extraction template
 
 ## Purpose
 
-Template for `recipe_formula_distillation` knowledge candidates and future admitted knowledge assets.
+Template for `recipe_formula_extraction` knowledge candidates and future admitted knowledge assets.
 
-This template is markdown-first documentation. It does not create a schema, validator, admission mechanic, runtime write, or live KB asset.
+This template defines an agreed extraction output structure for agent-led semantic extraction. It is markdown-first documentation. It does not create a schema, validator, Phase behavior, admission mechanic, runtime write, or live KB asset.
 
 ## Asset kind semantics
 
-- `knowledge_candidate`: prepared semantic distillation that is not yet a sanctioned KB asset.
+- `knowledge_candidate`: agent-prepared semantic extraction output that is not yet a sanctioned KB asset.
 - `knowledge_asset`: sanctioned KB asset after required review and admission path.
 
 A file using this template starts as `knowledge_candidate` unless a review decision and admission path explicitly authorize KB placement.
+
+## Profile and review gates
+
+- Profile approval = agreed extraction structure.
+- Review decision = KB placement authorization.
+
+Do not collapse these gates. Approval or refinement of this template/profile means the agent has an agreed data structure for extraction. It does not mean any prepared candidate is acceptable for KB placement.
 
 ## Required front matter
 
@@ -21,7 +28,7 @@ Use these fields at minimum:
 ---
 asset_id: "<stable-asset-id>"
 asset_kind: "knowledge_candidate"
-knowledge_type: "recipe_formula_distillation"
+knowledge_type: "recipe_formula_extraction"
 domain_area: "<domain-area>"
 source_family_id: "<publisher-or-source-family-id>"
 publisher: "<publisher-name>"
@@ -29,39 +36,42 @@ title: "<knowledge-candidate-title>"
 source_title: "<source-title>"
 source_url: "<canonical-source-url-or-pointer>"
 product_type: "<product-or-formula-type>"
-use_context: "<intended-use-context-as-stated-or-derived>"
+use_context: "<intended-use-context-as-stated-or-interpreted>"
 water_system: "<water-system-status-or-not-stated>"
 kb_family_root: "<domain-area>/<source-family-id>"
 source_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/sources/<source-asset-id>/"
 knowledge_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/knowledge/<asset-id>/"
-distillation_workflow_path: "<workflow-or-evidence-path-or-not-available>"
+extraction_profile_path: "knowledge/kb/extraction-profiles/<domain>/index.md"
+extraction_workflow_path: "<workflow-or-evidence-path-or-not-available>"
 source_status: "<captured|source_admitted|reviewed|not_available>"
 knowledge_status: "candidate"
 review_status: "not_reviewed"
 claim_scope: "<what-this-candidate-claims-to-cover>"
 validation_scope: "not validated beyond source-stated content unless explicitly reviewed"
 formula_summary: "<one-sentence-source-grounded-summary>"
-distillation:
-  profile_path: "knowledge/kb/domain-profiles/<domain>/index.md"
-  skill_path: "<distillation-skill-or-procedure-path-or-not-specified>"
-  prepared_by: "<author-or-process-id>"
+extraction:
+  profile_path: "knowledge/kb/extraction-profiles/<domain>/index.md"
+  profile_approval_ref: "<profile-approval-or-refinement-ref>"
+  prepared_by: "<agent-or-author-id>"
   prepared_at: "<YYYY-MM-DD-or-not-stated>"
   review_decision_id: "<review-decision-id-or-not-reviewed>"
-  phase_evidence:
-    phase: "<phase-name-or-not-applicable>"
+  phase3_kb_admission:
+    target_kind: "kb_admission"
     run_id: "<run-id-or-not-applicable>"
+    manifest_ref: "<manifest-path-or-not-applicable>"
     evidence_path: "<evidence-path-or-not-applicable>"
-    admitted_result_path: "<phase-admitted-result-path-or-not-applicable>"
 ---
 ```
 
 ## Status boundaries
 
-- Phase-admitted does not mean semantic review.
-- Semantic review does not mean cosmetic safety, stability, preservative challenge, regulatory, GMP, or manufacturing validation.
 - A source-bearing asset is not a knowledge asset.
-- Captured source material is not semantic distillation.
+- Captured source material is not semantic extraction.
 - A knowledge candidate is not a sanctioned KB asset.
+- Agent extraction does not mean semantic review.
+- Semantic review does not mean cosmetic safety, stability, preservative challenge, regulatory, GMP, or manufacturing validation.
+- Phase 3 `kb_admission` admits already prepared artifacts byte-for-byte.
+- Phase evidence proves controlled execution/admission, not semantic correctness.
 - `knowledge_asset` status requires the applicable review and admission path.
 
 ## Source / provenance requirements
@@ -77,10 +87,11 @@ Required provenance fields or section entries:
 - source asset path when available;
 - retrieval or capture status when available;
 - content hashes or stable representation identifiers when available;
-- distillation workflow path or evidence reference when available;
+- extraction profile path and approval/refinement reference when available;
+- extraction workflow path or evidence reference when available;
 - review decision reference when available.
 
-Claims must be supported by provenance or explicitly marked as not stated, inferred, or not validated.
+Claims must be supported by provenance or explicitly marked as source-stated, agent-interpreted, inferred, not stated, or not validated.
 
 ## Formula by phase requirements
 
@@ -90,7 +101,7 @@ If grams, percentages, pH, shelf life, safety limits, packaging, or process deta
 
 Minimum phase table columns:
 
-| Phase | Component | Amount / grams | Percentage | Source wording / pointer | Function | Notes |
+| Phase | Component | Amount / grams | Percentage | Source wording / pointer | Agent-interpreted function | Notes |
 |---|---|---|---|---|---|---|
 | `<phase>` | `<component>` | `<grams-or-not-stated>` | `<percent-or-not-stated>` | `<source-pointer>` | `<function>` | `<notes>` |
 
@@ -100,9 +111,9 @@ Each listed component must have a source-grounded or explicitly inferred functio
 
 Minimum component/function table columns:
 
-| Component | Source-stated function | Distilled / inferred function | Evidence pointer | Not stated / not validated |
-|---|---|---|---|---|
-| `<component>` | `<function-or-not-stated>` | `<interpretation-or-none>` | `<source-pointer>` | `<boundary>` |
+| Component | Source-stated function | Agent interpretation | Inferred content | Evidence pointer | Not stated / not validated |
+|---|---|---|---|---|---|
+| `<component>` | `<function-or-not-stated>` | `<interpretation-or-none>` | `<inference-or-none>` | `<source-pointer>` | `<boundary>` |
 
 ## Required markdown sections
 
@@ -112,14 +123,16 @@ Use these sections in this order.
 
 - Asset kind: `<knowledge_candidate|knowledge_asset>`
 - Knowledge status: `<candidate|admitted>`
+- Profile approval/refinement: `<ref-or-not-approved>`
 - Review status: `<not_reviewed|in_review|approved|returned|held|rejected>`
-- Phase evidence: `<none|phase/run reference>`
+- Phase evidence: `<none|phase3-kb-admission/run reference>`
 
 State explicitly:
 
 ```text
-Phase-admitted does not mean semantic review.
-Semantic review does not mean cosmetic safety, stability, preservative challenge, regulatory, GMP, or manufacturing validation.
+Profile approval means agreed extraction structure, not KB placement authorization.
+Review decision authorizes KB placement when admission requirements are met.
+Phase evidence proves controlled admission of prepared artifacts, not semantic correctness.
 ```
 
 ## Source / provenance
@@ -131,7 +144,8 @@ Semantic review does not mean cosmetic safety, stability, preservative challenge
 - Source asset path: `<source_asset_path>`
 - Source capture / admission status: `<source_status>`
 - Hashes / stable representation IDs: `<hashes-or-not-available>`
-- Distillation workflow path: `<distillation_workflow_path>`
+- Extraction profile path: `<extraction_profile_path>`
+- Extraction workflow path: `<extraction_workflow_path>`
 
 ## Product frame
 
@@ -149,15 +163,15 @@ If exact formula percentages, grams, pH, shelf life, safety limits, packaging, o
 
 ## Formula by phase
 
-| Phase | Component | Amount / grams | Percentage | Source wording / pointer | Function | Notes |
+| Phase | Component | Amount / grams | Percentage | Source wording / pointer | Agent-interpreted function | Notes |
 |---|---|---|---|---|---|---|
 | `<phase>` | `<component>` | `<grams-or-not-stated>` | `<percent-or-not-stated>` | `<source-pointer>` | `<function>` | `<notes>` |
 
 ## Components and functions
 
-| Component | Source-stated function | Distilled / inferred function | Evidence pointer | Not stated / not validated |
-|---|---|---|---|---|
-| `<component>` | `<function-or-not-stated>` | `<interpretation-or-none>` | `<source-pointer>` | `<boundary>` |
+| Component | Source-stated function | Agent interpretation | Inferred content | Evidence pointer | Not stated / not validated |
+|---|---|---|---|---|---|
+| `<component>` | `<function-or-not-stated>` | `<interpretation-or-none>` | `<inference-or-none>` | `<source-pointer>` | `<boundary>` |
 
 ## Method / technological process
 
@@ -192,15 +206,21 @@ List source-stated claims only. Each item must include a source pointer.
 
 - `<claim>` - `<source-pointer>`
 
-## Distilled interpretation
+## Agent interpretation
 
-List interpretations grounded in the source. Each item must explain its evidence basis.
+List agent interpretations grounded in the source. Each item must explain its evidence basis.
 
 - `<interpretation>` - evidence: `<source-pointer-or-section>`
 
+## Inferred content
+
+List inferences separately from source-stated claims and agent interpretation. Each item must be marked as inferred and tied to evidence or omitted.
+
+- `<inference>` - evidence basis: `<source-pointer-or-section>`
+
 ## Not stated / not validated
 
-Use this section to prevent unsupported claims from leaking into the asset.
+Use this section to prevent unsupported claims from entering the candidate.
 
 Minimum entries to check:
 
@@ -221,6 +241,7 @@ Minimum entries to check:
 - Source-bearing asset: `<source_asset_path>`
 - Related knowledge candidates: `<paths-or-none>`
 - Related admitted knowledge assets: `<paths-or-none>`
+- Related extraction profiles: `<paths-or-none>`
 - Related review decisions: `<ids-or-none>`
 
 ## Admission / evidence
@@ -228,7 +249,8 @@ Minimum entries to check:
 - Review decision ID: `<review-decision-id-or-not-reviewed>`
 - Approved destination: `<approved-destination-or-not-approved>`
 - Admission path: `<admission-path-or-not-admitted>`
-- Phase evidence path: `<phase-evidence-path-or-not-applicable>`
+- Phase 3 `kb_admission` manifest: `<manifest-path-or-not-applicable>`
+- Phase 3 evidence path: `<phase-evidence-path-or-not-applicable>`
 - KB target path if admitted: `<knowledge_asset_path>`
 
 State explicitly whether this file is still a candidate or has been admitted as a sanctioned KB asset.
