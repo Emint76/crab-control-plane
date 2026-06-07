@@ -16,11 +16,25 @@ Examples in this document are illustrative path shapes only. They are not live K
 
 ## Repo-defined live KB top-level layout
 
-The workspace KB root uses these repo-defined top-level layout entries:
+The workspace KB root uses a domain-first layout.
+
+The first level under the workspace KB root is the domain area. The second level is the publisher, source family, or resource family. Asset layers live under that domain/source-family container:
 
 * `sources/` - source-bearing assets and source capture packages
 * `knowledge/` - canonical knowledge assets
 * `collections/` - repo-defined prefix for curated groupings; reserved by default unless explicitly needed
+
+Canonical container shape:
+
+```text
+<domain-area>/<publisher-id-or-source-family-id>/
+```
+
+Example:
+
+```text
+cosmetics-household-chemistry/humblebee-and-me/
+```
 
 ## Asset classes
 
@@ -56,33 +70,47 @@ Minimum expectations:
 
 Knowledge assets are separate from source-bearing assets. They require their own review and admission path.
 
-## Prefix-first live paths
+## Domain-first live paths
 
-Live KB paths use the top-level role prefix first:
+Live KB paths use the domain/source-family container first, then the asset layer:
 
 ```text
-sources/<domain-area>/<publisher-id-or-source-family-id>/<asset-slug>-<YYYYMMDD>/
-knowledge/<domain-area>/<topic-id>/<asset-id>/
-collections/<collection-id>/
+<domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug>-<YYYYMMDD>/
+<domain-area>/<publisher-id-or-source-family-id>/knowledge/<asset-id>/
+<domain-area>/<publisher-id-or-source-family-id>/collections/<collection-id>/
 ```
 
-The domain area belongs immediately after the live prefix. Do not invert the path into domain-first shapes such as `<domain-area>/sources/...`.
-
-## Prefix-first non-live and process paths
-
-Non-live workflow and process paths also use prefix-first layout discipline:
+For Humblebee & Me:
 
 ```text
-workflow/<domain-area>/<publisher-id-or-source-family-id>/<run-id>/
-raw/
-proofs/
-distilled/
+cosmetics-household-chemistry/humblebee-and-me/sources/<asset-slug>-<YYYYMMDD>/
+cosmetics-household-chemistry/humblebee-and-me/knowledge/<asset-id>/
+cosmetics-household-chemistry/humblebee-and-me/collections/<collection-id>/
+```
+
+Do not use the older role-first layout for new live assets:
+
+```text
+sources/<domain-area>/<publisher-id-or-source-family-id>/...
+knowledge/<domain-area>/<topic-id>/...
+collections/<collection-id>/...
+```
+
+## Domain-first non-live and process paths
+
+Non-live workflow and process paths also use the same domain/source-family container:
+
+```text
+<domain-area>/<publisher-id-or-source-family-id>/workflow/<run-id>/
+<domain-area>/<publisher-id-or-source-family-id>/raw/
+<domain-area>/<publisher-id-or-source-family-id>/proofs/
+<domain-area>/<publisher-id-or-source-family-id>/distilled/
 ```
 
 These process areas are not live KB retrieval layers:
 
 * `workflow/` - preparation, manifests, and process evidence for a run
-* `raw/` - top-level archive or capture material; non-live by default
+* `raw/` - archive or capture material; non-live by default
 * `proofs/` - derivation notes, drafts, validation materials, and other non-live proof artifacts
 * `distilled/` - legacy ambiguous layer; do not develop further
 
@@ -90,12 +118,12 @@ Do not represent legacy paths as recommended live storage.
 
 ## Raw storage nuance
 
-Top-level `raw/` is a non-live archive area. It is not a live KB asset layer.
+A `raw/` directory directly under a domain/source-family container is a non-live archive area. It is not a live KB asset layer.
 
 Raw source files can appear inside an admitted source-bearing asset when they are part of that asset's package and provenance, for example:
 
 ```text
-sources/<domain-area>/<publisher-id-or-source-family-id>/<asset-slug>-<YYYYMMDD>/raw/source.html
+<domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug>-<YYYYMMDD>/raw/source.html
 ```
 
 That nested `raw/` directory is allowed only as part of an admitted source-bearing asset with package/provenance. Do not use raw examples as live KB assets, and do not use `sources/.../raw/` as a loose dump for unreviewed material.
@@ -112,11 +140,12 @@ A container may produce manifest or workflow evidence, such as a list of discove
 
 Collections organize sanctioned assets for retrieval or navigation. They do not represent tasks, queues, approvals, or mutable operational ownership.
 
-The `collections/` prefix is repo-defined but reserved by default. Use it only when a collection is explicitly needed and the collection content is made of sanctioned assets.
+The `collections/` layer is repo-defined but reserved by default. Use it only when a collection is explicitly needed and the collection content is made of sanctioned assets.
 
 ## Discipline
 
 * KB stores sanctioned assets only.
+* New KB writes use domain/source-family-first layout.
 * Source-bearing assets and knowledge assets must stay distinguishable.
 * Source admission does not create a knowledge asset.
 * Captured source material is not semantic distillation.
