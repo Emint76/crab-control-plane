@@ -14,15 +14,16 @@ The repository path `knowledge/kb/` documents layout, admission discipline, and 
 
 Examples in this document are illustrative path shapes only. They are not live KB assets.
 
-## Knowledge distillation references
+## Knowledge extraction profile references
 
-Proposed knowledge distillation documentation lives in:
+Proposed knowledge extraction profile documentation lives in:
 
-* `knowledge/kb/KNOWLEDGE_ASSET_TYPES.md` - knowledge asset type registry and template links
-* `knowledge/kb/asset-templates/` - markdown templates for knowledge candidates and future admitted knowledge assets
-* `knowledge/kb/domain-profiles/` - proposed Domain Knowledge Profiles for candidate structure and semantic distillation expectations
+* `control-plane/policy/KNOWLEDGE_EXTRACTION_PROFILE_POLICY.md` - governance for agent-led extraction profiles and candidate/admission boundaries
+* `knowledge/kb/KNOWLEDGE_ASSET_TYPES.md` - output asset type registry and template links
+* `knowledge/kb/asset-templates/` - markdown templates for agent-prepared knowledge candidates and future admitted knowledge assets
+* `knowledge/kb/extraction-profiles/` - Domain Extraction Profiles that define agreed data structures for agent-led extraction
 
-These references do not change live KB layout semantics and do not authorize KB admission.
+These references describe structures, profiles, and templates only. They do not change live KB layout semantics, authorize KB admission, add runtime behavior, or make Phase perform semantic extraction.
 
 ## Repo-defined live KB top-level layout
 
@@ -64,7 +65,7 @@ Minimum required provenance:
 
 A source admission creates a source-bearing asset. It does not create a canonical knowledge asset.
 
-A captured page, stable source representation, or source capture package is not semantic distillation simply because it is useful for future retrieval or synthesis.
+A captured page, stable source representation, or source capture package is not semantic extraction simply because it is useful for future retrieval or synthesis.
 
 ### Knowledge assets
 
@@ -158,7 +159,7 @@ The `collections/` layer is repo-defined but reserved by default. Use it only wh
 * New KB writes use domain/source-family-first layout.
 * Source-bearing assets and knowledge assets must stay distinguishable.
 * Source admission does not create a knowledge asset.
-* Captured source material is not semantic distillation.
+* Captured source material is not semantic extraction.
 * Raw workflow and task objects do not belong in the live KB because they encode transient operational state, not reusable sanctioned knowledge.
 * Draft semantic notes stay outside the live KB until reviewed and admitted.
 * Full live corpus payloads belong in the runtime-configured workspace KB root, not in this repository, unless explicitly curated as examples.
