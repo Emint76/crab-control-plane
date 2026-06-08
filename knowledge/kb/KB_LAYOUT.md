@@ -20,6 +20,7 @@ Proposed knowledge extraction profile documentation lives in:
 
 * `control-plane/policy/KNOWLEDGE_EXTRACTION_PROFILE_POLICY.md` - governance for agent-led extraction profiles and candidate/admission boundaries
 * `knowledge/kb/KNOWLEDGE_ASSET_TYPES.md` - output asset type registry and template links
+* `knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md` - practical staging and Phase3 admission workflow for prepared knowledge candidates
 * `knowledge/kb/asset-templates/` - markdown templates for agent-prepared knowledge candidates and future admitted knowledge assets
 * `knowledge/kb/extraction-profiles/` - Domain Extraction Profiles that define agreed data structures for agent-led extraction
 
