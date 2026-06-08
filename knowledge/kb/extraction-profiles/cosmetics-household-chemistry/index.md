@@ -228,7 +228,7 @@ It does not mean:
 - any candidate has been reviewed;
 - any candidate is approved for KB placement;
 - any domain expert validation has occurred;
-- Phase should perform semantic extraction.
+- any authorization to move semantic extraction into Phase;
 
 ## Review boundary
 
