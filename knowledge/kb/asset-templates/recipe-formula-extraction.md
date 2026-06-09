@@ -2,16 +2,17 @@
 
 ## Purpose
 
-Template for `recipe_formula_extraction` knowledge candidates and future admitted knowledge assets.
+Template for `recipe_formula_extraction` working candidates, reviewed knowledge packages, and future admitted knowledge assets.
 
 This template defines an agreed extraction output structure for agent-led semantic extraction. It is markdown-first documentation. It does not create a schema, validator, Phase behavior, admission mechanic, runtime write, or live KB asset.
 
 ## Asset kind semantics
 
-- `knowledge_candidate`: agent-prepared semantic extraction output that is not yet a sanctioned KB asset.
+- `knowledge_candidate`: pre-review or working semantic extraction output that is not yet a sanctioned KB asset.
+- `knowledge_package`: reviewed, KB-ready process concept for the byte-for-byte artifact prepared for Phase admission. This is not a new schema-bound artifact type.
 - `knowledge_asset`: sanctioned KB asset after required review and admission path.
 
-A file using this template starts as `knowledge_candidate` unless a review decision and admission path explicitly authorize KB placement.
+A file using this template may start as a working candidate. The file submitted to Phase3 `kb_admission` must be a reviewed knowledge package whose bytes and metadata remain true after admission.
 
 ## Profile and review gates
 
@@ -20,19 +21,47 @@ A file using this template starts as `knowledge_candidate` unless a review decis
 
 Do not collapse these gates. Approval or refinement of this template/profile means the agent has an agreed data structure for extraction. It does not mean any prepared candidate is acceptable for KB placement.
 
-## Required front matter
+## Metadata boundary
 
-Use these fields at minimum:
+Phase3 `kb_admission` copies bytes. It does not rewrite front matter or change workflow status fields inside the artifact.
+
+Transient workflow status belongs in workflow metadata, review decisions, or admission metadata unless it is intended to remain true in the final admitted artifact.
+
+Bad Phase input example:
+
+```yaml
+knowledge_status: candidate
+```
+
+This is appropriate only for a working pre-review candidate if that same file will not be copied byte-for-byte into `knowledge/...`.
+
+Acceptable illustrative package metadata examples:
+
+```yaml
+artifact_type: "knowledge_package"
+admission_readiness: "reviewed_for_kb_placement"
+```
+
+```yaml
+asset_kind: "knowledge_asset"
+admission_state: "prepared_for_phase3_admission"
+```
+
+These examples are illustrative and do not introduce mandatory schema fields.
+
+## Phase-ready front matter guidance
+
+Use these fields as a minimum shape for a reviewed knowledge package prepared for Phase admission:
 
 ```yaml
 ---
 asset_id: "<stable-asset-id>"
-asset_kind: "knowledge_candidate"
+artifact_type: "knowledge_package"
 knowledge_type: "recipe_formula_extraction"
 domain_area: "<domain-area>"
 source_family_id: "<publisher-or-source-family-id>"
 publisher: "<publisher-name>"
-title: "<knowledge-candidate-title>"
+title: "<knowledge-asset-title>"
 source_title: "<source-title>"
 source_url: "<canonical-source-url-or-pointer>"
 product_type: "<product-or-formula-type>"
@@ -44,9 +73,9 @@ knowledge_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/know
 extraction_profile_path: "knowledge/kb/extraction-profiles/<domain>/index.md"
 extraction_workflow_path: "<workflow-or-evidence-path-or-not-available>"
 source_status: "<captured|source_admitted|reviewed|not_available>"
-knowledge_status: "candidate"
-review_status: "not_reviewed"
-claim_scope: "<what-this-candidate-claims-to-cover>"
+admission_readiness: "reviewed_for_kb_placement"
+review_status: "approved"
+claim_scope: "<what-this-package-claims-to-cover>"
 validation_scope: "not validated beyond source-stated content unless explicitly reviewed"
 formula_summary: "<one-sentence-source-grounded-summary>"
 extraction:
@@ -54,7 +83,7 @@ extraction:
   profile_approval_ref: "<profile-approval-or-refinement-ref>"
   prepared_by: "<agent-or-author-id>"
   prepared_at: "<YYYY-MM-DD-or-not-stated>"
-  review_decision_id: "<review-decision-id-or-not-reviewed>"
+  review_decision_id: "<review-decision-id>"
   phase3_kb_admission:
     target_kind: "kb_admission"
     run_id: "<run-id-or-not-applicable>"
@@ -63,14 +92,17 @@ extraction:
 ---
 ```
 
+For a working pre-review candidate, candidate status may be recorded in workflow metadata or in a non-admitted draft copy. Do not submit candidate-status bytes to Phase if those bytes would become false after admission.
+
 ## Status boundaries
 
 - A source-bearing asset is not a knowledge asset.
 - Captured source material is not semantic extraction.
 - A knowledge candidate is not a sanctioned KB asset.
+- A knowledge package is reviewed and KB-ready, but not yet admitted.
 - Agent extraction does not mean semantic review.
 - Semantic review does not mean cosmetic safety, stability, preservative challenge, regulatory, GMP, or manufacturing validation.
-- Phase 3 `kb_admission` admits already prepared artifacts byte-for-byte.
+- Phase 3 `kb_admission` admits already prepared knowledge packages byte-for-byte.
 - Phase evidence proves controlled execution/admission, not semantic correctness.
 - `knowledge_asset` status requires the applicable review and admission path.
 
@@ -121,8 +153,8 @@ Use these sections in this order.
 
 ## Status and review boundary
 
-- Asset kind: `<knowledge_candidate|knowledge_asset>`
-- Knowledge status: `<candidate|admitted>`
+- Artifact status: `<working_candidate|reviewed_knowledge_package|admitted_knowledge_asset>`
+- Admission readiness: `<not_ready|reviewed_for_kb_placement|admitted>`
 - Profile approval/refinement: `<ref-or-not-approved>`
 - Review status: `<not_reviewed|in_review|approved|returned|held|rejected>`
 - Phase evidence: `<none|phase3-kb-admission/run reference>`
@@ -133,6 +165,7 @@ State explicitly:
 Profile approval means agreed extraction structure, not KB placement authorization.
 Review decision authorizes KB placement when admission requirements are met.
 Phase evidence proves controlled admission of prepared artifacts, not semantic correctness.
+Phase copies bytes and does not rewrite artifact metadata.
 ```
 
 ## Source / provenance
@@ -220,7 +253,7 @@ List inferences separately from source-stated claims and agent interpretation. E
 
 ## Not stated / not validated
 
-Use this section to prevent unsupported claims from entering the candidate.
+Use this section to prevent unsupported claims from entering the candidate or package.
 
 Minimum entries to check:
 
@@ -240,6 +273,7 @@ Minimum entries to check:
 
 - Source-bearing asset: `<source_asset_path>`
 - Related knowledge candidates: `<paths-or-none>`
+- Related knowledge packages: `<paths-or-none>`
 - Related admitted knowledge assets: `<paths-or-none>`
 - Related extraction profiles: `<paths-or-none>`
 - Related review decisions: `<ids-or-none>`
@@ -253,4 +287,4 @@ Minimum entries to check:
 - Phase 3 evidence path: `<phase-evidence-path-or-not-applicable>`
 - KB target path if admitted: `<knowledge_asset_path>`
 
-State explicitly whether this file is still a candidate or has been admitted as a sanctioned KB asset.
+State explicitly whether this file is a working candidate, a reviewed knowledge package prepared for Phase admission, or an admitted sanctioned KB asset.

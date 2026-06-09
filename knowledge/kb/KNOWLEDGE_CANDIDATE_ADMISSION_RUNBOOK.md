@@ -2,15 +2,29 @@
 
 ## Purpose
 
-Define the practical workflow for staging an agent-prepared knowledge candidate and admitting it through Phase3 `kb_admission` as `admission_type: knowledge_asset`.
+Define the practical workflow for staging an agent-prepared knowledge candidate, reviewing it into a KB-ready knowledge package, and admitting that package through Phase3 `kb_admission` as `admission_type: knowledge_asset`.
 
 This runbook is documentation only. It does not add a Phase target, schema, validator, runner behavior, admission mechanism, smoke target, live KB asset, or runtime evidence artifact.
 
+`knowledge package` is a process concept in this runbook. It does not define a new schema-bound artifact type.
+
 ## Scope boundary
 
-Knowledge candidate admission starts from reviewed, source-bearing, or provenance-bearing inputs. The agent prepares the semantic candidate before Phase is invoked.
+Knowledge candidate staging starts from reviewed, source-bearing, or provenance-bearing inputs. The agent prepares the semantic candidate before Phase is invoked.
 
-Phase3 admits an already prepared candidate. It does not perform semantic extraction.
+Phase3 admits an already reviewed, KB-ready knowledge package. It does not perform semantic extraction and does not rewrite the artifact.
+
+## Terminology
+
+```text
+draft/candidate -> review -> knowledge package -> Phase3 admission -> admitted knowledge asset
+```
+
+- `candidate`: pre-review or working semantic extraction output.
+- `knowledge package`: reviewed, KB-ready, byte-for-byte artifact prepared for Phase admission.
+- `admitted knowledge asset`: sanctioned KB asset after Phase3 admission completes.
+
+Do not rely on Phase to convert candidate metadata into asset metadata. Phase copies bytes, so package bytes must already contain metadata that remains true after admission.
 
 ## Ownership model
 
@@ -18,12 +32,13 @@ Agent/user-owned work:
 
 - extraction/profile structure approval for the run;
 - semantic extraction;
-- prepared knowledge candidate;
-- candidate review decision.
+- working knowledge candidate;
+- candidate review decision;
+- reviewed knowledge package prepared for Phase admission.
 
 Phase-owned work:
 
-- `kb_admission` of an already prepared candidate;
+- `kb_admission` of an already prepared knowledge package;
 - byte-for-byte copy;
 - hash and path verification;
 - admission evidence.
@@ -48,19 +63,19 @@ Phase-owned work:
    <domain>/<source-family>/workflow/<run-id>/extraction-profile.approved.md
    ```
 
-4. Agent prepares the knowledge candidate in workflow staging.
+4. Agent prepares the working knowledge candidate in workflow staging.
 
-   The agent performs semantic extraction outside Phase and writes the prepared candidate in the run workflow area.
+   The agent performs semantic extraction outside Phase and writes the working candidate in the run workflow area.
 
-   Prepared candidate path shape:
+   Working candidate path shape:
 
    ```text
    <domain>/<source-family>/workflow/<run-id>/prepared/knowledge/<asset-id>.md
    ```
 
-5. Candidate gets reviewed for KB placement.
+5. Candidate gets reviewed for KB placement and finalized as a knowledge package.
 
-   Candidate review evaluates whether the prepared candidate may be placed as a knowledge asset, subject to existing admission policy and placement policy.
+   Candidate review evaluates whether the prepared candidate may be placed as a knowledge asset, subject to existing admission policy and placement policy. After approval, the Phase input is the reviewed knowledge package, not an unreviewed working candidate.
 
    Review decision path shape:
 
@@ -70,9 +85,9 @@ Phase-owned work:
 
    Use a review-decision artifact according to the existing `REVIEW_DECISION` contract, for example `review-decision.md` or `review-decision.json` when allowed by repo contract. Do not infer JSON as required unless the applicable contract requires it.
 
-6. Phase3 admits the prepared candidate.
+6. Phase3 admits the knowledge package.
 
-   Phase3 workspace `kb_admission` admits the already prepared candidate as `admission_type: knowledge_asset`. The target performs manifest, hash, and path controls, copies the candidate byte-for-byte, and emits admission evidence.
+   Phase3 workspace `kb_admission` admits the reviewed knowledge package as `admission_type: knowledge_asset`. The target performs manifest, hash, and path controls, copies the package byte-for-byte, and emits admission evidence.
 
    Final admitted knowledge asset path shape:
 
@@ -80,9 +95,9 @@ Phase-owned work:
    <domain>/<source-family>/knowledge/<asset-id>/...
    ```
 
-## Candidate admission metadata
+## Package admission metadata
 
-The run should include candidate admission metadata that identifies the prepared candidate and its intended admission target.
+The run should include admission metadata that identifies the reviewed knowledge package and its intended admission target.
 
 Metadata path shape:
 
@@ -100,10 +115,38 @@ Minimum metadata content:
 
 - source asset refs;
 - extraction profile refs;
-- prepared candidate path;
-- candidate hash;
+- knowledge package path;
+- package hash;
 - review decision ref;
 - intended admission target.
+
+## Artifact metadata boundary
+
+Transient workflow status belongs in workflow metadata, review-decision artifacts, or admission metadata unless it is intended to remain true inside the admitted artifact.
+
+Phase3 does not rewrite artifact metadata. It copies bytes. Therefore, the bytes submitted as the knowledge package must already contain metadata that remains true after admission.
+
+Bad Phase input example:
+
+```yaml
+knowledge_status: candidate
+```
+
+This is only appropriate for a working pre-review candidate if the same file will not be copied byte-for-byte into `knowledge/...`.
+
+Acceptable illustrative package metadata examples:
+
+```yaml
+artifact_type: knowledge_package
+admission_readiness: reviewed_for_kb_placement
+```
+
+```yaml
+asset_kind: knowledge_asset
+admission_state: prepared_for_phase3_admission
+```
+
+These examples are illustrative. They do not introduce mandatory schema fields.
 
 ## Admission boundary
 
@@ -113,12 +156,12 @@ The review decision authorizes candidate placement, subject to existing admissio
 
 Phase3 does not validate semantic correctness, domain expertise, scientific correctness, regulatory correctness, manufacturing readiness, cosmetic safety, or other domain claims.
 
-Phase3 only admits already prepared artifacts byte-for-byte according to manifest, hash, and path controls.
+Phase3 only admits already prepared knowledge packages byte-for-byte according to manifest, hash, and path controls.
 
 Knowledge admission and source admission are structurally similar at the Phase layer. The admitted object differs:
 
 - source admission admits a source package or other source-bearing artifacts;
-- knowledge admission admits an agent-prepared knowledge candidate.
+- knowledge admission admits an agent-prepared, reviewed knowledge package.
 
 ## Evidence boundary
 

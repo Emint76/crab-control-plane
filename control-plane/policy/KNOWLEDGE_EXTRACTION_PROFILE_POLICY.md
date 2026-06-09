@@ -16,7 +16,8 @@ The agent:
 - understands domain content;
 - proposes an extraction profile or data structure;
 - incorporates user or reviewer approval/refinement of that structure;
-- extracts knowledge candidates according to the agreed structure.
+- extracts knowledge candidates according to the agreed structure;
+- prepares reviewed, KB-ready knowledge packages after review authorization.
 
 Phase does not perform semantic extraction, validate semantic correctness, or validate domain expertise. Phase 3 `kb_admission` performs controlled admission of already prepared artifacts only: freeze inputs, validate paths and manifests, verify hashes, copy byte-for-byte, emit evidence, and fail closed.
 
@@ -47,7 +48,15 @@ Do not collapse these two gates.
 
 ### Knowledge candidate
 
-A knowledge candidate is an agent-prepared extraction output. It may follow an approved extraction profile and may be ready for review, but it is not a sanctioned KB asset until a review decision and admission path authorize placement.
+A knowledge candidate is an agent-prepared extraction output before KB placement review is complete. It may follow an approved extraction profile and may be ready for review, but it is not the Phase admission input until review authorizes KB placement and the artifact is finalized as a knowledge package.
+
+### Knowledge package
+
+A knowledge package is the reviewed, KB-ready artifact prepared for Phase admission. It is the byte-for-byte input to Phase3 `kb_admission` for `admission_type: knowledge_asset`.
+
+`knowledge package` is a documentation/process concept in this policy. It does not define a new schema-bound artifact type.
+
+Because Phase copies bytes and does not rewrite artifact metadata, the package must already contain metadata that remains true after admission.
 
 ### Review decision
 
@@ -55,7 +64,7 @@ A review decision records candidate acceptability and may authorize KB placement
 
 ### Phase-owned KB admission
 
-Phase-owned KB admission starts after candidate preparation and review authorization. Phase 3 `kb_admission` admits prepared artifacts byte-for-byte according to the admission manifest. It proves controlled execution/admission evidence, not semantic correctness.
+Phase-owned KB admission starts after candidate preparation, review authorization, and package finalization. Phase 3 `kb_admission` admits prepared knowledge packages byte-for-byte according to the admission manifest. It proves controlled execution/admission evidence, not semantic correctness.
 
 ## Required lifecycle
 
@@ -65,7 +74,8 @@ User defines domain/task
 -> User or reviewer approves/refines the profile
 -> Agent extracts knowledge candidates from admitted/reviewed/provenance-bearing sources
 -> Review decision records candidate acceptability and placement authorization
--> Phase3 kb_admission admits the prepared candidate to the workspace KB
+-> Agent/user finalizes a reviewed knowledge package for Phase input
+-> Phase3 kb_admission admits the knowledge package to the workspace KB
 ```
 
 ## Canonical formula
@@ -74,6 +84,7 @@ User defines domain/task
 Extraction profile defines the agreed data structure.
 Agent performs semantic extraction.
 Review decision authorizes KB placement.
+Knowledge package is prepared with byte-stable metadata for admission.
 Phase proves controlled admission evidence.
 KB asset is the admitted sanctioned result.
 ```
@@ -83,6 +94,7 @@ KB asset is the admitted sanctioned result.
 - A source-bearing asset is not a knowledge asset.
 - Captured source material is not semantic extraction.
 - A knowledge candidate is not a sanctioned KB asset.
+- A knowledge package is reviewed and KB-ready, but not yet admitted.
 - Extraction profiles do not authorize KB admission.
 - Profile approval means agreed extraction structure only.
 - Review decision authorizes KB placement.
@@ -90,7 +102,9 @@ KB asset is the admitted sanctioned result.
 - Phase does not perform semantic extraction.
 - Phase does not validate semantic correctness.
 - Phase does not validate domain expertise.
-- Phase 3 `kb_admission` admits already prepared artifacts byte-for-byte.
+- Phase does not rewrite artifact metadata.
+- Phase 3 `kb_admission` admits already prepared knowledge packages byte-for-byte.
+- Transient workflow status belongs in workflow metadata, review decisions, or admission metadata unless it is intended to remain true after admission.
 - Source-stated, agent-interpreted, inferred, and not-stated content must be separated.
 - Claims must be supported by provenance or explicitly marked as inferred, not stated, or not validated.
 - The live KB corpus belongs under the runtime-configured workspace KB root, not this repository.
@@ -123,7 +137,7 @@ If evidence does not state a value, condition, relationship, validation outcome,
 
 ## Provenance expectations
 
-A knowledge candidate must identify the evidence it depends on.
+A knowledge candidate or knowledge package must identify the evidence it depends on.
 
 Minimum provenance expectations are:
 
@@ -144,7 +158,7 @@ Profile approval confirms the structure the agent should use for extraction. It 
 
 Candidate review evaluates whether the prepared candidate is acceptable for its intended placement. A review decision is the artifact that may authorize KB placement.
 
-Phase 3 `kb_admission` may then admit the already prepared candidate to the workspace KB by validating the manifest, verifying hashes, copying byte-for-byte, emitting evidence, and failing closed on mismatch.
+After review authorization, the Phase input is a reviewed knowledge package. Its content and metadata must already be suitable for the final admitted KB asset because Phase 3 `kb_admission` validates the manifest, verifies hashes, copies byte-for-byte, emits evidence, and fails closed on mismatch.
 
 ## Phase boundary
 
