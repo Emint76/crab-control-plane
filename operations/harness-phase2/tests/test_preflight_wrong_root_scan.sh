@@ -41,13 +41,33 @@ prepare_case() {
   case "${case_name}" in
     clean)
       ;;
-    phase3-frozen-validation-report)
-      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input"
-      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input/validation_report.json"
+    phase3-runs-pruned-validation-report)
+      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-generated-poison/input"
+      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-generated-poison/input/validation_report.json"
       ;;
-    phase3-frozen-admission-decision)
-      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input"
-      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-ok/input/admission_decision.json"
+    phase3-runs-pruned-nested-validation-report)
+      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-generated-poison/input/nested"
+      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-generated-poison/input/nested/validation_report.json"
+      ;;
+    phase3-targets-pruned-validation-report)
+      mkdir -p "${repo}/operations/harness-phase3/targets/phase3-target-poison"
+      printf '{}\n' > "${repo}/operations/harness-phase3/targets/phase3-target-poison/validation_report.json"
+      ;;
+    phase4-runs-pruned-validation-report)
+      mkdir -p "${repo}/operations/harness-phase4/runs/phase4-generated-poison"
+      printf '{}\n' > "${repo}/operations/harness-phase4/runs/phase4-generated-poison/validation_report.json"
+      ;;
+    orchestration-runs-pruned-validation-report)
+      mkdir -p "${repo}/operations/harness-orchestration/runs/orchestration-generated-poison"
+      printf '{}\n' > "${repo}/operations/harness-orchestration/runs/orchestration-generated-poison/validation_report.json"
+      ;;
+    openclaw-live-wrapper-runs-pruned-validation-report)
+      mkdir -p "${repo}/operations/harness-openclaw-live-wrapper/runs/openclaw-generated-poison"
+      printf '{}\n' > "${repo}/operations/harness-openclaw-live-wrapper/runs/openclaw-generated-poison/validation_report.json"
+      ;;
+    openclaw-local-proof-runs-pruned-validation-report)
+      mkdir -p "${repo}/operations/harness-openclaw-local-proof/runs/openclaw-generated-poison"
+      printf '{}\n' > "${repo}/operations/harness-openclaw-local-proof/runs/openclaw-generated-poison/validation_report.json"
       ;;
     root-contracts)
       mkdir -p "${repo}/contracts"
@@ -81,14 +101,6 @@ prepare_case() {
       ;;
     root-validation-report)
       printf '{}\n' > "${repo}/validation_report.json"
-      ;;
-    phase3-not-input-validation-report)
-      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/not-input"
-      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/not-input/validation_report.json"
-      ;;
-    phase3-nested-input-validation-report)
-      mkdir -p "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/input/nested"
-      printf '{}\n' > "${repo}/operations/harness-phase3/runs/phase3-frozen-input-bad/input/nested/validation_report.json"
       ;;
     *)
       fail "unknown case: ${case_name}"
@@ -133,8 +145,13 @@ run_case() {
 }
 
 run_case clean pass
-run_case phase3-frozen-validation-report pass
-run_case phase3-frozen-admission-decision pass
+run_case phase3-runs-pruned-validation-report pass
+run_case phase3-runs-pruned-nested-validation-report pass
+run_case phase3-targets-pruned-validation-report pass
+run_case phase4-runs-pruned-validation-report pass
+run_case orchestration-runs-pruned-validation-report pass
+run_case openclaw-live-wrapper-runs-pruned-validation-report pass
+run_case openclaw-local-proof-runs-pruned-validation-report pass
 run_case root-contracts fail "contracts/"
 run_case operations-harness fail "operations/harness/"
 run_case root-policy fail "policy/"
@@ -146,5 +163,3 @@ run_case phase2-report-outside fail "docs/PHASE2_REPORT.md"
 run_case validation-report-outside fail "knowledge/kb/validation_report.json"
 run_case docs-validation-report fail "docs/validation_report.json"
 run_case root-validation-report fail "validation_report.json"
-run_case phase3-not-input-validation-report fail "operations/harness-phase3/runs/phase3-frozen-input-bad/not-input/validation_report.json"
-run_case phase3-nested-input-validation-report fail "operations/harness-phase3/runs/phase3-frozen-input-bad/input/nested/validation_report.json"

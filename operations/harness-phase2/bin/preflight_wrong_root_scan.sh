@@ -78,25 +78,66 @@ phase2_artifact_names=(
   "conformance_validation.json"
 )
 
-is_allowed_phase3_frozen_input_artifact() {
-  local rel_path="$1"
-  [[ "${rel_path}" =~ ^operations/harness-phase3/runs/[A-Za-z0-9._-]+/input/(validation_report\.json|admission_decision\.json|placement_decision\.json|apply_plan\.json|handoff_ready\.json|smoke_validation\.json|conformance_validation\.json)$ ]]
-}
+generated_artifact_prune_roots=(
+  # Phase2 checks upstream source/config placement. Generated downstream run and
+  # target corpora are owned by their producing phases and are not part of this
+  # artifact-name hot path.
+  "operations/harness-phase3/runs"
+  "operations/harness-phase3/targets"
+  "operations/harness-phase4/runs"
+  "operations/harness-orchestration/runs"
+  "operations/harness-openclaw-dryrun/runs"
+  "operations/harness-openclaw-disposable-apply/runs"
+  "operations/harness-openclaw-local-proof/runs"
+  "operations/harness-openclaw-live-precheck/runs"
+  "operations/harness-openclaw-live-retention/runs"
+  "operations/harness-openclaw-live-execution-prep/runs"
+  "operations/harness-openclaw-live-wrapper-intake/runs"
+  "operations/harness-openclaw-live-wrapper/runs"
+  "operations/harness-openclaw-live-material-resolution/runs"
+  "operations/harness-openclaw-live-secret-session/runs"
+)
 
-for artifact_name in "${phase2_artifact_names[@]}"; do
-  while IFS= read -r artifact_path; do
-    rel_path="${artifact_path#${REPO_ROOT}/}"
-    if is_allowed_phase3_frozen_input_artifact "${rel_path}"; then
-      continue
-    fi
-    STATUS="FAIL"
-    ISSUES+=("${rel_path}")
-  done < <(
-    find "${REPO_ROOT}" \
-      \( -path "${REPO_ROOT}/.git" -o -path "${REPO_ROOT}/operations/harness-phase2" -o -path "${REPO_ROOT}/.venv" -o -path "${REPO_ROOT}/node_modules" -o -path "${REPO_ROOT}/.pytest_cache" \) -prune \
-      -o -name "${artifact_name}" -print | sort
-  )
+artifact_find_expr=(
+  "${REPO_ROOT}"
+  "("
+  -path "${REPO_ROOT}/.git"
+  -o -path "${REPO_ROOT}/operations/harness-phase2"
+  -o -path "${REPO_ROOT}/.venv"
+  -o -path "${REPO_ROOT}/node_modules"
+  -o -path "${REPO_ROOT}/.pytest_cache"
+)
+
+for rel_prune_root in "${generated_artifact_prune_roots[@]}"; do
+  artifact_find_expr+=(-o -path "${REPO_ROOT}/${rel_prune_root}")
 done
+
+artifact_find_expr+=(
+  ")" -prune
+  -o "("
+)
+
+first_artifact_name="true"
+for artifact_name in "${phase2_artifact_names[@]}"; do
+  if [[ "${first_artifact_name}" == "true" ]]; then
+    first_artifact_name="false"
+  else
+    artifact_find_expr+=(-o)
+  fi
+  artifact_find_expr+=(-name "${artifact_name}")
+done
+
+artifact_find_expr+=(
+  ")" -print
+)
+
+while IFS= read -r artifact_path; do
+  rel_path="${artifact_path#${REPO_ROOT}/}"
+  STATUS="FAIL"
+  ISSUES+=("${rel_path}")
+done < <(
+  find "${artifact_find_expr[@]}" | sort
+)
 
 tracked_tmp=""
 scan_mode="tree-scan"
