@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission_kind": {
+      "const": "knowledge_asset"
+    },
+    "asset_id": {
+      "type": "string"
+    },
+    "knowledge_profile_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "payload_path": {
+      "type": "string"
+    },
+    "profile_data": {
+      "minProperties": 1,
+      "type": "object"
+    },
+    "profile_id": {
+      "const": "knowledge_asset.v1"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "properties": {
+        "source_asset_path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_asset_path"
+      ],
+      "type": "object"
+    },
+    "review_status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "admission_kind",
+    "profile_id",
+    "asset_id",
+    "payload_path",
+    "review_status",
+    "provenance",
+    "knowledge_profile_id",
+    "profile_data"
+  ],
+  "type": "object"
+}

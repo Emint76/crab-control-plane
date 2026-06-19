@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "not": {
+    "anyOf": [
+      {
+        "required": [
+          "knowledge_profile_id"
+        ]
+      },
+      {
+        "required": [
+          "profile_data"
+        ]
+      }
+    ]
+  },
+  "properties": {
+    "admission_kind": {
+      "const": "source_capture"
+    },
+    "asset_id": {
+      "type": "string"
+    },
+    "payload_path": {
+      "type": "string"
+    },
+    "profile_id": {
+      "const": "source_capture.v1"
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "review_status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "admission_kind",
+    "profile_id",
+    "asset_id",
+    "payload_path",
+    "review_status",
+    "provenance"
+  ],
+  "type": "object"
+}

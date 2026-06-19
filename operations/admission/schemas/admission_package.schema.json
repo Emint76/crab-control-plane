@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission_kind": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "asset_id": {
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "type": "string"
+    },
+    "knowledge_profile_id": {
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "type": "string"
+    },
+    "payload_path": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "profile_data": true,
+    "profile_id": {
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "type": "string"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "review_status": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "admission_kind",
+    "profile_id",
+    "asset_id",
+    "payload_path",
+    "review_status",
+    "provenance"
+  ],
+  "type": "object"
+}
