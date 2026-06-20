@@ -1,0 +1,11 @@
+{
+  "admission_kind": "source_capture",
+  "payload_kinds": [
+    "directory"
+  ],
+  "placement_policy_id": "not_implemented",
+  "profile_id": "source_capture.v1",
+  "provenance_policy_id": "source_capture_stage1.v1",
+  "required_review_status": "approved",
+  "schema_ref": "schemas/source_capture.v1.schema.json"
+}

@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission_kind": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "admission_status": {
+      "const": "not_run"
+    },
+    "asset_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "blockers": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "message": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_write_performed": {
+          "const": false
+        },
+        "phase_invoked": {
+          "const": false
+        }
+      },
+      "required": [
+        "phase_invoked",
+        "canonical_write_performed"
+      ],
+      "type": "object"
+    },
+    "knowledge_profile_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mode": {
+      "const": "dry_run"
+    },
+    "package_path": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "payload_path": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "profile_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposed_target_path": {
+      "type": "null"
+    },
+    "validation_status": {
+      "enum": [
+        "pass",
+        "fail"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "validation_status",
+    "admission_status",
+    "mode",
+    "admission_kind",
+    "profile_id",
+    "knowledge_profile_id",
+    "asset_id",
+    "package_path",
+    "payload_path",
+    "proposed_target_path",
+    "blockers",
+    "evidence"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "validation_status": {
+            "const": "pass"
+          }
+        },
+        "required": [
+          "validation_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation_status": {
+            "const": "fail"
+          }
+        },
+        "required": [
+          "validation_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "admission_kind": {
+            "const": "source_capture"
+          }
+        },
+        "required": [
+          "admission_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "knowledge_profile_id": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "admission_kind": {
+            "const": "knowledge_asset"
+          }
+        },
+        "required": [
+          "admission_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "knowledge_profile_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "type": "object"
+}

@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "component_profile.v1": {
+      "enabled_for_admission": false,
+      "payload_kind": null,
+      "placement_policy_id": "not_implemented",
+      "status": "placeholder"
+    },
+    "product_type_extraction.v1": {
+      "enabled_for_admission": true,
+      "payload_kind": "file",
+      "placement_policy_id": "not_implemented",
+      "status": "active"
+    },
+    "recipe_formula_extraction.v1": {
+      "enabled_for_admission": false,
+      "payload_kind": null,
+      "placement_policy_id": "not_implemented",
+      "status": "placeholder"
+    }
+  },
+  "registry_id": "knowledge_profiles.v1"
+}

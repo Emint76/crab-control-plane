@@ -1,0 +1,16 @@
+{
+  "admission_kind": "knowledge_asset",
+  "canonical_source_linkage_required": true,
+  "knowledge_profile_id_required": true,
+  "payload_kinds": [
+    "file",
+    "directory"
+  ],
+  "placement_policy_id": "not_implemented",
+  "profile_data_required": true,
+  "profile_data_semantics": "opaque_producer_owned",
+  "profile_id": "knowledge_asset.v1",
+  "registry_ref": "knowledge-profiles/registry.v1.json",
+  "required_review_status": "approved",
+  "schema_ref": "schemas/knowledge_asset.v1.schema.json"
+}
