@@ -104,5 +104,84 @@
     "blockers",
     "evidence"
   ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "validation_status": {
+            "const": "pass"
+          }
+        },
+        "required": [
+          "validation_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "validation_status": {
+            "const": "fail"
+          }
+        },
+        "required": [
+          "validation_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "blockers": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "admission_kind": {
+            "const": "source_capture"
+          }
+        },
+        "required": [
+          "admission_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "knowledge_profile_id": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "admission_kind": {
+            "const": "knowledge_asset"
+          }
+        },
+        "required": [
+          "admission_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "knowledge_profile_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
   "type": "object"
 }

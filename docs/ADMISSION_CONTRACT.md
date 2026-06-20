@@ -47,7 +47,8 @@ It does not require manual `PYTHONPATH`.
 ## Dependencies
 
 Admission uses the standard Python `jsonschema` package and Draft 2020-12 schemas.
-The repo-owned dependency declaration is `operations/harness-phase2/requirements.txt`.
+For Stage 1 validation and CI setup, the repository currently reuses the existing requirements surface at `operations/harness-phase2/requirements.txt`.
+Long-term admission dependency ownership is not defined by this PR.
 
 If `jsonschema` is unavailable, the CLI fails closed with a non-zero exit code, writes no files, and does not claim validation success.
 There is no custom or fallback JSON Schema validator.

@@ -1,0 +1,33 @@
+name: admission-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  admission-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install current repo validation requirements
+        run: python -m pip install -r operations/harness-phase2/requirements.txt
+
+      - name: Validate admission shell syntax
+        run: |
+          bash -n operations/admission/bin/run_admission.sh
+          bash -n operations/admission/tests/test_admission_cli.sh
+
+      - name: Compile admission CLI
+        run: python -m py_compile operations/admission/lib/admission_cli.py
+
+      - name: Run admission Stage 1 tests
+        run: bash operations/admission/tests/test_admission_cli.sh

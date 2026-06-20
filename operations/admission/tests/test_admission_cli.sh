@@ -26,7 +26,10 @@ snapshot_repo_surfaces() {
   "${PYTHON_BIN}" - "${REPO_ROOT}" <<'PY'
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import stat
 import sys
 from pathlib import Path
 
@@ -38,13 +41,66 @@ paths = [
     "operations/harness-phase3/targets",
     "operations/harness-phase4/runs",
 ]
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def object_record(path: Path, rel_path: str | None = None) -> dict[str, object]:
+    st = os.lstat(path)
+    mode = st.st_mode
+    record: dict[str, object] = {}
+    if rel_path is not None:
+        record["path"] = rel_path
+    if stat.S_ISDIR(mode):
+        record["type"] = "directory"
+    elif stat.S_ISREG(mode):
+        record["type"] = "file"
+        record["sha256"] = file_sha256(path)
+    elif stat.S_ISLNK(mode):
+        record["type"] = "symlink"
+        record["target"] = os.readlink(path)
+    else:
+        record["type"] = "other"
+        record["mode"] = stat.S_IFMT(mode)
+    return record
+
+
+def snapshot_root(root: Path) -> dict[str, object]:
+    if not root.exists() and not root.is_symlink():
+        return {"state": "missing", "entries": []}
+
+    root_record = object_record(root)
+    root_type = str(root_record["type"])
+    if root_type == "file":
+        return {"state": "file", "sha256": root_record["sha256"], "entries": []}
+    if root_type == "symlink":
+        return {"state": "symlink", "target": root_record["target"], "entries": []}
+    if root_type != "directory":
+        return {"state": root_type, "entries": []}
+
+    entries: list[dict[str, object]] = []
+
+    def walk(directory: Path) -> None:
+        for child in sorted(directory.iterdir(), key=lambda item: item.name):
+            rel = child.relative_to(root).as_posix()
+            record = object_record(child, rel)
+            entries.append(record)
+            if record["type"] == "directory":
+                walk(child)
+
+    walk(root)
+    return {"state": "directory", "entries": entries}
+
+
 snapshot = {}
 for rel in paths:
-    root = repo / rel
-    if root.exists():
-        snapshot[rel] = sorted(path.relative_to(root).as_posix() for path in root.rglob("*"))
-    else:
-        snapshot[rel] = []
+    snapshot[rel] = snapshot_root(repo / rel)
 print(json.dumps(snapshot, sort_keys=True))
 PY
 }
@@ -195,18 +251,247 @@ for arg in sys.argv[1:]:
     Draft202012Validator.check_schema(schema)
 PY
 
+"${PYTHON_BIN}" - "${ADMISSION_ROOT}/schemas/admission_result.schema.json" <<'PY'
+from __future__ import annotations
+
+import copy
+import json
+import sys
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
+
+schema = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+Draft202012Validator.check_schema(schema)
+validator = Draft202012Validator(schema)
+
+base = {
+    "validation_status": "pass",
+    "admission_status": "not_run",
+    "mode": "dry_run",
+    "admission_kind": "knowledge_asset",
+    "profile_id": "knowledge_asset.v1",
+    "knowledge_profile_id": "product_type_extraction.v1",
+    "asset_id": "example",
+    "package_path": "/tmp/package",
+    "payload_path": "/tmp/package/payload.json",
+    "proposed_target_path": None,
+    "blockers": [],
+    "evidence": {
+        "phase_invoked": False,
+        "canonical_write_performed": False,
+    },
+}
+
+
+def assert_valid(payload: dict[str, object]) -> None:
+    errors = sorted(validator.iter_errors(payload), key=lambda error: list(error.absolute_path))
+    assert not errors, [error.message for error in errors]
+
+
+def assert_invalid(payload: dict[str, object]) -> None:
+    errors = sorted(validator.iter_errors(payload), key=lambda error: list(error.absolute_path))
+    assert errors, payload
+
+
+valid_pass = copy.deepcopy(base)
+assert_valid(valid_pass)
+
+invalid_pass = copy.deepcopy(base)
+invalid_pass["blockers"] = [{"code": "x", "message": "should not be present"}]
+assert_invalid(invalid_pass)
+
+valid_fail = copy.deepcopy(base)
+valid_fail["validation_status"] = "fail"
+valid_fail["blockers"] = [{"code": "x", "message": "validation failed"}]
+assert_valid(valid_fail)
+
+invalid_fail = copy.deepcopy(base)
+invalid_fail["validation_status"] = "fail"
+assert_invalid(invalid_fail)
+
+valid_source = copy.deepcopy(base)
+valid_source["admission_kind"] = "source_capture"
+valid_source["profile_id"] = "source_capture.v1"
+valid_source["knowledge_profile_id"] = None
+assert_valid(valid_source)
+
+invalid_source = copy.deepcopy(valid_source)
+invalid_source["knowledge_profile_id"] = "product_type_extraction.v1"
+assert_invalid(invalid_source)
+
+valid_knowledge = copy.deepcopy(base)
+assert_valid(valid_knowledge)
+
+invalid_knowledge = copy.deepcopy(base)
+invalid_knowledge["knowledge_profile_id"] = None
+assert_invalid(invalid_knowledge)
+
+early_failure = copy.deepcopy(base)
+early_failure["validation_status"] = "fail"
+early_failure["admission_kind"] = None
+early_failure["profile_id"] = None
+early_failure["knowledge_profile_id"] = None
+early_failure["asset_id"] = None
+early_failure["payload_path"] = None
+early_failure["blockers"] = [{"code": "missing_package_file", "message": "Package file is missing"}]
+assert_valid(early_failure)
+PY
+
+"${PYTHON_BIN}" - "${TMP_ROOT}" <<'PY'
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import stat
+import sys
+from pathlib import Path
+
+tmp = Path(sys.argv[1]) / "snapshot-model"
+tmp.mkdir()
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        digest.update(handle.read())
+    return digest.hexdigest()
+
+
+def object_record(path: Path, rel_path: str | None = None) -> dict[str, object]:
+    st = os.lstat(path)
+    mode = st.st_mode
+    record: dict[str, object] = {}
+    if rel_path is not None:
+        record["path"] = rel_path
+    if stat.S_ISDIR(mode):
+        record["type"] = "directory"
+    elif stat.S_ISREG(mode):
+        record["type"] = "file"
+        record["sha256"] = file_sha256(path)
+    elif stat.S_ISLNK(mode):
+        record["type"] = "symlink"
+        record["target"] = os.readlink(path)
+    else:
+        record["type"] = "other"
+    return record
+
+
+def snapshot_root(root: Path) -> dict[str, object]:
+    if not root.exists() and not root.is_symlink():
+        return {"state": "missing", "entries": []}
+    root_record = object_record(root)
+    root_type = str(root_record["type"])
+    if root_type == "file":
+        return {"state": "file", "sha256": root_record["sha256"], "entries": []}
+    if root_type == "symlink":
+        return {"state": "symlink", "target": root_record["target"], "entries": []}
+    if root_type != "directory":
+        return {"state": root_type, "entries": []}
+    entries: list[dict[str, object]] = []
+    for child in sorted(root.iterdir(), key=lambda item: item.name):
+        record = object_record(child, child.relative_to(root).as_posix())
+        entries.append(record)
+    return {"state": "directory", "entries": entries}
+
+
+missing = snapshot_root(tmp / "missing")
+empty_dir_path = tmp / "empty"
+empty_dir_path.mkdir()
+empty_dir = snapshot_root(empty_dir_path)
+file_path = tmp / "file"
+file_path.write_text("content", encoding="utf-8")
+file_root = snapshot_root(file_path)
+target_path = tmp / "target"
+target_path.write_text("target-content", encoding="utf-8")
+symlink_path = tmp / "link"
+symlink_path.symlink_to("target")
+symlink_root = snapshot_root(symlink_path)
+nested = tmp / "nested"
+nested.mkdir()
+(nested / "empty-child").mkdir()
+(nested / "child.txt").write_text("child", encoding="utf-8")
+(nested / "child-link").symlink_to("child.txt")
+nested_root = snapshot_root(nested)
+
+assert missing == {"state": "missing", "entries": []}, missing
+assert empty_dir == {"state": "directory", "entries": []}, empty_dir
+assert missing != empty_dir
+assert file_root["state"] == "file" and file_root["sha256"] == hashlib.sha256(b"content").hexdigest(), file_root
+assert symlink_root == {"state": "symlink", "target": "target", "entries": []}, symlink_root
+entry_by_path = {entry["path"]: entry for entry in nested_root["entries"]}
+assert entry_by_path["empty-child"]["type"] == "directory", json.dumps(nested_root, sort_keys=True)
+assert entry_by_path["child.txt"]["sha256"] == hashlib.sha256(b"child").hexdigest(), nested_root
+assert entry_by_path["child-link"]["target"] == "child.txt", nested_root
+PY
+
 [[ ! -e "${ADMISSION_ROOT}/schemas/knowledge-types" ]] || fail "admission knowledge-types schemas directory must not exist"
 [[ ! -e "${ADMISSION_ROOT}/schemas/product_type_extraction.v1.schema.json" ]] || fail "product type schema must not exist in admission"
 [[ ! -e "${ADMISSION_ROOT}/schemas/recipe_formula_extraction.v1.schema.json" ]] || fail "recipe schema must not exist in admission"
 [[ ! -e "${ADMISSION_ROOT}/schemas/component_profile.v1.schema.json" ]] || fail "component schema must not exist in admission"
-if rg -n "class .*Validator|profile_data_schema_failed|structural_validator_ref|schema_ref.*product_type|knowledge-types" \
-  "${ADMISSION_ROOT}/lib" \
-  "${ADMISSION_ROOT}/profiles" \
-  "${ADMISSION_ROOT}/knowledge-profiles" \
-  "${ADMISSION_ROOT}/schemas" >/tmp/admission-forbidden-validator.out; then
-  cat /tmp/admission-forbidden-validator.out >&2
-  fail "custom/fallback or type-specific validator marker found"
-fi
+"${PYTHON_BIN}" - "${ADMISSION_ROOT}" <<'PY'
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+forbidden_files = {
+    "product_type_extraction.v1.schema.json",
+    "recipe_formula_extraction.v1.schema.json",
+    "component_profile.v1.schema.json",
+}
+found_files = [
+    path.relative_to(root).as_posix()
+    for path in root.rglob("*")
+    if path.is_file() and path.name in forbidden_files
+]
+if found_files:
+    print("Type-specific admission schema files found:", file=sys.stderr)
+    for item in found_files:
+        print(f"- {item}", file=sys.stderr)
+    raise SystemExit(1)
+
+surfaces = [
+    root / "lib",
+    root / "profiles",
+    root / "knowledge-profiles",
+    root / "schemas",
+]
+patterns = [
+    ("custom JSON Schema validator class", re.compile(r"class\s+(?!AdmissionError|InternalResultError)\w*Validator\b")),
+    ("manual JSON Schema keyword implementation", re.compile(r"\b(anyOf|oneOf|allOf|patternProperties)\b.*\bin\s+schema\b")),
+    ("profile_data_schema_failed blocker", re.compile(r"profile_data_schema_failed")),
+    ("structural validator reference", re.compile(r"structural_validator_ref")),
+    ("type-specific schema_ref", re.compile(r"schema_ref.*(product_type|recipe_formula|component_profile)")),
+    ("semantic validator invocation", re.compile(r"semantic_.*validator|validator_ref")),
+    ("admission-owned type schema path", re.compile(r"(knowledge-types|product_type_extraction\.v1\.schema|recipe_formula_extraction\.v1\.schema|component_profile\.v1\.schema)")),
+    ("jsonschema validate shortcut", re.compile(r"jsonschema\.validate")),
+]
+violations: list[str] = []
+for surface in surfaces:
+    for path in sorted(surface.rglob("*")):
+        if not path.is_file():
+            continue
+        if "__pycache__" in path.parts or path.suffix == ".pyc":
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"Could not read {path}: {exc}", file=sys.stderr)
+            raise SystemExit(1) from exc
+        for label, pattern in patterns:
+            if pattern.search(text):
+                violations.append(f"{path.relative_to(root)}: {label}")
+if violations:
+    print("Forbidden admission runtime/config/schema implementation markers found:", file=sys.stderr)
+    for item in violations:
+        print(f"- {item}", file=sys.stderr)
+    raise SystemExit(1)
+print("Custom or fallback JSON Schema validator implementation is absent. Admission uses only the standard jsonschema.Draft202012Validator.", file=sys.stderr)
+PY
 
 before_snapshot="$(snapshot_repo_surfaces)"
 
@@ -511,6 +796,56 @@ if run_package "${extra_field}" "${TMP_ROOT}/extra-field.out" "${TMP_ROOT}/extra
   fail "standard schema rejected package unexpectedly passed"
 fi
 assert_blocker "${TMP_ROOT}/extra-field.out" "common_schema_failed"
+
+"${PYTHON_BIN}" - "${ADMISSION_ROOT}" "${source_pkg}" "${TMP_ROOT}" <<'PY'
+from __future__ import annotations
+
+import contextlib
+import importlib.util
+import io
+import json
+import sys
+from pathlib import Path
+
+admission_root = Path(sys.argv[1])
+source_pkg = Path(sys.argv[2])
+tmp_root = Path(sys.argv[3])
+module_path = admission_root / "lib" / "admission_cli.py"
+broken_schema = tmp_root / "broken_result.schema.json"
+broken_schema.write_text(
+    json.dumps(
+        {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "impossible": {"const": "required"}
+            },
+            "required": ["impossible"],
+            "additionalProperties": False,
+        },
+        indent=2,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+
+spec = importlib.util.spec_from_file_location("admission_cli_under_test", module_path)
+assert spec is not None and spec.loader is not None
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+module.RESULT_SCHEMA = broken_schema
+
+stdout = io.StringIO()
+stderr = io.StringIO()
+with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+    status = module.main(["--package", source_pkg.as_posix(), "--dry-run"])
+
+assert status != 0, status
+assert stdout.getvalue() == "", stdout.getvalue()
+assert "internal admission result schema validation failed" in stderr.getvalue(), stderr.getvalue()
+assert (admission_root / "schemas" / "admission_result.schema.json").read_text(encoding="utf-8")
+PY
 
 python_no_site="${TMP_ROOT}/python-no-site"
 cat > "${python_no_site}" <<EOF

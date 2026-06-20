@@ -54,6 +54,10 @@ class AdmissionError(Exception):
         self.blocker = blocker
 
 
+class InternalResultError(Exception):
+    pass
+
+
 def blocker(code: str, message: str) -> Blocker:
     return Blocker(code=code, message=message)
 
@@ -184,13 +188,17 @@ def build_result(
 ) -> dict[str, Any]:
     validation_status = "pass" if not blockers else "fail"
     package_data = package_data or {}
+    result_admission_kind = package_data.get("admission_kind")
+    result_knowledge_profile_id = package_data.get("knowledge_profile_id") if result_admission_kind == "knowledge_asset" else None
+    if blockers and result_admission_kind == "knowledge_asset" and not result_knowledge_profile_id:
+        result_admission_kind = None
     return {
         "validation_status": validation_status,
         "admission_status": "not_run",
         "mode": "dry_run",
-        "admission_kind": package_data.get("admission_kind"),
+        "admission_kind": result_admission_kind,
         "profile_id": package_data.get("profile_id"),
-        "knowledge_profile_id": package_data.get("knowledge_profile_id") if package_data.get("admission_kind") == "knowledge_asset" else None,
+        "knowledge_profile_id": result_knowledge_profile_id,
         "asset_id": package_data.get("asset_id"),
         "package_path": package_dir.as_posix(),
         "payload_path": payload_path.as_posix() if payload_path is not None else None,
@@ -203,20 +211,12 @@ def build_result(
     }
 
 
-def validate_result(result: dict[str, Any]) -> tuple[dict[str, Any], int]:
+def validate_result(result: dict[str, Any]) -> int:
     try:
         validate_instance(RESULT_SCHEMA, result, "result_schema_failed", "admission_result")
     except AdmissionError as exc:
-        fallback = dict(result)
-        fallback["validation_status"] = "fail"
-        fallback["blockers"] = list(result.get("blockers", [])) + [exc.blocker.as_dict()]
-        try:
-            validate_instance(RESULT_SCHEMA, fallback, "result_schema_failed", "admission_result")
-        except AdmissionError as second:
-            print(f"FAIL result schema validation failed: {second.blocker.message}", file=sys.stderr)
-            return fallback, 1
-        return fallback, 1
-    return result, 0 if result["validation_status"] == "pass" else 1
+        raise InternalResultError(exc.blocker.message) from exc
+    return 0 if result["validation_status"] == "pass" else 1
 
 
 def validate_package(package_dir: Path) -> tuple[dict[str, Any] | None, Path | None, list[Blocker]]:
@@ -309,7 +309,11 @@ def main(argv: list[str]) -> int:
         payload_path=payload,
         blockers=blockers,
     )
-    result, exit_code = validate_result(result)
+    try:
+        exit_code = validate_result(result)
+    except InternalResultError as exc:
+        print(f"FAIL internal admission result schema validation failed: {exc}", file=sys.stderr)
+        return 1
     print(json.dumps(result, indent=2, sort_keys=True))
     return exit_code
 

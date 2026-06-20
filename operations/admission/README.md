@@ -24,5 +24,6 @@ Diagnostics and dependency errors are written to stderr.
 ## Dependencies
 
 The CLI uses Python and the standard `jsonschema` package with Draft 2020-12.
-The repo-owned dependency declaration is `operations/harness-phase2/requirements.txt`.
+For Stage 1 validation and CI setup, the repository currently reuses the existing requirements surface at `operations/harness-phase2/requirements.txt`.
+Long-term admission dependency ownership is not defined by this PR.
 No custom or fallback JSON Schema validator exists in this scaffold.
