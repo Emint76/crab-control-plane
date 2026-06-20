@@ -20,6 +20,18 @@ Phase 3 owns canonical execution evidence.
 
 Phase 4 packages operator invocation and calls Phase 3, but must not create competing `report.json`, `report.md`, `exit_code`, or `execution_result.json`.
 
+For `target_kind: kb_admission`, Phase 4 also generates the mandatory invocation claim consumed by Phase 3:
+
+```text
+operations/harness-phase4/runs/<WRAPPER_RUN_ID>/phase4_invocation_claim.json
+```
+
+The gate is documented in:
+
+```text
+operations/harness-phase4/PHASE4_MANDATORY_INVOCATION_GATE.md
+```
+
 ## Entrypoint
 
 Run the Phase 4 wrapper with:
@@ -46,6 +58,7 @@ Allowed wrapper files are:
 ```text
 wrapper_meta.json
 preflight.json
+phase4_invocation_claim.json
 phase3_invocation.json
 wrapper_summary.md
 wrapper_exit_code

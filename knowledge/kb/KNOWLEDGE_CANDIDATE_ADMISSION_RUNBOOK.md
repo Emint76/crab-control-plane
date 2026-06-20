@@ -85,9 +85,19 @@ Phase-owned work:
 
    Use a review-decision artifact according to the existing `REVIEW_DECISION` contract, for example `review-decision.md` or `review-decision.json` when allowed by repo contract. Do not infer JSON as required unless the applicable contract requires it.
 
-6. Phase3 admits the knowledge package.
+6. Phase4 invokes Phase3 for the knowledge package.
 
-   Phase3 workspace `kb_admission` admits the reviewed knowledge package as `admission_type: knowledge_asset`. The target performs manifest, hash, and path controls, copies the package byte-for-byte, and emits admission evidence.
+   New real KB admissions use the governed route:
+
+   ```text
+   Phase2 -> Phase4 wrapper -> Phase3 kb_admission
+   ```
+
+   Phase4 generates an invocation claim for the exact wrapper run, Phase3 run, execution target, and Phase2 run. Phase3 freezes and validates that claim before any apply step.
+
+   Direct Phase3 `kb_admission` without valid Phase4 proof fails closed.
+
+   Phase3 workspace `kb_admission` still admits the reviewed knowledge package as `admission_type: knowledge_asset`. The target performs manifest, hash, and path controls, copies the package byte-for-byte, and emits admission evidence.
 
    Final admitted knowledge asset path shape:
 
@@ -158,6 +168,8 @@ Phase3 does not validate semantic correctness, domain expertise, scientific corr
 
 Phase3 only admits already prepared knowledge packages byte-for-byte according to manifest, hash, and path controls.
 
+For `kb_admission`, Phase3 also requires Phase4 invocation proof. `invoked_by` metadata is not proof. The proof gate validates exact repo-contained run linkage, not cryptographic authentication.
+
 Knowledge admission and source admission are structurally similar at the Phase layer. The admitted object differs:
 
 - source admission admits a source package or other source-bearing artifacts;
@@ -166,6 +178,8 @@ Knowledge admission and source admission are structurally similar at the Phase l
 ## Evidence boundary
 
 Phase3 may produce local or runtime admission evidence. That evidence may be cited as local evidence for a run, but it is not a canonical repository artifact unless a later docs change explicitly curates it into the repository.
+
+Phase4 produces wrapper evidence and `phase4_invocation_claim.json`. Phase3 remains the canonical execution owner and owns canonical reports, `execution_result.json`, and `exit_code`.
 
 Do not cite untracked, git-ignored, runtime, or live workspace evidence as repository fact.
 

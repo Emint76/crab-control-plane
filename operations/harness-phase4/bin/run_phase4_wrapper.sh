@@ -38,6 +38,7 @@ export PHASE4_BASH_BIN_RESOLVED
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import subprocess
@@ -140,6 +141,22 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def read_json_object(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8-sig") as handle:
+        payload = json.load(handle)
+    if not isinstance(payload, dict):
+        raise ValueError("top-level JSON value must be an object")
+    return payload
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def add_check(checks: list[dict[str, str]], name: str, status: str, detail: str) -> None:
     checks.append({"name": name, "status": status, "detail": detail})
 
@@ -185,6 +202,7 @@ def invocation_payload(
     phase2_run_ref: str | None,
     execution_target_ref: str | None,
     phase3_run_id: str,
+    phase4_invocation_claim_ref: str | None = None,
     reason: str | None = None,
 ) -> dict[str, Any]:
     refs = make_wrapper_refs("unused", phase3_run_id)
@@ -210,9 +228,49 @@ def invocation_payload(
                 "phase3_exit_code": refs["phase3_exit_code"],
             }
         )
+        if phase4_invocation_claim_ref:
+            payload["phase3_command"].extend(["--phase4-invocation-claim", phase4_invocation_claim_ref])
+            payload["phase4_invocation_claim_ref"] = phase4_invocation_claim_ref
     if reason:
         payload["reason"] = reason
     return payload
+
+
+def phase4_invocation_claim(
+    *,
+    wrapper_run_id: str,
+    wrapper_run_dir: Path,
+    phase3_run_id: str,
+    phase2_run_ref: str,
+    execution_target_ref: str,
+    execution_target_path: Path,
+    execution_target_sha256: str,
+) -> dict[str, Any]:
+    wrapper_run_ref = f"operations/harness-phase4/runs/{wrapper_run_id}"
+    phase3_run_ref = f"operations/harness-phase3/runs/{phase3_run_id}"
+    claim_ref = f"{wrapper_run_ref}/phase4_invocation_claim.json"
+    return {
+        "schema_name": "phase4_invocation_claim",
+        "schema_version": "1.0",
+        "claim_id": f"phase4-invocation:{wrapper_run_id}:{phase3_run_id}:{execution_target_sha256}",
+        "wrapper_run_id": wrapper_run_id,
+        "wrapper_run_ref": wrapper_run_ref,
+        "phase3_run_id": phase3_run_id,
+        "phase3_run_ref": phase3_run_ref,
+        "target_kind": "kb_admission",
+        "execution_target_ref": execution_target_ref,
+        "execution_target_sha256": execution_target_sha256,
+        "phase2_run_ref": phase2_run_ref,
+        "created_at": now_utc(),
+        "invocation_intent": "phase4_wrapper_invokes_phase3_kb_admission",
+        "invariants": {
+            "phase3_canonical_execution_owner": True,
+            "phase4_thin_wrapper_only": True,
+            "phase4_claim_ref": claim_ref,
+            "phase4_owns_canonical_outputs": False,
+            "proof_scope": "repo_contained_exact_run_linkage_not_cryptographic_authentication",
+        },
+    }
 
 
 def write_summary(
@@ -312,6 +370,7 @@ def main(argv: list[str]) -> int:
         violations.append("phase2_run_dir_repo_contained")
 
     execution_target_ref: str | None = None
+    execution_target_json: Path | None = None
     if execution_target_arg:
         execution_target_json = resolve_user_path(repo_root, execution_target_arg)
         try:
@@ -391,6 +450,29 @@ def main(argv: list[str]) -> int:
 
     assert phase2_run_ref is not None
     assert execution_target_ref is not None
+    assert execution_target_json is not None
+    phase4_invocation_claim_ref: str | None = None
+    phase4_invocation_claim_path: Path | None = None
+    try:
+        execution_target_payload = read_json_object(execution_target_json)
+    except (OSError, ValueError, json.JSONDecodeError):
+        execution_target_payload = {}
+    if execution_target_payload.get("target_kind") == "kb_admission":
+        phase4_invocation_claim_path = wrapper_run_dir / "phase4_invocation_claim.json"
+        phase4_invocation_claim_ref = repo_ref(repo_root, phase4_invocation_claim_path)
+        write_json(
+            phase4_invocation_claim_path,
+            phase4_invocation_claim(
+                wrapper_run_id=wrapper_run_id,
+                wrapper_run_dir=wrapper_run_dir,
+                phase3_run_id=phase3_run_id,
+                phase2_run_ref=phase2_run_ref,
+                execution_target_ref=execution_target_ref,
+                execution_target_path=execution_target_json,
+                execution_target_sha256=sha256_file(execution_target_json),
+            ),
+        )
+
     bash_bin = os.environ.get("PHASE4_BASH_BIN_RESOLVED", "bash")
     phase3_command = [
         bash_bin,
@@ -402,6 +484,8 @@ def main(argv: list[str]) -> int:
         "--run-id",
         phase3_run_id,
     ]
+    if phase4_invocation_claim_ref:
+        phase3_command.extend(["--phase4-invocation-claim", phase4_invocation_claim_ref])
     phase3_env = os.environ.copy()
     python_dir = str(Path(sys.executable).resolve(strict=False).parent)
     phase3_env["PATH"] = python_dir + os.pathsep + phase3_env.get("PATH", "")
@@ -426,6 +510,7 @@ def main(argv: list[str]) -> int:
             phase2_run_ref=phase2_run_ref,
             execution_target_ref=execution_target_ref,
             phase3_run_id=phase3_run_id,
+            phase4_invocation_claim_ref=phase4_invocation_claim_ref,
         ),
     )
 

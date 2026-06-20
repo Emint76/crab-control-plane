@@ -51,6 +51,14 @@ Minimum Phase 3 inputs are:
 --run-id <RUN_ID>
 ```
 
+For `target_kind: kb_admission`, Phase3 also requires:
+
+```text
+--phase4-invocation-claim operations/harness-phase4/runs/<WRAPPER_RUN_ID>/phase4_invocation_claim.json
+```
+
+This argument is optional for non-`kb_admission` target kinds.
+
 Phase 2 `runtime-ready/` is upstream package input only.
 
 `execution_target.json` is an external target contract. Phase 3 must freeze it before relying on it.
@@ -104,10 +112,12 @@ Step-dependent outputs are:
 
 ```text
 input/execution_target.json
+input/execution_target_freeze.json
 input/runtime_ready_manifest.json
 input/runtime_ready.sha256
 checks/freeze_intake_validation.json
 checks/execution_target_validation.json
+checks/phase4_invocation_validation.json
 checks/pre_apply_validation.json
 checks/runtime_ready_reverify.json
 staging/runtime-ready-applied/
@@ -145,10 +155,33 @@ Reports must not own or overwrite `exit_code`.
 Phase 3 must freeze:
 - Phase 2 handoff/runtime-ready input
 - execution target JSON
+- Phase 4 invocation claim for `kb_admission`
 - runtime-ready manifest
 - hashes proving what was consumed
 
 After freeze, Phase 3 must not rely on mutable upstream files.
+
+For `kb_admission`, Phase3 freezes the Phase4 invocation claim before apply at:
+
+```text
+operations/harness-phase3/runs/<RUN_ID>/input/phase4_invocation_claim.json
+```
+
+The frozen claim must be byte-identical to the Phase4 claim consumed from:
+
+```text
+operations/harness-phase4/runs/<WRAPPER_RUN_ID>/phase4_invocation_claim.json
+```
+
+Phase3 validates the frozen claim against `operations/harness-phase4/contracts/phase4_invocation_claim.schema.json` and writes:
+
+```text
+operations/harness-phase3/runs/<RUN_ID>/checks/phase4_invocation_validation.json
+```
+
+Direct Phase3 `kb_admission` without valid Phase4 proof fails closed before pre-apply validation or canonical mutation.
+
+`invoked_by` is not invocation proof.
 
 ## Hash and provenance requirements
 
@@ -184,6 +217,7 @@ Phase 3 staging/apply boundary must be explicit and auditable.
 | Missing Phase 2 input | fail closed |
 | Invalid execution target | fail closed |
 | Runtime-ready hash mismatch | fail closed |
+| Missing or invalid Phase4 proof for `kb_admission` | fail closed |
 | Pre-apply validation failure | fail closed |
 | Apply failure | fail closed |
 | Post-apply validation failure | fail closed |
@@ -199,6 +233,8 @@ Execution target validation has two layers:
 2. semantic validation for canonical `target_ref`, write-surface, and unsafe path rules.
 
 Invalid execution target semantics must fail closed and must not reach staging/apply.
+
+For `kb_admission`, Phase3 then validates the mandatory Phase4 invocation proof before pre-apply validation. The validation binds the exact wrapper run, exact Phase3 run, exact frozen execution-target ref and hash, Phase2 run ref, claim path, and claim SHA-256. Cross-run reuse, replay, traversal, outside-surface paths, symlink substitution, and target substitution fail closed.
 
 ## Write-surface rules
 
@@ -250,6 +286,8 @@ Phase 4 must not own canonical outputs.
 
 Phase 4 must not write competing `report.json`, `report.md`, `exit_code`, or `execution_result.json` for the same execution.
 
+For `kb_admission`, Phase4 must provide an explicit invocation claim. Phase3 consumes the claim as input evidence only; Phase3 still owns canonical execution and all canonical outputs.
+
 ## Non-goals
 
 - No live OpenClaw runtime mutation.
@@ -276,6 +314,7 @@ operations/harness-phase3/UNRESOLVED.md
 - `run_meta.json` records canonical run-dir identity without host-specific absolute paths.
 - Phase 3 runner freezes all upstream input.
 - Phase 3 runner validates frozen `input/execution_target.json` against `operations/harness-phase3/contracts/execution_target.schema.json` before semantic checks.
+- Phase 3 runner requires and validates Phase4 invocation proof for `kb_admission` before apply.
 - Phase 3 runner writes all canonical evidence under `runs/<RUN_ID>/`.
 - Phase 3 runner owns `exit_code`.
 - Phase 3 runner emits `report.json` and `report.md`.

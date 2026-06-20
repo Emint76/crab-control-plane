@@ -12,6 +12,7 @@ from typing import Any
 
 CHECK_ARTIFACTS = {
     "freeze_intake_validation": "checks/freeze_intake_validation.json",
+    "phase4_invocation_validation": "checks/phase4_invocation_validation.json",
     "pre_apply_validation": "checks/pre_apply_validation.json",
     "runtime_ready_reverify": "checks/runtime_ready_reverify.json",
     "post_apply_validation": "checks/post_apply_validation.json",
@@ -100,6 +101,7 @@ def main() -> int:
 
     summary = {
         "freeze_intake_validation": parsed_checks["freeze_intake_validation"]["status"],
+        "phase4_invocation_validation": parsed_checks["phase4_invocation_validation"]["status"],
         "pre_apply_validation": parsed_checks["pre_apply_validation"]["status"],
         "runtime_ready_reverify": parsed_checks["runtime_ready_reverify"]["status"],
         "execute_apply": execute_apply_status,
@@ -107,6 +109,7 @@ def main() -> int:
     }
     details = {
         "freeze_intake_validation": parsed_checks["freeze_intake_validation"]["detail"],
+        "phase4_invocation_validation": parsed_checks["phase4_invocation_validation"]["detail"],
         "pre_apply_validation": parsed_checks["pre_apply_validation"]["detail"],
         "runtime_ready_reverify": parsed_checks["runtime_ready_reverify"]["detail"],
         "execute_apply": execute_apply_detail,

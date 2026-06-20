@@ -26,3 +26,6 @@ jobs:
 
       - name: Run Phase 4 wrapper test
         run: bash operations/harness-phase4/tests/test_phase4_wrapper.sh
+
+      - name: Run Phase 4 invocation proof test
+        run: bash operations/harness-phase4/tests/test_phase4_invocation_claim.sh

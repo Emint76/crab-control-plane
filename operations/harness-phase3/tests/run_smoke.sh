@@ -22,7 +22,7 @@ LATE_FAIL_RUN_DIR="${PHASE3_ROOT}/runs/${LATE_FAIL_RUN_ID}"
 POS_TARGET_JSON="${TMP_DIR}/execution_target.positive.json"
 NEG_TARGET_JSON="${TMP_DIR}/execution_target.negative.json"
 LATE_FAIL_TARGET_JSON="${TMP_DIR}/execution_target.late-fail.json"
-LATE_FAIL_PHASE2_RUN_DIR="${TMP_DIR}/phase2-late-fail"
+LATE_FAIL_PHASE2_RUN_DIR="${REPO_ROOT}/operations/harness-phase2/runs/phase3-smoke-late-fail-phase2"
 
 rm -rf "${POS_RUN_DIR}" "${NEG_RUN_DIR}" "${LATE_FAIL_RUN_DIR}" "${LATE_FAIL_PHASE2_RUN_DIR}"
 
@@ -115,26 +115,29 @@ set -e
 [[ "${NEG_BUNDLE_STATUS}" -ne 0 ]] || { echo "negative run must return non-zero" >&2; exit 1; }
 [[ -f "${NEG_RUN_DIR}/exit_code" ]] || { echo "missing negative exit_code" >&2; exit 1; }
 [[ "$(tr -d '\r\n' < "${NEG_RUN_DIR}/exit_code")" != "0" ]] || { echo "negative run exit_code must be non-zero" >&2; exit 1; }
-[[ -f "${NEG_RUN_DIR}/checks/pre_apply_validation.json" ]] || { echo "missing negative pre_apply_validation.json" >&2; exit 1; }
+[[ -f "${NEG_RUN_DIR}/checks/execution_target_validation.json" ]] || { echo "missing negative execution_target_validation.json" >&2; exit 1; }
+[[ ! -f "${NEG_RUN_DIR}/checks/pre_apply_validation.json" ]] || { echo "negative pre_apply_validation.json must be absent when execution target validation fails" >&2; exit 1; }
 [[ -f "${NEG_RUN_DIR}/report.json" ]] || { echo "missing negative report.json" >&2; exit 1; }
 [[ -f "${NEG_RUN_DIR}/report.md" ]] || { echo "missing negative report.md" >&2; exit 1; }
 [[ -f "${NEG_RUN_DIR}/timestamps.json" ]] || { echo "missing negative timestamps.json" >&2; exit 1; }
 [[ ! -f "${NEG_RUN_DIR}/execution_result.json" ]] || { echo "negative execution_result.json must be absent" >&2; exit 1; }
 [[ ! -d "${NEG_RUN_DIR}/staging/runtime-ready-applied" ]] || { echo "negative staging target must be absent" >&2; exit 1; }
 
-"${PYTHON_BIN}" - "${NEG_RUN_DIR}/checks/pre_apply_validation.json" "${NEG_RUN_DIR}/report.json" "${NEG_RUN_DIR}/run_meta.json" <<'PY'
+"${PYTHON_BIN}" - "${NEG_RUN_DIR}/checks/execution_target_validation.json" "${NEG_RUN_DIR}/report.json" "${NEG_RUN_DIR}/run_meta.json" <<'PY'
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
 
-pre_apply = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+execution_target_validation = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 report = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 run_meta = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8-sig"))
 
-assert pre_apply["status"] == "fail", pre_apply
+assert execution_target_validation["status"] == "fail", execution_target_validation
 assert report["overall_status"] == "fail", report
+assert report["summary"]["execution_target_validation"] == "fail", report
+assert report["summary"]["pre_apply_validation"] == "not_reached", report
 assert report["summary"]["execution_result"] == "not_reached", report
 assert report["summary"]["materialize_staging"] == "not_reached", report
 assert run_meta["invoked_by"] == "smoke://phase3-negative", run_meta

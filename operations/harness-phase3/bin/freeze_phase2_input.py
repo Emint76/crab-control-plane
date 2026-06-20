@@ -53,6 +53,43 @@ def local_sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def reject_symlink_components(root: Path, path: Path, *, field_name: str) -> None:
+    root = root.resolve(strict=False)
+    try:
+        relative = path.relative_to(root)
+    except ValueError as exc:
+        raise AdmissionError(f"{field_name} must resolve inside {path_ref(root, root)}") from exc
+    current = root
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise AdmissionError(f"{field_name} must not traverse or reference symlinks")
+
+
+def resolve_phase4_invocation_claim(repo_root: Path, claim_path_text: str) -> Path:
+    if not claim_path_text:
+        raise AdmissionError("phase4 invocation claim path is empty")
+    raw_path = Path(claim_path_text).expanduser()
+    if any(part in {"..", ""} for part in raw_path.parts):
+        raise AdmissionError("phase4 invocation claim path must not contain traversal or empty segments")
+    if not raw_path.is_absolute():
+        raw_path = repo_root / raw_path
+    resolved = raw_path.resolve(strict=False)
+    phase4_runs_root = (repo_root / "operations" / "harness-phase4" / "runs").resolve(strict=False)
+    reject_symlink_components(repo_root.resolve(strict=False), raw_path, field_name="phase4_invocation_claim")
+    try:
+        relative = resolved.relative_to(phase4_runs_root)
+    except ValueError as exc:
+        raise AdmissionError("phase4 invocation claim must resolve under operations/harness-phase4/runs/") from exc
+    if len(relative.parts) != 2 or relative.parts[1] != "phase4_invocation_claim.json":
+        raise AdmissionError("phase4 invocation claim must be operations/harness-phase4/runs/<WRAPPER_RUN_ID>/phase4_invocation_claim.json")
+    if not resolved.is_file():
+        raise AdmissionError("phase4 invocation claim file is missing")
+    if resolved.is_symlink():
+        raise AdmissionError("phase4 invocation claim must not be a symlink")
+    return resolved
+
+
 def read_json_object(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8-sig") as handle:
         payload = json.load(handle)
@@ -105,9 +142,9 @@ def freeze_admission_manifest_if_needed(repo_root: Path, execution_target_json: 
 
 
 def main() -> int:
-    if len(sys.argv) != 5:
+    if len(sys.argv) not in {5, 6}:
         print(
-            "usage: freeze_phase2_input.py <repo-root> <phase2-run-dir> <run-dir> <execution-target-json>",
+            "usage: freeze_phase2_input.py <repo-root> <phase2-run-dir> <run-dir> <execution-target-json> [phase4-invocation-claim]",
             file=sys.stderr,
         )
         return 2
@@ -116,6 +153,7 @@ def main() -> int:
     phase2_run_dir = Path(sys.argv[2]).resolve(strict=False)
     run_dir = Path(sys.argv[3]).resolve(strict=False)
     execution_target_json = Path(sys.argv[4]).resolve(strict=False)
+    phase4_invocation_claim_arg = sys.argv[5] if len(sys.argv) == 6 else ""
 
     input_dir = run_dir / "input"
     input_dir.mkdir(parents=True, exist_ok=True)
@@ -150,7 +188,40 @@ def main() -> int:
     for frozen_name, source_rel_path in REQUIRED_PHASE2_FILES.items():
         shutil.copyfile(phase2_run_dir / source_rel_path, input_dir / frozen_name)
 
-    shutil.copyfile(execution_target_json, input_dir / "execution_target.json")
+    frozen_execution_target = input_dir / "execution_target.json"
+    shutil.copyfile(execution_target_json, frozen_execution_target)
+    write_json(
+        input_dir / "execution_target_freeze.json",
+        {
+            "generated_at": now_utc(),
+            "execution_target_ref": path_ref(repo_root, execution_target_json),
+            "frozen_execution_target_ref": "input/execution_target.json",
+            "execution_target_sha256": local_sha256_file(execution_target_json),
+            "frozen_execution_target_sha256": local_sha256_file(frozen_execution_target),
+        },
+    )
+
+    if phase4_invocation_claim_arg:
+        try:
+            claim_path = resolve_phase4_invocation_claim(repo_root, phase4_invocation_claim_arg)
+        except AdmissionError as exc:
+            print(f"invalid Phase 4 invocation claim path: {exc}", file=sys.stderr)
+            return 1
+        frozen_claim = input_dir / "phase4_invocation_claim.json"
+        shutil.copyfile(claim_path, frozen_claim)
+        source_hash = local_sha256_file(claim_path)
+        frozen_hash = local_sha256_file(frozen_claim)
+        write_json(
+            input_dir / "phase4_invocation_claim_freeze.json",
+            {
+                "generated_at": now_utc(),
+                "phase4_invocation_claim_ref": path_ref(repo_root, claim_path),
+                "frozen_phase4_invocation_claim_ref": "input/phase4_invocation_claim.json",
+                "phase4_invocation_claim_sha256": source_hash,
+                "frozen_phase4_invocation_claim_sha256": frozen_hash,
+                "byte_identical": source_hash == frozen_hash,
+            },
+        )
 
     manifest_entries: list[dict[str, Any]] = []
     hash_lines: list[str] = []
