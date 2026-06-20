@@ -19,6 +19,7 @@ Phase 4 may coordinate operator-facing invocation only.
 Phase 4 may:
 - prepare wrapper metadata
 - run wrapper preflight
+- generate a Phase4 invocation claim for `kb_admission`
 - call Phase 3 with explicit arguments
 - surface Phase 3 run location
 - surface Phase 3 report status
@@ -50,6 +51,7 @@ Phase 4 must call Phase 3 rather than bypass it.
 - preserve Phase 3 exit status as wrapper result
 - print or record the Phase 3 canonical run directory
 - print or record links/paths to Phase 3 `report.json`, `report.md`, `exit_code`
+- write `phase4_invocation_claim.json` for `kb_admission` wrapper runs
 
 ## Forbidden responsibilities
 
@@ -104,6 +106,7 @@ Allowed files:
 ```text
 wrapper_meta.json
 preflight.json
+phase4_invocation_claim.json
 phase3_invocation.json
 wrapper_summary.md
 wrapper_exit_code
@@ -128,6 +131,8 @@ wrapper_report.md
 ```
 
 The preferred contract is to avoid names that compete with Phase 3.
+
+`phase4_invocation_claim.json` is wrapper-owned invocation proof for `kb_admission`. It is not canonical Phase3 execution evidence.
 
 ## Write-surface rules
 
@@ -158,6 +163,22 @@ Phase 4 may not edit Phase 3 outputs.
 
 Phase 4 must invoke Phase 3 through `operations/harness-phase3/bin/run_phase3_bundle.sh`.
 
+For `target_kind: kb_admission`, Phase4 must generate `phase4_invocation_claim.json` after wrapper preflight succeeds and before invoking Phase3. Phase4 must pass it explicitly:
+
+```text
+--phase4-invocation-claim operations/harness-phase4/runs/<WRAPPER_RUN_ID>/phase4_invocation_claim.json
+```
+
+The claim schema is:
+
+```text
+operations/harness-phase4/contracts/phase4_invocation_claim.schema.json
+```
+
+The claim binds the wrapper run id, exact Phase3 run id, execution-target ref and SHA-256, Phase2 run ref, and ownership invariants. `invoked_by` is not proof.
+
+For non-`kb_admission` target kinds, this argument remains optional and existing behavior is unchanged.
+
 Phase 4 must pass through Phase 3 exit status as the wrapper result.
 
 Phase 4 must record the Phase 3 run directory and report paths.
@@ -172,13 +193,14 @@ Phase 4 must not mask Phase 3 failure as wrapper success.
 | missing Phase 2 run dir argument | fail closed |
 | missing execution target argument | fail closed |
 | invalid wrapper operator metadata | fail closed |
+| missing or invalid generated claim for `kb_admission` | Phase 3 fails closed |
 | Phase 3 exits non-zero | wrapper exits non-zero |
 | Phase 3 canonical report missing after invocation | fail closed |
 | attempt to write outside Phase 4 wrapper run surface | fail closed |
 
 ## Non-goals
 
-- No Phase 3 behavior changes.
+- No Phase 4 ownership of Phase 3 canonical outputs.
 - No Phase 2 behavior changes.
 - No live runtime writes.
 - No deployment or migration.
@@ -187,6 +209,7 @@ Phase 4 must not mask Phase 3 failure as wrapper success.
 ## Acceptance criteria
 
 - Phase 4 wrapper invokes Phase 3 and does not bypass it.
+- Phase 4 wrapper generates and transfers mandatory invocation proof for `kb_admission`.
 - Phase 4 wrapper has its own wrapper metadata surface only.
 - Phase 4 wrapper never creates competing canonical execution outputs.
 - Phase 4 wrapper preserves Phase 3 exit status.

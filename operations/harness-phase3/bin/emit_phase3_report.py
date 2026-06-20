@@ -14,6 +14,7 @@ from typing import Any
 CHECK_ARTIFACTS = {
     "freeze_intake_validation": "checks/freeze_intake_validation.json",
     "execution_target_validation": "checks/execution_target_validation.json",
+    "phase4_invocation_validation": "checks/phase4_invocation_validation.json",
     "pre_apply_validation": "checks/pre_apply_validation.json",
     "runtime_ready_reverify": "checks/runtime_ready_reverify.json",
     "declared_scope_evidence": "checks/declared_scope_evidence.json",
@@ -25,6 +26,7 @@ TIMESTAMP_FIELDS = [
     ("freeze_input_hash_completed_at", "freeze_input_hash_completed_at"),
     ("freeze_intake_validation_completed_at", "freeze_intake_validation_completed_at"),
     ("execution_target_validation_completed_at", "execution_target_validation_completed_at"),
+    ("phase4_invocation_validation_completed_at", "phase4_invocation_validation_completed_at"),
     ("pre_apply_validation_completed_at", "pre_apply_validation_completed_at"),
     ("runtime_ready_reverify_completed_at", "runtime_ready_reverify_completed_at"),
     ("materialize_staging_completed_at", "materialize_staging_completed_at"),
@@ -38,6 +40,7 @@ STEP_KEYS = [
     "freeze_input_hash",
     "freeze_intake_validation",
     "execution_target_validation",
+    "phase4_invocation_validation",
     "pre_apply_validation",
     "runtime_ready_reverify",
     "materialize_staging",
@@ -253,6 +256,7 @@ def main() -> int:
         )
         freeze_intake_validation = parse_check_artifact(run_dir, state, "freeze_intake_validation", "freeze_intake_validation")
         execution_target_validation = parse_check_artifact(run_dir, state, "execution_target_validation", "execution_target_validation")
+        phase4_invocation_validation = parse_check_artifact(run_dir, state, "phase4_invocation_validation", "phase4_invocation_validation")
         pre_apply_validation = parse_check_artifact(run_dir, state, "pre_apply_validation", "pre_apply_validation")
         runtime_ready_reverify = parse_check_artifact(run_dir, state, "runtime_ready_reverify", "runtime_ready_reverify")
         materialize_staging = parse_non_artifact_step(
@@ -279,6 +283,7 @@ def main() -> int:
             "freeze_input_hash": freeze_input_hash,
             "freeze_intake_validation": freeze_intake_validation,
             "execution_target_validation": execution_target_validation,
+            "phase4_invocation_validation": phase4_invocation_validation,
             "pre_apply_validation": pre_apply_validation,
             "runtime_ready_reverify": runtime_ready_reverify,
             "materialize_staging": materialize_staging,
@@ -369,6 +374,7 @@ def main() -> int:
                 f"- freeze_input_hash: `{summary['freeze_input_hash']}`",
                 f"- freeze_intake_validation: `{summary['freeze_intake_validation']}`",
                 f"- execution_target_validation: `{summary['execution_target_validation']}`",
+                f"- phase4_invocation_validation: `{summary['phase4_invocation_validation']}`",
                 f"- pre_apply_validation: `{summary['pre_apply_validation']}`",
                 f"- runtime_ready_reverify: `{summary['runtime_ready_reverify']}`",
                 f"- materialize_staging: `{summary['materialize_staging']}`",

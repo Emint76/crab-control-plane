@@ -14,10 +14,12 @@ from typing import Any
 
 PHASE3_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PHASE3_ROOT.parent.parent
+PHASE4_ROOT = REPO_ROOT / "operations" / "harness-phase4"
 PHASE2_RUN_ID = "phase3-kb-admission-phase2-input"
 PHASE2_RUN_DIR = REPO_ROOT / "operations" / "harness-phase2" / "runs" / PHASE2_RUN_ID
 FIXTURE_DIR = PHASE3_ROOT / "runs" / "phase3-kb-admission-fixtures"
 RUN_IDS: list[str] = []
+WRAPPER_RUN_IDS: list[str] = []
 
 
 def fail(message: str) -> None:
@@ -39,6 +41,41 @@ def repo_ref(path: Path) -> str:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def write_phase4_claim(run_id: str, target_path: Path) -> Path:
+    wrapper_run_id = f"{run_id}-wrapper"
+    WRAPPER_RUN_IDS.append(wrapper_run_id)
+    wrapper_ref = f"operations/harness-phase4/runs/{wrapper_run_id}"
+    target_ref = repo_ref(target_path)
+    target_hash = sha256_file(target_path)
+    claim_path = PHASE4_ROOT / "runs" / wrapper_run_id / "phase4_invocation_claim.json"
+    write_json(
+        claim_path,
+        {
+            "schema_name": "phase4_invocation_claim",
+            "schema_version": "1.0",
+            "claim_id": f"phase4-invocation:{wrapper_run_id}:{run_id}:{target_hash}",
+            "wrapper_run_id": wrapper_run_id,
+            "wrapper_run_ref": wrapper_ref,
+            "phase3_run_id": run_id,
+            "phase3_run_ref": f"operations/harness-phase3/runs/{run_id}",
+            "target_kind": "kb_admission",
+            "execution_target_ref": target_ref,
+            "execution_target_sha256": target_hash,
+            "phase2_run_ref": f"operations/harness-phase2/runs/{PHASE2_RUN_ID}",
+            "created_at": "2026-06-02T00:00:00Z",
+            "invocation_intent": "phase4_wrapper_invokes_phase3_kb_admission",
+            "invariants": {
+                "phase3_canonical_execution_owner": True,
+                "phase4_thin_wrapper_only": True,
+                "phase4_claim_ref": f"{wrapper_ref}/phase4_invocation_claim.json",
+                "phase4_owns_canonical_outputs": False,
+                "proof_scope": "repo_contained_exact_run_linkage_not_cryptographic_authentication",
+            },
+        },
+    )
+    return claim_path
 
 
 def write_integration(path: Path, *, valid: bool = True) -> None:
@@ -139,7 +176,14 @@ def make_manifest_and_target(run_id: str, integration_ref: str, admission_type: 
     write_target(run_id, integration_ref, repo_ref(manifest))
 
 
-def run_phase3(run_id: str, kb_root: Path | str | None, *, expect_success: bool, unset_env: bool = False) -> subprocess.CompletedProcess[str]:
+def run_phase3(
+    run_id: str,
+    kb_root: Path | str | None,
+    *,
+    expect_success: bool,
+    unset_env: bool = False,
+    with_phase4_claim: bool = True,
+) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env.setdefault("PHASE3_PYTHON_BIN", sys.executable)
     env.setdefault("PHASE2_PYTHON_BIN", sys.executable)
@@ -147,8 +191,8 @@ def run_phase3(run_id: str, kb_root: Path | str | None, *, expect_success: bool,
         env.pop("OPENCLAW_WORKSPACE_KB_ROOT", None)
     else:
         env["OPENCLAW_WORKSPACE_KB_ROOT"] = "" if kb_root is None else str(kb_root)
-    result = subprocess.run(
-        [
+    target_path = PHASE3_ROOT / "runs" / f"{run_id}-target" / "execution_target.json"
+    command = [
             "bash",
             str(PHASE3_ROOT / "bin" / "run_phase3_bundle.sh"),
             "--phase2-run-dir",
@@ -157,7 +201,12 @@ def run_phase3(run_id: str, kb_root: Path | str | None, *, expect_success: bool,
             f"operations/harness-phase3/runs/{run_id}-target/execution_target.json",
             "--run-id",
             run_id,
-        ],
+    ]
+    if with_phase4_claim:
+        claim_path = write_phase4_claim(run_id, target_path)
+        command.extend(["--phase4-invocation-claim", repo_ref(claim_path)])
+    result = subprocess.run(
+        command,
         cwd=REPO_ROOT,
         env=env,
         text=True,
@@ -207,6 +256,12 @@ def assert_pre_apply_failed(run_id: str) -> None:
     assert payload["target_kind"] == "kb_admission", payload
 
 
+def assert_phase4_validation_failed(run_id: str) -> None:
+    payload = json.loads((PHASE3_ROOT / "runs" / run_id / "checks" / "phase4_invocation_validation.json").read_text(encoding="utf-8-sig"))
+    assert payload["status"] == "fail", payload
+    assert "claim.parse" in payload["failure_reasons"], payload
+
+
 def assert_atomic_evidence(run_id: str) -> None:
     payload = read_evidence(run_id)
     items = payload["evidence"]
@@ -245,6 +300,12 @@ def main() -> None:
         source_hash = sha256_file(kb_root / "prepared/source-capture.txt")
         kb_root.joinpath("prepared/knowledge.md").write_text("# Knowledge asset\n\nStable bytes.\n", encoding="utf-8")
         knowledge_hash = sha256_file(kb_root / "prepared/knowledge.md")
+
+        make_manifest_and_target("phase3-kb-admission-direct-no-claim", integration_ref, "source_capture", "prepared/source-capture.txt", source_hash, "cosmetics-household-chemistry/direct-no-claim.txt")
+        run_phase3("phase3-kb-admission-direct-no-claim", kb_root, expect_success=False, with_phase4_claim=False)
+        assert_exit_code("phase3-kb-admission-direct-no-claim", 1)
+        assert_phase4_validation_failed("phase3-kb-admission-direct-no-claim")
+        assert not (kb_root / "cosmetics-household-chemistry/direct-no-claim.txt").exists()
 
         make_manifest_and_target("phase3-kb-admission-source-pass", integration_ref, "source_capture", "prepared/source-capture.txt", source_hash, "cosmetics-household-chemistry/source-capture.txt")
         run_phase3("phase3-kb-admission-source-pass", kb_root, expect_success=True)
@@ -401,6 +462,7 @@ def main() -> None:
         assert_pre_apply_failed("phase3-kb-admission-invalid-manifest")
 
         print("PASS kb_admission source_capture pass into temp workspace KB root")
+        print("PASS direct Phase 3 kb_admission without Phase 4 claim fails before write")
         print("PASS kb_admission knowledge_asset pass into temp workspace KB root")
         print("PASS kb_admission idempotent rerun with same hash")
         print("PASS kb_admission unsafe overwrite fails closed")
@@ -418,6 +480,8 @@ def main() -> None:
         for run_id in RUN_IDS:
             shutil.rmtree(PHASE3_ROOT / "runs" / run_id, ignore_errors=True)
             shutil.rmtree(PHASE3_ROOT / "runs" / f"{run_id}-target", ignore_errors=True)
+        for wrapper_run_id in WRAPPER_RUN_IDS:
+            shutil.rmtree(PHASE4_ROOT / "runs" / wrapper_run_id, ignore_errors=True)
             shutil.rmtree(PHASE3_ROOT / "runs" / f"{run_id}-inside-root", ignore_errors=True)
 
 

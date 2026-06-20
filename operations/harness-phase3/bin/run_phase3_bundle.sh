@@ -7,13 +7,14 @@ REPO_ROOT="$(cd "${PHASE3_ROOT}/../.." && pwd)"
 
 usage() {
   cat <<'EOF' >&2
-usage: run_phase3_bundle.sh --phase2-run-dir <PATH> --execution-target-json <PATH> [--run-id <RUN_ID>]
+usage: run_phase3_bundle.sh --phase2-run-dir <PATH> --execution-target-json <PATH> [--run-id <RUN_ID>] [--phase4-invocation-claim <PATH>]
 EOF
 }
 
 RUN_ID="phase3-$(date -u +%Y%m%dT%H%M%SZ)"
 PHASE2_RUN_DIR=""
 EXECUTION_TARGET_JSON=""
+PHASE4_INVOCATION_CLAIM=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -30,6 +31,11 @@ while [[ $# -gt 0 ]]; do
     --run-id)
       [[ $# -ge 2 ]] || { usage; exit 2; }
       RUN_ID="$2"
+      shift 2
+      ;;
+    --phase4-invocation-claim)
+      [[ $# -ge 2 ]] || { usage; exit 2; }
+      PHASE4_INVOCATION_CLAIM="$2"
       shift 2
       ;;
     *)
@@ -383,7 +389,12 @@ run_python_step() {
 }
 
 BLOCKING_FAILURE=0
-if ! run_python_step "freeze_input" "${PHASE3_ROOT}/bin/freeze_phase2_input.py" "${REPO_ROOT}" "${PHASE2_RUN_DIR}" "${RUN_DIR}" "${EXECUTION_TARGET_JSON}"; then
+freeze_args=("${PHASE3_ROOT}/bin/freeze_phase2_input.py" "${REPO_ROOT}" "${PHASE2_RUN_DIR}" "${RUN_DIR}" "${EXECUTION_TARGET_JSON}")
+if [[ -n "${PHASE4_INVOCATION_CLAIM}" ]]; then
+  freeze_args+=("${PHASE4_INVOCATION_CLAIM}")
+fi
+
+if ! run_python_step "freeze_input" "${freeze_args[@]}"; then
   BLOCKING_FAILURE=1
 fi
 
@@ -401,6 +412,12 @@ fi
 
 if [[ "${BLOCKING_FAILURE}" -eq 0 ]]; then
   if ! run_python_step "execution_target_validation" "${PHASE3_ROOT}/bin/validate_execution_target.py" "${REPO_ROOT}" "${RUN_DIR}"; then
+    BLOCKING_FAILURE=1
+  fi
+fi
+
+if [[ "${BLOCKING_FAILURE}" -eq 0 ]]; then
+  if ! run_python_step "phase4_invocation_validation" "${PHASE3_ROOT}/bin/validate_phase4_invocation.py" "${REPO_ROOT}" "${RUN_DIR}"; then
     BLOCKING_FAILURE=1
   fi
 fi
@@ -503,6 +520,7 @@ require_artifact_if_success "freeze_input" "${INPUT_DIR}/runtime_ready.sha256"
 require_artifact_if_success "freeze_input_hash" "${INPUT_DIR}/input.sha256"
 require_artifact_if_reached "freeze_intake_validation" "${CHECKS_DIR}/freeze_intake_validation.json"
 require_artifact_if_reached "execution_target_validation" "${CHECKS_DIR}/execution_target_validation.json"
+require_artifact_if_reached "phase4_invocation_validation" "${CHECKS_DIR}/phase4_invocation_validation.json"
 require_artifact_if_reached "pre_apply_validation" "${CHECKS_DIR}/pre_apply_validation.json"
 require_artifact_if_reached "runtime_ready_reverify" "${CHECKS_DIR}/runtime_ready_reverify.json"
 require_artifact_if_success "materialize_staging" "${RUN_DIR}/staging/runtime-ready-applied"
