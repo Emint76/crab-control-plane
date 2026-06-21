@@ -1,0 +1,22 @@
+name: source-admission-skill-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  source-admission-skill-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate source-admission skill package
+        run: bash skills/source-admission/tests/test_source_admission_package.sh

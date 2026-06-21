@@ -85,6 +85,9 @@ first-real-rollout-ci:
 crab-approved-live-rollout-ci:
 	bash operations/harness-orchestration/tests/test_crab_approved_live_rollout.sh
 
+source-admission-skill-validate:
+	bash skills/source-admission/tests/test_source_admission_package.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci
