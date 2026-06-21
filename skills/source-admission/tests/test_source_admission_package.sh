@@ -4,8 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PACKAGE_ROOT}/../.." && pwd)"
-PYTHON_BIN="${PYTHON:-python3}"
-EXPECTED_SKILL_SHA256="d7fd264736122b4ffa486edce318482eae3cde304f7bc004eefc410244006cd0"
+EXPECTED_SKILL_SHA256="b8db76128fbbdcdf79a35ae72c2486193ec89f1b0a5da455a9560c61379a038c"
 
 fail() {
   printf 'FAIL %s\n' "$*" >&2
@@ -20,7 +19,6 @@ require_file() {
 cd "${REPO_ROOT}"
 
 require_file "${PACKAGE_ROOT}/SKILL.md"
-require_file "${PACKAGE_ROOT}/scripts/check_source_admission_inputs.py"
 require_file "${PACKAGE_ROOT}/references/source-admission-example.md"
 
 if find "${PACKAGE_ROOT}" -type l -print -quit | grep -q .; then
@@ -47,22 +45,11 @@ fi
 actual_sha256="$(sha256sum "${PACKAGE_ROOT}/SKILL.md" | awk '{print $1}')"
 [[ "${actual_sha256}" == "${EXPECTED_SKILL_SHA256}" ]] || fail "SKILL.md SHA-256 mismatch: ${actual_sha256}"
 
-"${PYTHON_BIN}" - "${PACKAGE_ROOT}/scripts/check_source_admission_inputs.py" <<'PY'
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-source = path.read_text(encoding="utf-8")
-compile(source, str(path), "exec")
-PY
-
 if find "${PACKAGE_ROOT}" -type f \( -iname '*secret*' -o -iname '*credential*' -o -iname '*token*' -o -iname '*password*' -o -iname '*.env' -o -iname 'id_rsa*' \) -print -quit | grep -q .; then
   fail "obvious secret or credential file found inside source-admission package"
 fi
 
-"${PYTHON_BIN}" - "${PACKAGE_ROOT}" <<'PY'
+python3 - "${PACKAGE_ROOT}" <<'PY'
 from __future__ import annotations
 
 import re

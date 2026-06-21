@@ -234,7 +234,7 @@ Phase3 freezes this target plus the manifest and KB integration into `operations
 
 ```text
 Execution owner:
-- pre-Phase preparation: manual/local proof
+- pre-Phase preparation: agent-owned preparation
 - Phase2 readiness: Phase-owned
 - Phase3 admission: Phase-owned
 
@@ -243,9 +243,8 @@ repo-defined:
 - Phase3 target: target_runtime=workspace, target_kind=kb_admission
 - Phase3 manifest: admission_type=source_capture, byte_for_byte copy, fail_closed_on_hash_mismatch
 
-manual/local proof:
+pre-Phase preparation:
 - stable source files prepared under workspace KB workflow path
-- local helper validation: pass/fail
 
 Phase-owned evidence:
 - Phase2 admission fixture: pass/fail
