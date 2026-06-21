@@ -90,3 +90,9 @@ fail_case \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
     . \
     operations/harness-phase2/tests/fixtures/admission-invalid-artifact-type.json
+
+fail_case \
+  "standalone admission mismatched source identity rejected" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
+    . \
+    operations/harness-phase2/tests/fixtures/admission-mismatched-source-identity.json
