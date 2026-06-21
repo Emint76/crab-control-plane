@@ -5,7 +5,7 @@ description: Prepare, validate, and route external source material for canonical
 
 # Source Admission
 
-Prepare **source-bearing** assets for canonical KB admission. This skill is a pre-Phase/Phase input helper and routing policy; it does not admit anything by itself.
+Prepare **source-bearing** assets for canonical KB admission. This skill is an agent-facing routing policy; it does not admit anything by itself.
 
 Canonical rule:
 
@@ -79,7 +79,7 @@ A container-level manifest or index may be admitted as its own source only when 
 ## Non-negotiables
 
 - State execution ownership precisely:
-  - pre-Phase capture/preparation is `manual/local proof` or agent-owned preparation;
+  - pre-Phase capture/preparation is agent-owned preparation;
   - Phase2 provides readiness evidence;
   - Phase4 provides wrapper metadata and invokes Phase3;
   - Phase3 owns canonical execution and admission evidence.
@@ -271,31 +271,20 @@ If Phase4 and Phase3 evidence disagree, Phase3 canonical report and `exit_code` 
 6. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
    - Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following an explicit existing test fixture.
    - Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
-7. Run local helper validation. Treat it only as `manual/local proof`.
-8. Run the source-specific Phase2-local check with `check_admission_policy.py` against each concrete `admission-fixture.json`.
-9. Run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` only as handoff readiness for Phase3 intake. Do not claim it proved a source fixture unless the runner links that fixture into outputs.
-10. Invoke Phase4 with the Phase2 run directory and repo-contained execution target. Phase4 must invoke Phase3.
-11. Inspect both:
+7. Run the source-specific Phase2-local check with `check_admission_policy.py` against each concrete `admission-fixture.json`.
+8. Run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` only as handoff readiness for Phase3 intake. Do not claim it proved a source fixture unless the runner links that fixture into outputs.
+9. Invoke Phase4 with the Phase2 run directory and repo-contained execution target. Phase4 must invoke Phase3.
+10. Inspect both:
     - Phase4 wrapper metadata;
     - Phase3 canonical report, canonical `exit_code`, frozen inputs, and copy evidence.
-12. Verify admitted destination files and expected SHA-256 values.
-13. Report exact paths, hashes, source counts, skipped/failed items, Phase2 readiness, Phase4 wrapper status, Phase3 evidence, and limits.
+11. Verify admitted destination files and expected SHA-256 values.
+12. Report exact paths, hashes, source counts, skipped/failed items, Phase2 readiness, Phase4 wrapper status, Phase3 evidence, and limits.
 
 ## Commands
 
 From repo root:
 
 ```bash
-SOURCE_ADMISSION_SKILL_ROOT="${SOURCE_ADMISSION_SKILL_ROOT:-/home/node/.openclaw/workspace/skills/source-admission}"
-
-python3 "$SOURCE_ADMISSION_SKILL_ROOT/scripts/check_source_admission_inputs.py" \
-  --repo-root /home/node/.openclaw/workspace/repos/crab-control-plane \
-  --proof-dir /path/to/source-admission-proof \
-  --fixture admission-fixture.json \
-  --execution-target <repo-contained-source-admission-target-dir>/execution_target.json \
-  --admission-manifest <repo-contained-source-admission-target-dir>/admission_manifest.json \
-  --kb-integration control-plane/runtime/integrations/kb.template.yaml
-
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \
   /path/to/source-admission-proof/admission-fixture.json
