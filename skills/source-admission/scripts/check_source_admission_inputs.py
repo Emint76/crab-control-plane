@@ -93,6 +93,21 @@ def check_phase2_fixture(repo_root: Path, proof_dir: Path, fixture_name: str) ->
     failures: list[str] = []
     fixture_path = require_existing(fixture_name, repo_root, proof_dir, "admission fixture")
     fixture = load_json(fixture_path)
+    source_capture_package_ref = fixture.get("source_capture_package_ref")
+    source_capture_package: dict[str, Any] | None = None
+    if not isinstance(source_capture_package_ref, str) or not source_capture_package_ref.strip():
+        failures.append("admission-fixture source_capture_package_ref must be a non-empty string")
+    else:
+        try:
+            source_capture_package_path = require_existing(
+                source_capture_package_ref,
+                repo_root,
+                fixture_path.parent,
+                "source capture package referenced by admission fixture",
+            )
+            source_capture_package = load_json(source_capture_package_path)
+        except Exception as exc:  # noqa: BLE001
+            failures.append(f"admission-fixture source_capture_package_ref could not be loaded: {exc}")
     if fixture.get("target_layer") != "kb":
         failures.append("admission-fixture target_layer must be kb")
     placement = fixture.get("placement")
@@ -103,6 +118,18 @@ def check_phase2_fixture(repo_root: Path, proof_dir: Path, fixture_name: str) ->
             failures.append("admission-fixture placement.target_layer must be kb")
         if placement.get("artifact_type") != "source-capture-package":
             failures.append("admission-fixture placement.artifact_type must be source-capture-package")
+        artifact_id = placement.get("artifact_id")
+        if not isinstance(artifact_id, str) or not artifact_id.strip():
+            failures.append("admission-fixture placement.artifact_id must be a non-empty string")
+        elif source_capture_package is not None:
+            source_id = source_capture_package.get("source_id")
+            if not isinstance(source_id, str) or not source_id.strip():
+                failures.append("source_capture_package.source_id must be a non-empty string")
+            elif artifact_id != source_id:
+                failures.append(
+                    "admission-fixture placement.artifact_id must exactly match "
+                    f"source_capture_package.source_id: {artifact_id} != {source_id}"
+                )
     return failures
 
 

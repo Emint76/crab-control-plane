@@ -9,7 +9,7 @@ Core rule: this example prepares inputs; canonical admission happens only after 
 Workspace KB preparation area, relative to `/home/node/.openclaw/workspace/kb`:
 
 ```text
-domain/workflow/source-admission-example-001/
+domain/web/workflow/source-admission-example-001/
 ├── raw/source.html
 ├── raw/source-readable.txt
 ├── task-packet.json
@@ -34,7 +34,7 @@ Do not place pre-Phase target inputs under canonical Phase3 run-dir unless follo
 Final KB destination is created only by Phase3:
 
 ```text
-/home/node/.openclaw/workspace/kb/sources/domain/web/source-example-article-001/
+/home/node/.openclaw/workspace/kb/domain/web/sources/source-example-article-001/
 ├── source-capture-package.json
 ├── source.html
 └── source-readable.txt
@@ -42,7 +42,7 @@ Final KB destination is created only by Phase3:
 
 ## Source package
 
-`domain/workflow/source-admission-example-001/source-capture-package.json`:
+`domain/web/workflow/source-admission-example-001/source-capture-package.json`:
 
 ```json
 {
@@ -51,7 +51,7 @@ Final KB destination is created only by Phase3:
   "retrieval_status": "success",
   "retrieval_timestamp": "2026-06-03T05:00:00Z",
   "content_type": "text/html; charset=UTF-8",
-  "stable_representation": "domain/workflow/source-admission-example-001/raw/source.html",
+  "stable_representation": "domain/web/workflow/source-admission-example-001/raw/source.html",
   "human_identifier": "Example — Article",
   "provenance_notes": "Captured by controlled web fetch into workspace KB workflow area.",
   "linkage": ["task-source-example-article-001"],
@@ -62,7 +62,7 @@ Final KB destination is created only by Phase3:
 
 ## Result packet
 
-`domain/workflow/source-admission-example-001/result-packet.json`:
+`domain/web/workflow/source-admission-example-001/result-packet.json`:
 
 ```json
 {
@@ -73,7 +73,7 @@ Final KB destination is created only by Phase3:
       "artifact_id": "source-example-article-001",
       "artifact_type": "source-capture-package",
       "artifact_role": "source-bearing",
-      "ref": "domain/workflow/source-admission-example-001/source-capture-package.json"
+      "ref": "domain/web/workflow/source-admission-example-001/source-capture-package.json"
     }
   ],
   "unresolved_issues": [],
@@ -81,7 +81,7 @@ Final KB destination is created only by Phase3:
   "evidence": [
     {
       "type": "source-package",
-      "ref": "domain/workflow/source-admission-example-001/source-capture-package.json",
+      "ref": "domain/web/workflow/source-admission-example-001/source-capture-package.json",
       "description": "Validated source capture package"
     }
   ],
@@ -135,7 +135,7 @@ Final KB destination is created only by Phase3:
   "evaluation_mode": "static-v1",
   "decision": "approved",
   "target_layer": "kb",
-  "target_path": "sources/domain/web/source-example-article-001/source-capture-package.json",
+  "target_path": "domain/web/sources/source-example-article-001/source-capture-package.json",
   "rationale": "Approved source-bearing package belongs in workspace KB sources, not repo knowledge/kb or draft workflow storage."
 }
 ```
@@ -177,11 +177,11 @@ This fixture is for Phase2 readiness semantics only. It is not an apply/admissio
 {
   "admission_type": "source_capture",
   "lineage": {
-    "task_packet_ref": "domain/workflow/source-admission-example-001/task-packet.json",
-    "result_packet_ref": "domain/workflow/source-admission-example-001/result-packet.json",
-    "review_decision_ref": "domain/workflow/source-admission-example-001/review-decision.json",
-    "admission_decision_ref": "domain/workflow/source-admission-example-001/admission-decision.json",
-    "placement_decision_ref": "domain/workflow/source-admission-example-001/placement-decision.json"
+    "task_packet_ref": "domain/web/workflow/source-admission-example-001/task-packet.json",
+    "result_packet_ref": "domain/web/workflow/source-admission-example-001/result-packet.json",
+    "review_decision_ref": "domain/web/workflow/source-admission-example-001/review-decision.json",
+    "admission_decision_ref": "domain/web/workflow/source-admission-example-001/admission-decision.json",
+    "placement_decision_ref": "domain/web/workflow/source-admission-example-001/placement-decision.json"
   },
   "copy_operation": {
     "operation_type": "copy",
@@ -191,21 +191,21 @@ This fixture is for Phase2 readiness semantics only. It is not an apply/admissio
   },
   "artifacts": [
     {
-      "input_workspace_path": "domain/workflow/source-admission-example-001/source-capture-package.json",
+      "input_workspace_path": "domain/web/workflow/source-admission-example-001/source-capture-package.json",
       "expected_sha256": "replacewith64lowercasehexsha256sourcepackage",
-      "destination_kb_path": "sources/domain/web/source-example-article-001/source-capture-package.json",
+      "destination_kb_path": "domain/web/sources/source-example-article-001/source-capture-package.json",
       "copy_metadata": {"artifact_type": "source-capture-package"}
     },
     {
-      "input_workspace_path": "domain/workflow/source-admission-example-001/raw/source.html",
+      "input_workspace_path": "domain/web/workflow/source-admission-example-001/raw/source.html",
       "expected_sha256": "replacewith64lowercasehexsha256sourcehtml",
-      "destination_kb_path": "sources/domain/web/source-example-article-001/source.html",
+      "destination_kb_path": "domain/web/sources/source-example-article-001/source.html",
       "copy_metadata": {"artifact_type": "stable-source-representation"}
     },
     {
-      "input_workspace_path": "domain/workflow/source-admission-example-001/raw/source-readable.txt",
+      "input_workspace_path": "domain/web/workflow/source-admission-example-001/raw/source-readable.txt",
       "expected_sha256": "replacewith64lowercasehexsha256readabletxt",
-      "destination_kb_path": "sources/domain/web/source-example-article-001/source-readable.txt",
+      "destination_kb_path": "domain/web/sources/source-example-article-001/source-readable.txt",
       "copy_metadata": {"artifact_type": "readable-source-representation"}
     }
   ]

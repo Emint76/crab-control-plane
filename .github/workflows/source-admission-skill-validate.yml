@@ -18,5 +18,8 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install validation requirements
+        run: python -m pip install -r operations/harness-phase2/requirements.txt
+
       - name: Validate source-admission skill package
-        run: bash skills/source-admission/tests/test_source_admission_package.sh
+        run: make source-admission-skill-validate

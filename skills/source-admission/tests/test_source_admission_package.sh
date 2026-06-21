@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PACKAGE_ROOT}/../.." && pwd)"
 PYTHON_BIN="${PYTHON:-python3}"
-EXPECTED_SKILL_SHA256="cba5f18ad16f961ec632bc5ac689b3235436aad06eb25e271d5fc786689f76b1"
+EXPECTED_SKILL_SHA256="d7fd264736122b4ffa486edce318482eae3cde304f7bc004eefc410244006cd0"
 
 fail() {
   printf 'FAIL %s\n' "$*" >&2

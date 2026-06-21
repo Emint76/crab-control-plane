@@ -101,38 +101,44 @@ A container-level manifest or index may be admitted as its own source only when 
 
 ## Path and placement discipline
 
-Pre-Phase workflow and staging paths must be prefix-first:
+Pre-Phase workflow and staging paths must be domain-first:
 
 ```text
-workflow/<domain-area>/<publisher-id-or-source-family-id>/<run-id>/
+<domain-area>/<publisher-id-or-source-family-id>/workflow/<run-id>/
 ```
 
 Example:
 
 ```text
-workflow/cosmetics-household-chemistry/humblebee-and-me/<run-id>/
+cosmetics-household-chemistry/humblebee-and-me/workflow/<run-id>/
 ```
 
-Do not place the workflow prefix below a domain subtree, for example:
+New live assets must not use the legacy role-first workflow form:
 
 ```text
-cosmetics-household-chemistry/workflow/...
+workflow/<domain-area>/<publisher-id-or-source-family-id>/...
 ```
 
 Final admitted source assets normally use:
 
 ```text
-sources/<domain-area>/<publisher-id-or-source-family-id>/<source-id-or-source-path>/
+<domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug-or-source-id>/
+```
+
+New live assets must not use the legacy role-first source form:
+
+```text
+sources/<domain-area>/<publisher-id-or-source-family-id>/...
 ```
 
 Keep these surfaces distinct:
 
-- `workflow/...` = pre-Phase working and staging material
+- `<domain-area>/<publisher-id-or-source-family-id>/workflow/...` = pre-Phase working and staging material
 - repo-contained target directory = Phase3 target inputs
 - `operations/harness-phase2/runs/...` = Phase2 evidence
 - `operations/harness-phase4/runs/...` = wrapper-only metadata
 - `operations/harness-phase3/runs/...` = canonical execution evidence
-- `sources/...` under the live KB root = admitted source corpus
+- `<domain-area>/<publisher-id-or-source-family-id>/sources/...` under the live KB root = admitted source corpus
 
 Do not treat `runtime-ready/`, wrapper output, or a working copy as an admitted source destination.
 
@@ -187,7 +193,7 @@ The Phase3 admission manifest must use:
 - `copy_operation.overwrite_policy: fail_closed_on_hash_mismatch`
 - artifact `input_workspace_path` values relative to the configured KB root
 - artifact `expected_sha256` values matching the prepared source files
-- artifact `destination_kb_path` values relative to the KB root, normally under `sources/...`
+- artifact `destination_kb_path` values relative to the KB root, normally under `<domain-area>/<publisher-id-or-source-family-id>/sources/...`
 
 For batch/container admission, the manifest may contain multiple source artifacts, but each independently addressable source must retain its own identity, expected hash, provenance, and destination path.
 
@@ -260,7 +266,7 @@ If Phase4 and Phase3 evidence disagree, Phase3 canonical report and `exit_code` 
    - `knowledge/kb/KB_LAYOUT.md`
 2. Determine whether the input is a single source or a collection/container.
 3. For a collection, enumerate child sources and establish one stable identity per child.
-4. Prepare stable source representations under the prefix-first workspace KB workflow/staging path.
+4. Prepare stable source representations under the domain-first workspace KB workflow/staging path.
 5. Create source admission evidence artifacts and the Phase2 admission fixture for every source.
 6. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
    - Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following an explicit existing test fixture.

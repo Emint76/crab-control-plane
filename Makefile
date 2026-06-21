@@ -87,6 +87,7 @@ crab-approved-live-rollout-ci:
 
 source-admission-skill-validate:
 	bash skills/source-admission/tests/test_source_admission_package.sh
+	$(PYTHON) -m unittest skills/source-admission/tests/test_source_identity_binding.py
 
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
