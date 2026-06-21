@@ -28,10 +28,13 @@ When working in this repo:
 - `knowledge/obsidian/` = semantic note conventions
 - `knowledge/kb/` = sanctioned asset layout
 - `observability/` = runs, evals, logging model
+- `skills/` = versioned agent-facing skill packages; Git is canonical, live OpenClaw copies are installed/runtime copies
 
 ## Do not do
 
 - do not write production sync code
+- do not implement automatic skill install/apply into OpenClaw unless explicitly contracted
+- do not let skills redefine Phase2, Phase3, or Phase4 semantics
 - do not create fake autonomous self-evolution claims
 - do not move live data into this repo
 - do not turn Obsidian into a task tracker

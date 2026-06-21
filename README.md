@@ -7,7 +7,7 @@ It is the governing layer above the system: architecture docs, policies, contrac
 
 ## Purpose
 
-This repo defines how the system should be structured across six layers:
+This repo defines how the system should be structured across seven layers:
 
 1. **runtime** — machine-readable configuration templates
 2. **policy** — normative markdown documents
@@ -15,6 +15,7 @@ This repo defines how the system should be structured across six layers:
 4. **operations** — Notion workflow model
 5. **knowledge** — Obsidian semantic plane and KB layout
 6. **observability** — logs, evals, reports, future evolution baseline
+7. **skills** — versioned agent-facing skill packages
 
 ## Source of truth by data class
 
@@ -27,6 +28,7 @@ This repo defines how the system should be structured across six layers:
 | Semantic note conventions | `knowledge/obsidian/` |
 | KB layout and admission discipline | `knowledge/kb/` + policy docs |
 | Observability model | `observability/` |
+| Agent-facing skill packages | `skills/` |
 
 ## Current executable surfaces
 
@@ -68,6 +70,20 @@ The detailed Phase 3 target contract is defined in `operations/harness-phase3/PH
 Phase 4 must not own canonical execution outputs. It remains a thin wrapper over Phase 3.
 
 The detailed Phase 4 wrapper contract is defined in `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`.
+
+## Agent-facing skills
+
+Versioned skill packages live under:
+
+```text
+skills/<skill-name>/
+```
+
+The repository copy is the canonical source for these skill packages. A live OpenClaw workspace copy under `<OPENCLAW_WORKSPACE>/skills/<skill-name>/` is an installed/runtime copy, not the source of truth.
+
+Repository presence does not install a skill into OpenClaw. Automated install or apply from Git into OpenClaw is not implemented.
+
+Skills must follow repository policy, contracts, and Phase ownership. They must not redefine Phase2, Phase3, or Phase4 semantics.
 
 ## One-command repo-native smoke
 

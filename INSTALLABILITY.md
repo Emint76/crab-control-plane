@@ -31,6 +31,7 @@ It is not a production OpenClaw deployment package.
 - `make first-real-rollout-ci`
 - `make crab-approved-live-rollout-ci`
 - `make openclaw-local-ci`
+- `make source-admission-skill-validate`
 
 Agent-safe wrapper:
 
@@ -39,6 +40,16 @@ bash operations/harness-orchestration/bin/run_repo_native_smoke.sh
 ```
 
 This is the approved wrapper for Crab to invoke the repo-native smoke path.
+
+Source-admission skill package validation:
+
+```bash
+make source-admission-skill-validate
+```
+
+This validates the canonical Git package under `skills/source-admission/`.
+It does not install or apply the skill into OpenClaw.
+Automated install/apply from Git into `<OPENCLAW_WORKSPACE>/skills/source-admission/` is not implemented.
 
 OpenClaw dry-run adapter skeleton:
 

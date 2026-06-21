@@ -11,6 +11,7 @@
 | Semantic notes | Preserve human-readable understanding and synthesis | Obsidian vault | Markdown with frontmatter | Researchers, synthesis authors, reviewers | Researchers, synthesis authors |
 | Sanctioned KB assets | Preserve approved source-bearing and knowledge assets | KB | Files, metadata, collections | Retrieval workflows, downstream knowledge consumers, reviewers | Curators after admission / approval |
 | Observability | Preserve evidence of execution quality and runtime behavior | Observability stores and repo templates | JSONL, Markdown, structured reports | Evaluators, maintainers, incident reviewers | Runtime capture, evaluators, maintainers |
+| Agent-facing skills | Preserve versioned skill packages for agent workflows | Git repo | Markdown, examples, helper scripts | Agents, operators, reviewers | Control-plane maintainers |
 
 ## Layer-specific discipline
 
@@ -63,12 +64,22 @@
 - **Who reads it:** maintainers, evaluators, reviewers.
 - **Who writes it:** runtime capture systems, evaluators, and maintainers.
 
+### Skills
+- **Purpose:** preserve versioned agent-facing skill packages.
+- **Source of truth:** Git.
+- **Format:** markdown skill instructions, references, and small helper scripts.
+- **Who reads it:** agents, operators, and reviewers.
+- **Who writes it:** control-plane maintainers through reviewed commits.
+
+A live OpenClaw workspace copy under `<OPENCLAW_WORKSPACE>/skills/<skill-name>/` is an installed/runtime copy, not the source of truth. Automated install or apply from Git into OpenClaw is not implemented.
+
 ## What lives where
 
 ### Git
 - policy documents
 - contract markdown and JSON Schemas
 - runtime templates
+- versioned agent-facing skill packages under `skills/`
 - documentation describing architecture, storage, naming, and boundaries
 - examples used to validate packet contracts
 
@@ -99,12 +110,19 @@
 - reports on routing, approval, and failure patterns
 - execution traces tied to task and result identifiers
 
+### Skills
+- skill package instructions
+- skill references
+- small helper scripts used by those packages
+- package-local validation tests
+
 ## What must never be stored in markdown
 - secrets, tokens, passwords, API keys, private URLs, or environment values
 - raw operational queues or mutable task board state
 - live runtime telemetry dumps that belong in observability systems
 - private user data copied from production systems
 - unsanctioned knowledge assets presented as approved KB content
+- skill runtime caches, installed live copies, or generated execution evidence
 
 ## Boundary rule
 A mirror may summarize another layer, but it must not replace that layer's source of truth. For example, a policy document may describe how Notion statuses work, but the active operational state still lives in Notion; an Obsidian note may mention a source, but the sanctioned source-bearing asset belongs in the KB after admission.
