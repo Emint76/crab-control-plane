@@ -8,7 +8,7 @@
       },
       "destination_kb_path": "cosmetics/example-source-family/sources/source-capture-example/source.html",
       "expected_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-      "input_workspace_path": "operations/admission/examples/stage2/source_capture.v1/payload/source.html"
+      "input_workspace_path": "cosmetics/example-source-family/workflow/admission-stage2-example/source-capture-example/payload/source.html"
     }
   ],
   "copy_operation": {

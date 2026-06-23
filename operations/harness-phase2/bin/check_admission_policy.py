@@ -209,7 +209,15 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
     if review_evidence.get("review_status") != "approved":
         raise CheckFailure("review_evidence.review_status must be approved")
     approval_ref = require_string(review_evidence, "approval_ref", "admission_handoff.review_evidence")
-    require_repo_ref(repo_root, approval_ref, "review_evidence.approval_ref")
+    approval_path = require_repo_ref(repo_root, approval_ref, "review_evidence.approval_ref")
+    review_decision = load_json_object(approval_path)
+    validate_schema(repo_root, "review_decision.schema.json", review_decision, approval_path)
+    if review_decision.get("decision") != "approve":
+        raise CheckFailure("review_decision.decision must be approve")
+    if review_decision.get("artifact_id") != asset_id:
+        raise CheckFailure("review_decision.artifact_id must match handoff asset_id")
+    if review_decision.get("approved_destination") != "kb":
+        raise CheckFailure("review_decision.approved_destination must be kb")
 
     placement = require_mapping(handoff, "placement", "admission_handoff")
     domain_area = require_string(placement, "domain_area", "admission_handoff.placement")

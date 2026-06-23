@@ -8,7 +8,7 @@
       },
       "destination_kb_path": "cosmetics/example-source-family/knowledge/recipe-formula-example/recipe-formula.md",
       "expected_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
-      "input_workspace_path": "operations/admission/examples/stage2/knowledge_recipe_formula.v1/payload/recipe-formula.md"
+      "input_workspace_path": "cosmetics/example-source-family/workflow/admission-stage2-example/recipe-formula-example/payload/recipe-formula.md"
     }
   ],
   "copy_operation": {

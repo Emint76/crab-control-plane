@@ -55,6 +55,20 @@ The handoff contains:
 
 The handoff is not canonical execution evidence.
 
+`review_evidence.approval_ref` points to the canonical review decision document for the reviewed package. Phase2 resolves that repo-contained reference and validates it against:
+
+```text
+control-plane/contracts/schemas/review_decision.schema.json
+```
+
+For Stage 2 KB admission, Phase2 requires:
+
+- `decision: approve`
+- `artifact_id` matching the handoff `asset_id`
+- `approved_destination: kb`
+
+The Stage 2 handoff field `review_evidence.review_status` is not sufficient by itself; the referenced canonical review decision is authoritative.
+
 ## Universal Mapping Rules
 
 Stage 2 maps one reviewed Stage 1 package into:
@@ -65,7 +79,24 @@ Stage 2 maps one reviewed Stage 1 package into:
 
 All references must be repo-contained relative paths. Absolute paths and traversal are invalid.
 
-Stage 2 specifies the mapping. Phase3 validates safe paths, file existence, payload SHA-256 values, overwrite policy, copy results, and canonical evidence.
+Stage 2 specifies the mapping. Phase3 validates runtime input paths, file existence, payload SHA-256 values, overwrite policy, copy results, and canonical evidence.
+
+Stage 1 `payload_path` and Phase3 `input_workspace_path` are different path domains:
+
+- Stage 1 `payload_path` is package-relative and identifies the producer-prepared payload inside the reviewed Stage 1 package.
+- Phase3 `input_workspace_path` is relative to the configured runtime workspace KB root.
+- Before Phase3 execution, the producer/preparation process must materialize the reviewed payload at the declared workflow staging path.
+- Stage 2 maps and declares this relationship but does not perform the staging itself.
+- If the runtime staging file is absent, Phase3 fails closed.
+- Example hashes are illustrative and must be replaced with the actual hash of the staged runtime file before execution.
+
+Phase3 manifest inputs must use the current domain-first workflow layout, for example:
+
+```text
+<domain-area>/<source-family-id>/workflow/<run-id>/<asset-id>/payload/<filename>
+```
+
+They must not use repository paths such as `operations/...`, `docs/...`, or `control-plane/...` as runtime workspace inputs.
 
 ## Identity Preservation
 
@@ -134,7 +165,9 @@ elif recipe_formula...
 elif component...
 ```
 
-Profile-specific semantic validation remains outside universal admission. Profile maturity and status are descriptive metadata, not a requirement for a new Stage 2 executable implementation.
+Profile-specific semantic validation remains outside universal admission. Profile maturity and status should become descriptive metadata, not evidence of a profile-specific admission implementation.
+
+The Stage 1 registry field `enabled_for_admission` remains an explicit transitional Stage 1 gate. Stage 2 contains no profile-specific executable implementation, and adding a new registered knowledge profile must not require new Stage 2 admission code. Cleanup of the Stage 1 runtime gate is deferred to a later dedicated audit and is out of scope for this PR.
 
 Out-of-repo packages using the old `component_profile.v1` identifier require migration to `component_extraction.v1`. No live data migration is part of this PR.
 
@@ -156,7 +189,7 @@ Ownership:
 
 - Admission Stage 1 owns the universal package contract and transitional isolated dry-run validator.
 - Admission Stage 2 owns the universal bridge contract and mapping into Phase inputs.
-- Phase2 owns policy/readiness validation.
+- Phase2 owns policy/readiness validation, review approval, package binding, identity preservation, and placement readiness.
 - Phase4 is the normal operator-facing route to Phase3.
 - Phase3 is the sole canonical execution and evidence owner.
 
@@ -174,7 +207,7 @@ Stage 2 can fail when:
 - the Phase3 target is not `kb_admission`;
 - the Phase3 manifest admission type does not match the Stage 1 admission kind.
 
-Stage 2 does not fail or pass payload hashes, copies, overwrite behavior, destination mutation, or canonical run evidence.
+Stage 2 does not fail or pass runtime payload-file hashes, copies, overwrite behavior, destination mutation, or canonical run evidence.
 
 ## What Stage 2 Does Not Prove
 
@@ -204,7 +237,7 @@ Only Phase3 `kb_admission` evidence can support the claim that an asset was admi
 7. Prepare the Phase2 readiness input by pointing Phase2 at the handoff.
 8. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
 9. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
-   - relative input path
+   - runtime-KB-root-relative workflow input path
    - expected SHA-256
    - relative destination path
    - copy metadata
@@ -217,6 +250,17 @@ Do not infer undocumented mappings. If a mapping is missing, stop before Phase e
 
 ## Future-Profile Extensibility
 
-New knowledge profiles can be registered as `knowledge_profile_id` values without adding new Stage 2 runners.
+New knowledge profiles can be registered as `knowledge_profile_id` values without adding new Stage 2 runners or profile-specific Stage 2 admission code.
 
 Any profile-specific semantic validator belongs to the producer or extraction profile boundary, not to universal admission. Remaining cleanup debt includes auditing and simplifying the transitional Stage 1 executable validation and removing historical helper checks after every useful check has a documented owner.
+
+## Hash Ownership
+
+| Hash/check | Owner |
+|---|---|
+| Stage 1 package binding hash used by the handoff | Phase2 readiness and identity binding |
+| Runtime staged payload file hashes | Phase3 |
+| Destination/copied-result hashes | Phase3 |
+| Copy and overwrite evidence | Phase3 |
+
+Phase2 verifies `admission_package_sha256` only to bind the handoff to the exact reviewed Stage 1 package. It does not hash runtime staged payload files; those checks remain Phase3-owned.

@@ -1,4 +1,6 @@
 {
-  "decision": "approved",
-  "scope": "example-only"
+  "approved_destination": "kb",
+  "artifact_id": "source-capture-example",
+  "decision": "approve",
+  "rationale": "Example source capture is reviewed and approved for KB admission."
 }

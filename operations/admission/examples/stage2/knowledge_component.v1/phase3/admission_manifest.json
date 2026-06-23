@@ -8,7 +8,7 @@
       },
       "destination_kb_path": "cosmetics/example-source-family/knowledge/component-example/component.md",
       "expected_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
-      "input_workspace_path": "operations/admission/examples/stage2/knowledge_component.v1/payload/component.md"
+      "input_workspace_path": "cosmetics/example-source-family/workflow/admission-stage2-example/component-example/payload/component.md"
     }
   ],
   "copy_operation": {
