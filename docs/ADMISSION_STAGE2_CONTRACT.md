@@ -53,9 +53,10 @@ The handoff contains:
 - `review_evidence`
 - `placement`
 - `phase_inputs`
-- `route`
 
 The handoff is not canonical execution evidence.
+
+Operational invocation routing is not embedded in the handoff. The handoff contains only concrete asset contract and mapping data: package reference and hash, admission identity, review evidence, placement, and references to already prepared Phase3 execution-target and admission-manifest inputs.
 
 `review_evidence.approval_ref` points to the canonical review decision document for the reviewed package. Standalone admission policy preflight resolves that repo-contained reference and validates it against:
 
@@ -179,6 +180,7 @@ The intended route is:
 ```text
 producer-prepared asset
 -> Admission Stage 1 package contract
+-> Phase3 manifest and execution target preparation
 -> Admission Stage 2 handoff contract
 -> standalone admission policy preflight
 -> existing accepted reusable Phase2 baseline
@@ -226,7 +228,7 @@ Forbidden claim:
 Phase2 baseline is current.
 ```
 
-Do not introduce an operator override that permits reuse across different Git HEADs.
+No operator override may permit reuse across different Git HEADs.
 
 ## Failure Boundaries
 
@@ -261,25 +263,28 @@ Only Phase3 `kb_admission` evidence can support the claim that an asset was admi
 
 ## Agent Procedure
 
-1. Receive a reviewed Stage 1 package containing `admission_package.json`.
-2. Confirm `review_status: approved`.
-3. Classify the package as `source_capture` or `knowledge_asset`.
-4. For knowledge, preserve the registered `knowledge_profile_id`.
+1. Prepare the producer-reviewed Stage 1 package containing `admission_package.json`.
+2. Prepare the canonical review decision with `decision: approve`, matching `artifact_id`, and `approved_destination: kb`.
+3. Establish the stable `asset_id`.
+4. Classify the package as `source_capture` or `knowledge_asset`; for knowledge, preserve the registered `knowledge_profile_id`.
 5. Choose domain-first placement:
    - source: `<domain-area>/<source-family-id>/sources/<asset-id>/`
    - knowledge: `<domain-area>/<source-family-id>/knowledge/<asset-id>/`
-6. Prepare `admission_handoff.json` with the Stage 1 package ref, package SHA-256, identity, review evidence, placement, Phase input refs, and route.
-7. Run standalone admission policy preflight against the handoff.
-8. Reuse an existing accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 bundle to establish a new baseline.
-9. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
-10. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
+6. Materialize the reviewed payload under the runtime-KB-root-relative workflow staging path.
+7. Calculate the real runtime payload SHA-256.
+8. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
    - runtime-KB-root-relative workflow input path
    - expected SHA-256
    - relative destination path
    - copy metadata
-11. Invoke the normal Phase4 wrapper route to Phase3.
-12. Verify Phase3 canonical evidence under the Phase3 run directory.
-13. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
+9. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
+10. Prepare `admission_handoff.json` referencing the already existing Stage 1 package, canonical review decision, Phase3 execution target, and Phase3 admission manifest.
+11. Calculate and place the real Stage 1 package SHA-256 in the handoff.
+12. Run standalone admission policy preflight against the handoff.
+13. Apply the exact-HEAD Phase2 baseline reuse rule.
+14. Invoke the normal Phase4 wrapper route to Phase3.
+15. Verify Phase3 canonical evidence under the Phase3 run directory.
+16. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
 
 Do not infer undocumented mappings. If a mapping is missing, stop before Phase execution.
 
@@ -287,7 +292,7 @@ Do not infer undocumented mappings. If a mapping is missing, stop before Phase e
 
 New knowledge profiles can be registered as `knowledge_profile_id` values without adding new Stage 2 runners or profile-specific Stage 2 admission code.
 
-Any profile-specific semantic validator belongs to the producer or extraction profile boundary, not to universal admission. Remaining cleanup debt includes auditing and simplifying the transitional Stage 1 executable validation and removing historical helper checks after every useful check has a documented owner.
+Any profile-specific semantic validator belongs to the producer or extraction profile boundary, not to universal admission.
 
 ## Hash Ownership
 

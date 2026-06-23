@@ -14,8 +14,7 @@
     "knowledge_profile_id",
     "review_evidence",
     "placement",
-    "phase_inputs",
-    "route"
+    "phase_inputs"
   ],
   "properties": {
     "handoff_version": {
@@ -125,29 +124,6 @@
         },
         "phase3_admission_manifest_ref": {
           "$ref": "#/$defs/repo_relative_ref"
-        }
-      }
-    },
-    "route": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "phase2",
-        "phase4",
-        "phase3"
-      ],
-      "properties": {
-        "phase2": {
-          "type": "string",
-          "const": "policy_readiness"
-        },
-        "phase4": {
-          "type": "string",
-          "const": "operator_facing_wrapper"
-        },
-        "phase3": {
-          "type": "string",
-          "const": "kb_admission"
         }
       }
     }

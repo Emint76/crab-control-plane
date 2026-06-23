@@ -15,7 +15,9 @@ The operational route is:
 
 ```text
 prepared asset
--> universal admission package/handoff contract
+-> universal admission package contract
+-> Phase3 manifest and execution target preparation
+-> universal admission handoff contract
 -> standalone admission policy preflight
 -> existing accepted reusable Phase2 baseline
 -> Phase4 thin wrapper by default

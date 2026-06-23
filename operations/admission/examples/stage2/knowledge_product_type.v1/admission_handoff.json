@@ -21,10 +21,5 @@
     "approval_ref": "operations/admission/examples/stage2/knowledge_product_type.v1/review/approval.json",
     "review_status": "approved",
     "reviewed_by": "example-reviewer"
-  },
-  "route": {
-    "phase2": "policy_readiness",
-    "phase3": "kb_admission",
-    "phase4": "operator_facing_wrapper"
   }
 }

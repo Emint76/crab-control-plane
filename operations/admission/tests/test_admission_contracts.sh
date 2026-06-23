@@ -79,8 +79,16 @@ assert "kb_knowledge_domain_first.v1" in placement_registry["placement_policies"
 examples = sorted((admission / "examples" / "stage2").glob("*/admission_handoff.json"))
 assert examples, "Stage 2 examples are required"
 seen_profiles: set[str] = set()
+handoff_schema_text = (admission / "schemas" / "admission_handoff.v1.schema.json").read_text(encoding="utf-8")
+handoff_schema = schemas["operations/admission/schemas/admission_handoff.v1.schema.json"]
+assert "route" not in handoff_schema.get("required", []), "handoff schema must not require route"
+assert "route" not in handoff_schema.get("properties", {}), "handoff schema must not define route"
+assert "policy_readiness" not in handoff_schema_text, "handoff schema must not encode policy_readiness"
 for handoff_path in examples:
+    handoff_text = handoff_path.read_text(encoding="utf-8")
+    assert "policy_readiness" not in handoff_text, handoff_path
     handoff = json.loads(handoff_path.read_text(encoding="utf-8"))
+    assert "route" not in handoff, handoff_path
     validate("operations/admission/schemas/admission_handoff.v1.schema.json", handoff, handoff_path)
 
     package_path = repo / handoff["admission_package_ref"]
@@ -121,9 +129,11 @@ doc_paths = [
 ]
 required_fragments = [
     "the current repository Git HEAD exactly equals that recorded HEAD",
+    "the tracked repository working tree is clean",
     "Any new repository commit makes the previous Phase2 baseline stale",
     "phase2_run_id -> repo_head",
     "Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>",
+    "No operator override",
 ]
 for doc_path in doc_paths:
     text = doc_path.read_text(encoding="utf-8")
@@ -137,5 +147,38 @@ for doc_path in doc_paths:
     ]
     for fragment in forbidden_fragments:
         assert fragment not in text, (doc_path.as_posix(), fragment)
+
+skill_text = (repo / "skills/source-admission/SKILL.md").read_text(encoding="utf-8")
+assert "admission_package.json" in skill_text
+assert "admission_handoff.json" in skill_text
+assert "check_admission_policy.py` validates the concrete universal `admission_handoff.json" in skill_text
+assert "Legacy compatibility" in skill_text
+assert "admission-fixture.json` is not a Stage 2 handoff" in skill_text
+default_section = skill_text.split("## Legacy compatibility", 1)[0]
+assert "admission-fixture.json" not in default_section
+assert "Phase4 is the default operator-facing" in skill_text
+assert "Phase3 performs admission and remains the only canonical execution owner" in skill_text
+
+runtime_files = [
+    repo / "operations/harness-phase2/bin/run_phase2_bundle.sh",
+    repo / "operations/harness-phase3/bin/run_phase3_bundle.sh",
+    repo / "operations/harness-phase3/bin/freeze_phase2_input.py",
+    repo / "operations/harness-phase4/bin/run_phase4_wrapper.sh",
+]
+for runtime_file in runtime_files:
+    text = runtime_file.read_text(encoding="utf-8")
+    for forbidden in [
+        "--admission-handoff",
+        "admission_handoff.json",
+        "admission_package.json",
+        "review-decision.json",
+        "review_decision.json",
+        "checks/admission_policy_validation.json",
+    ]:
+        assert forbidden not in text, (runtime_file.as_posix(), forbidden)
+
+phase3_text = (repo / "operations/harness-phase3/bin/freeze_phase2_input.py").read_text(encoding="utf-8")
+for forbidden in ["admission_handoff", "admission_package", "review_decision"]:
+    assert forbidden not in phase3_text, forbidden
 print("PASS admission contract validation")
 PY

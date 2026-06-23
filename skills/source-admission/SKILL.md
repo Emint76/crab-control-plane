@@ -12,7 +12,10 @@ Canonical rule:
 ```text
 external source
 → source-admission preparation
-→ standalone admission policy preflight
+→ universal Admission Stage 1 package
+→ Phase3 manifest and execution target preparation
+→ universal Admission Stage 2 handoff
+→ standalone admission policy preflight against admission_handoff.json
 → accepted reusable Phase2 baseline
 → Phase4 wrapper by default
 → Phase3 workspace/kb_admission
@@ -154,16 +157,16 @@ Prepare stable source material under the workspace KB workflow/staging area:
 - retrieval timestamp, status, content type, source locator, and SHA-256 hash
 - stable source identifier
 - parent/container reference when the source was discovered inside a collection
-- `task-packet.json` with source-capture/source-ingest intent only; avoid `knowledge-extraction` for source admission
-- `source-capture-package.json` validating against `source_capture_package.schema.json`
-- `result-packet.json` whose `evidence` includes `type: source-package`
+- universal Admission Stage 1 `admission_package.json` with:
+  - `admission_kind: source_capture`
+  - `profile_id: source_capture.v1`
+  - `asset_id: <stable-source-id>`
+  - package-relative `payload_path`
+  - `review_status: approved`
 - `review-decision.json` with `decision: approve`, `approved_destination: kb`
-- `admission-decision.json` with `decision: approved`, `blockers: []`
-- `placement-decision.json` with `target_layer: kb`
-- `admission-fixture.json` for Phase2 `check_admission_policy.py`
-  - fixture `target_layer: kb`
-  - fixture `placement.artifact_type: source-capture-package`
-  - fixture `placement.artifact_id` must match `source_capture_package.source_id`
+- Phase3 `admission_manifest.json`
+- Phase3 `execution_target.json`
+- universal Admission Stage 2 `admission_handoff.json`
 
 For a collection, repeat the source-specific package and admission evidence per child source. Do not reuse one child source ID for multiple documents.
 
@@ -203,7 +206,7 @@ For batch/container admission, the manifest may contain multiple source artifact
 
 Source admission readiness has two distinct pre-Phase checks:
 
-1. Standalone admission policy preflight: `check_admission_policy.py` validates the concrete `admission-fixture.json` and source admission semantics.
+1. Standalone admission policy preflight: `check_admission_policy.py` validates the concrete universal `admission_handoff.json`, referenced `admission_package.json`, canonical review decision, placement, and Phase3 target/manifest mapping.
 2. Generic Phase2 repo-native baseline: `run_phase2_bundle.sh <PHASE2_RUN_ID>` validates the current repo/control-plane baseline and produces reusable baseline evidence.
 
 Reuse an existing accepted Phase2 baseline only when all of the following are true:
@@ -218,7 +221,9 @@ Any new repository commit makes the previous Phase2 baseline stale. After any me
 
 The recorded relationship `phase2_run_id -> repo_head` belongs to operator or batch-runner operational state/logging. It is not canonical Phase2 evidence, admission handoff evidence, Phase3 frozen input, or a second canonical evidence surface.
 
-Do not claim that `run_phase2_bundle.sh` consumed, approved, froze, or checked a specific source-admission fixture. Batch runners may reuse one accepted Phase2 baseline for many source and knowledge admissions. Historical generated Phase2/3/4 runs are not per-asset governance inputs.
+No operator override may permit reuse across different Git HEADs.
+
+Do not claim that `run_phase2_bundle.sh` consumed, approved, froze, or checked a specific admission handoff or source-admission fixture. Batch runners may reuse one accepted Phase2 baseline for many source and knowledge admissions. Historical generated Phase2/3/4 runs are not per-asset governance inputs.
 
 Standalone preflight pass and Phase2 baseline pass do not mean:
 
@@ -227,6 +232,23 @@ Standalone preflight pass and Phase2 baseline pass do not mean:
 - approved by Phase3
 - semantically distilled
 - promoted to canonical knowledge
+
+## Legacy compatibility
+
+Historical source-admission workflows and existing batch runners may still use the legacy source-specific fixture path:
+
+- `admission-fixture.json`
+- `source-capture-package.json`
+- `result-packet.json`
+- legacy admission and placement decisions
+
+This compatibility path exists for historical workflows only. It is not the canonical path for new source admissions, and `admission-fixture.json` is not a Stage 2 handoff.
+
+When the legacy path is used, standalone policy preflight still enforces:
+
+```text
+placement.artifact_id == source_capture_package.source_id
+```
 
 ## Phase4 default invocation semantics
 
@@ -281,18 +303,21 @@ If Phase4 and Phase3 evidence disagree, Phase3 canonical report and `exit_code` 
 2. Determine whether the input is a single source or a collection/container.
 3. For a collection, enumerate child sources and establish one stable identity per child.
 4. Prepare stable source representations under the domain-first workspace KB workflow/staging path.
-5. Create source admission evidence artifacts and the Phase2 admission fixture for every source.
-6. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
+5. Create the universal Admission Stage 1 `admission_package.json` and canonical `review-decision.json` for every source.
+6. Materialize the reviewed payload at the runtime-KB-root-relative workflow staging path and calculate its real SHA-256.
+7. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
    - Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following an explicit existing test fixture.
    - Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
-7. Run standalone admission policy preflight with `check_admission_policy.py` against each concrete `admission-fixture.json`.
-8. Reuse an accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
-9. Invoke Phase4 with the accepted Phase2 baseline run directory and repo-contained execution target. Phase4 must invoke Phase3.
-10. Inspect both:
+8. Create the universal Admission Stage 2 `admission_handoff.json` referencing the already existing package, review decision, execution target, and admission manifest.
+9. Calculate and place the real Stage 1 package SHA-256 in the handoff.
+10. Run standalone admission policy preflight with `check_admission_policy.py` against each concrete `admission_handoff.json`.
+11. Reuse an accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
+12. Invoke Phase4 with the accepted Phase2 baseline run directory and repo-contained execution target. Phase4 must invoke Phase3.
+13. Inspect both:
     - Phase4 wrapper metadata;
     - Phase3 canonical report, canonical `exit_code`, frozen inputs, and copy evidence.
-11. Verify admitted destination files and expected SHA-256 values.
-12. Report exact paths, hashes, source counts, skipped/failed items, standalone preflight status, Phase2 baseline status, Phase4 wrapper status, Phase3 evidence, and limits.
+14. Verify admitted destination files and expected SHA-256 values.
+15. Report exact paths, hashes, source counts, skipped/failed items, standalone preflight status, Phase2 baseline status, Phase4 wrapper status, Phase3 evidence, and limits.
 
 ## Commands
 
@@ -301,7 +326,7 @@ From repo root:
 ```bash
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \
-  /path/to/source-admission-proof/admission-fixture.json
+  /path/to/source-admission-proof/admission_handoff.json
 
 PHASE2_PYTHON_BIN=python3 \
 bash operations/harness-phase2/bin/run_phase2_bundle.sh <PHASE2_RUN_ID>
@@ -349,7 +374,7 @@ Allowed:
 - “Prepared source admission inputs.”
 - “Enumerated N child source candidates from the source container.”
 - “Prepared separate source admission packages for N child sources.”
-- “Standalone admission-policy preflight passed for `<admission-fixture.json>`.”
+- “Standalone admission-policy preflight passed for `<admission_handoff.json>`.”
 - “Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>.”
 - “Phase4 wrapper invoked Phase3 and recorded wrapper metadata under `<PHASE4_RUN_DIR>`.”
 - “Phase3 `workspace/kb_admission` copied N source artifacts and emitted canonical evidence under `<PHASE3_RUN_DIR>`.”

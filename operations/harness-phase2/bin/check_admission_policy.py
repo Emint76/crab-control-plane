@@ -366,7 +366,10 @@ def check_admission(repo_root: Path, fixture_path: Path) -> None:
 
 def main() -> int:
     if len(sys.argv) != 3:
-        print("usage: check_admission_policy.py <repo-root> <admission-fixture-json>", file=sys.stderr)
+        print(
+            "usage: check_admission_policy.py <repo-root> <admission-handoff-or-legacy-fixture-json>",
+            file=sys.stderr,
+        )
         return 2
 
     repo_root = Path(sys.argv[1]).resolve()
