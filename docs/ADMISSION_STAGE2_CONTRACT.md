@@ -160,13 +160,13 @@ destination_root  = cosmetics-household-chemistry/humblebee-and-me/sources/citru
 Use:
 
 ```text
-humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
+cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
 ```
 
 Do not use the redundant form:
 
 ```text
-humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
+cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
 ```
 
 `asset_layer` is derived from `admission_kind`:

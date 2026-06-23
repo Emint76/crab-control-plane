@@ -163,13 +163,13 @@ Example:
 source_family_id = humblebee-and-me
 asset_id         = humblebee-citrus-chamomile-liquid-shampoo-20260610
 asset_slug       = citrus-chamomile-liquid-shampoo-20260610
-destination      = humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
+destination      = cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
 ```
 
 Do not use:
 
 ```text
-humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
+cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
 ```
 
 ## Required inputs

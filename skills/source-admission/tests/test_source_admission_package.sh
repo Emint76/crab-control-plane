@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PACKAGE_ROOT}/../.." && pwd)"
-EXPECTED_SKILL_SHA256="c88fccf4403807e7c9afbc4e170b963cf232e8a3ff948088b46eff79af6902e9"
+EXPECTED_SKILL_SHA256="bcf16b3fa501d2656cad65f85e27f0c8610456ab3e7d586d44bd34609a647d60"
 
 fail() {
   printf 'FAIL %s\n' "$*" >&2
@@ -88,7 +88,7 @@ for text, label in [(skill, "SKILL.md"), (example, "source-admission-example.md"
         "admission_handoff.json",
         "asset_slug",
         "Do not automatically set `asset_slug = asset_id`",
-        "humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610",
+        "cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610",
         "Phase3 `admission_manifest.json`",
         "Phase3 `execution_target.json`",
         "check_admission_policy.py",

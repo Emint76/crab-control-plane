@@ -186,7 +186,7 @@ Phase3 freezes this target plus the manifest and KB integration into `operations
 
 The handoff contains concrete asset contract and mapping data. It does not embed operational routing constants, Phase2 evidence, or canonical admission evidence.
 
-The source-family-local slug may differ from the global `asset_id`. Do not automatically set `asset_slug = asset_id`, and do not repeat a publisher/source-family prefix already represented by `source_family_id`. For Humblebee, use `humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610`, not `humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610`.
+The source-family-local slug may differ from the global `asset_id`. Do not automatically set `asset_slug = asset_id`, and do not repeat a publisher/source-family prefix already represented by `source_family_id`. For Humblebee, use `cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610`, not `cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610`.
 
 ## Standalone policy preflight
 

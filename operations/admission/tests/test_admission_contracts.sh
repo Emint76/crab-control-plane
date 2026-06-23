@@ -170,8 +170,8 @@ for fragment in [
     "asset_id` is the stable globally traceable source identity",
     "asset_slug` is a source-family-local directory segment used only for placement",
     "Do not automatically set `asset_slug = asset_id`",
-    "humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610",
-    "humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610",
+    "cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610",
+    "cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610",
 ]:
     assert fragment in skill_text, fragment
 
