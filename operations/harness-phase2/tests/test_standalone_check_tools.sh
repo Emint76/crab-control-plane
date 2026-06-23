@@ -90,3 +90,15 @@ fail_case \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
     . \
     operations/harness-phase2/tests/fixtures/admission-invalid-artifact-type.json
+
+pass_case \
+  "standalone valid Stage 2 source handoff" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
+    . \
+    operations/admission/examples/stage2/source_capture.v1/admission_handoff.json
+
+pass_case \
+  "standalone valid Stage 2 knowledge handoff" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
+    . \
+    operations/admission/examples/stage2/knowledge_product_type.v1/admission_handoff.json

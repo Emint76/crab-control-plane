@@ -38,6 +38,11 @@ KIND_PROFILE = {
     "knowledge_asset": "knowledge_asset.v1",
 }
 
+PROFILE_PLACEMENT_POLICY = {
+    "source_capture.v1": "kb_source_domain_first.v1",
+    "knowledge_asset.v1": "kb_knowledge_domain_first.v1",
+}
+
 
 @dataclass(frozen=True)
 class Blocker:
@@ -116,8 +121,9 @@ def load_profile(profile_id: str) -> dict[str, Any]:
         raise AdmissionError(blocker("profile_definition_invalid", "Admission profile id does not match file name"))
     if profile["required_review_status"] != "approved":
         raise AdmissionError(blocker("profile_definition_invalid", "Admission profile must require approved review status"))
-    if profile["placement_policy_id"] != "not_implemented":
-        raise AdmissionError(blocker("profile_definition_invalid", "Stage 1 placement policy must be not_implemented"))
+    expected_policy = PROFILE_PLACEMENT_POLICY.get(profile_id)
+    if profile["placement_policy_id"] != expected_policy:
+        raise AdmissionError(blocker("profile_definition_invalid", "Admission profile placement policy is invalid"))
     if not isinstance(profile["payload_kinds"], list) or not profile["payload_kinds"]:
         raise AdmissionError(blocker("profile_definition_invalid", "Admission profile payload_kinds must be a non-empty array"))
     return profile
@@ -142,8 +148,8 @@ def load_registry() -> dict[str, Any]:
         for field in ("enabled_for_admission", "payload_kind", "placement_policy_id", "status"):
             if field not in entry:
                 raise AdmissionError(blocker("registry_definition_invalid", f"Registry entry missing field: {profile_id}.{field}"))
-        if entry["placement_policy_id"] != "not_implemented":
-            raise AdmissionError(blocker("registry_definition_invalid", f"Registry placement policy must be not_implemented: {profile_id}"))
+        if entry["placement_policy_id"] != "kb_knowledge_domain_first.v1":
+            raise AdmissionError(blocker("registry_definition_invalid", f"Registry placement policy is invalid: {profile_id}"))
     return entries
 
 

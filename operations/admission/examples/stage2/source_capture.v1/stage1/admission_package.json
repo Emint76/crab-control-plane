@@ -1,0 +1,11 @@
+{
+  "admission_kind": "source_capture",
+  "asset_id": "source-capture-example",
+  "payload_path": "../payload",
+  "profile_id": "source_capture.v1",
+  "provenance": {
+    "producer": "example-only",
+    "source_url": "https://example.invalid/source"
+  },
+  "review_status": "approved"
+}

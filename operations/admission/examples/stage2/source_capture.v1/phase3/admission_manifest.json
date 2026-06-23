@@ -1,0 +1,24 @@
+{
+  "admission_type": "source_capture",
+  "artifacts": [
+    {
+      "copy_metadata": {
+        "content_role": "source_html",
+        "example_only": true
+      },
+      "destination_kb_path": "cosmetics/example-source-family/sources/source-capture-example/source.html",
+      "expected_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "input_workspace_path": "operations/admission/examples/stage2/source_capture.v1/payload/source.html"
+    }
+  ],
+  "copy_operation": {
+    "content_mode": "byte_for_byte",
+    "operation_type": "copy",
+    "overwrite_policy": "fail_closed_on_hash_mismatch",
+    "requested_by": "admission-stage2-example"
+  },
+  "lineage": {
+    "admission_package_ref": "operations/admission/examples/stage2/source_capture.v1/stage1/admission_package.json",
+    "asset_id": "source-capture-example"
+  }
+}

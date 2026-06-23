@@ -5,6 +5,8 @@ Define the threshold for allowing assets into the KB and distinguish source-bear
 
 Admission means accepting a prepared asset into the KB.
 
+Admission Stage 1 and Admission Stage 2 do not themselves admit an asset. Stage 1 defines the universal package contract and transitional dry-run validator. Stage 2 defines the universal handoff contract into Phase2, Phase4, and Phase3. Canonical admission requires successful Phase3 `kb_admission` evidence.
+
 ## Scope
 Applies to all proposed KB entries, including source capture packages, curated source-bearing assets, and approved knowledge assets.
 

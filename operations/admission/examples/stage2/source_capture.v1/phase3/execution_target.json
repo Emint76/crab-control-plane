@@ -1,0 +1,7 @@
+{
+  "admission_manifest_ref": "operations/admission/examples/stage2/source_capture.v1/phase3/admission_manifest.json",
+  "invoked_by": "admission-stage2-example",
+  "kb_integration_ref": "operations/admission/examples/stage2/source_capture.v1/phase3/kb_integration.json",
+  "target_kind": "kb_admission",
+  "target_runtime": "workspace"
+}

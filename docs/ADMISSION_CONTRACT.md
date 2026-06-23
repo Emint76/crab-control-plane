@@ -2,10 +2,11 @@
 
 ## Purpose
 
-Stage 1 admission is a repo-native dry-run validation surface for package admissibility.
+Admission Stage 1 is the universal package contract and a transitional repo-native dry-run validation surface for package admissibility.
 It validates generic package structure before later canonicalization or execution stages.
 
-Stage 1 does not perform canonical placement, Phase execution, canonical writes, hash sealing, final manifests, migration, or producer integration.
+Admission Stage 1 does not perform canonical placement, Phase execution, canonical writes, hash sealing, final manifests, migration, or producer integration.
+Admission Stage 2 is the universal contract bridge into existing Phase inputs; see `docs/ADMISSION_STAGE2_CONTRACT.md`.
 
 ## Responsibility Boundary
 
@@ -107,11 +108,13 @@ It contains only:
 - `placement_policy_id`
 - `status`
 
-Stage 1 entries:
+Current registered knowledge profile entries:
 
 - `product_type_extraction.v1`: enabled
-- `recipe_formula_extraction.v1`: disabled placeholder
-- `component_profile.v1`: disabled placeholder
+- `recipe_formula_extraction.v1`: enabled placeholder
+- `component_extraction.v1`: enabled placeholder
+
+`component_extraction.v1` is the extraction/profile identifier. The resulting knowledge asset type may still be described conceptually as a component profile.
 
 The registry must not contain semantic validators, type-specific schema references, extraction instructions, or template execution rules.
 
@@ -137,7 +140,7 @@ Validation failure returns:
 
 ## Out Of Scope
 
-Stage 1 does not implement Stage 2 blockers:
+Admission Stage 1 does not implement Admission Stage 2 or Phase-owned checks:
 
 - canonical placement
 - Phase bridge
@@ -146,3 +149,5 @@ Stage 1 does not implement Stage 2 blockers:
 - hash sealing
 - producer integration
 - migration of existing assets
+
+Later cleanup may simplify or remove redundant executable Stage 1 validation after ownership coverage is audited.

@@ -3,7 +3,7 @@
   "payload_kinds": [
     "directory"
   ],
-  "placement_policy_id": "not_implemented",
+  "placement_policy_id": "kb_source_domain_first.v1",
   "profile_id": "source_capture.v1",
   "provenance_policy_id": "source_capture_stage1.v1",
   "required_review_status": "approved",

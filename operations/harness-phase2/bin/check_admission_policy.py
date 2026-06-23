@@ -8,6 +8,7 @@ admission engine.
 from __future__ import annotations
 
 import json
+import hashlib
 import sys
 from pathlib import Path
 from typing import Any
@@ -68,6 +69,10 @@ def require_string_list(payload: dict[str, Any], field_name: str, source: str) -
 
 def validate_schema(repo_root: Path, schema_name: str, payload: dict[str, Any], source: Path | str) -> None:
     schema_path = repo_root / "control-plane" / "contracts" / "schemas" / schema_name
+    validate_schema_path(schema_path, payload, source)
+
+
+def validate_schema_path(schema_path: Path, payload: dict[str, Any], source: Path | str) -> None:
     schema = load_json_object(schema_path)
     Draft202012Validator.check_schema(schema)
     errors = sorted(Draft202012Validator(schema).iter_errors(payload), key=lambda error: list(error.path))
@@ -75,6 +80,191 @@ def validate_schema(repo_root: Path, schema_name: str, payload: dict[str, Any], 
         first = errors[0]
         path = ".".join(str(part) for part in first.path) or "<root>"
         raise CheckFailure(f"{source}: {path}: {first.message}")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def require_repo_ref(repo_root: Path, ref: str, field_name: str) -> Path:
+    if not ref:
+        raise CheckFailure(f"missing {field_name}")
+    path = Path(ref)
+    if path.is_absolute():
+        raise CheckFailure(f"{field_name} must be repo-contained and relative")
+    if ".." in path.parts:
+        raise CheckFailure(f"{field_name} must not contain traversal")
+    resolved_repo = repo_root.resolve(strict=False)
+    resolved_path = (resolved_repo / path).resolve(strict=False)
+    try:
+        resolved_path.relative_to(resolved_repo)
+    except ValueError as exc:
+        raise CheckFailure(f"{field_name} escapes repo root") from exc
+    if not resolved_path.is_file():
+        raise CheckFailure(f"{field_name} does not reference an existing repo file")
+    return resolved_path
+
+
+def repo_ref_for_path(repo_root: Path, path: Path) -> str:
+    try:
+        return path.resolve(strict=False).relative_to(repo_root.resolve(strict=False)).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def load_admission_registry(repo_root: Path) -> dict[str, Any]:
+    registry = load_json_object(repo_root / "operations" / "admission" / "knowledge-profiles" / "registry.v1.json")
+    profiles = registry.get("profiles")
+    if not isinstance(profiles, dict):
+        raise CheckFailure("knowledge profile registry profiles must be a mapping")
+    return profiles
+
+
+def validate_stage1_package(repo_root: Path, package_path: Path) -> dict[str, Any]:
+    package = load_json_object(package_path)
+    admission_root = repo_root / "operations" / "admission"
+    validate_schema_path(admission_root / "schemas" / "admission_package.schema.json", package, package_path)
+
+    admission_kind = require_string(package, "admission_kind", "admission_package")
+    profile_id = require_string(package, "profile_id", "admission_package")
+    if admission_kind == "source_capture":
+        if profile_id != "source_capture.v1":
+            raise CheckFailure("Stage 1 source_capture package must use profile_id source_capture.v1")
+        validate_schema_path(admission_root / "schemas" / "source_capture.v1.schema.json", package, package_path)
+        if "knowledge_profile_id" in package:
+            raise CheckFailure("Stage 1 source_capture package must not include knowledge_profile_id")
+    elif admission_kind == "knowledge_asset":
+        if profile_id != "knowledge_asset.v1":
+            raise CheckFailure("Stage 1 knowledge_asset package must use profile_id knowledge_asset.v1")
+        validate_schema_path(admission_root / "schemas" / "knowledge_asset.v1.schema.json", package, package_path)
+        knowledge_profile_id = require_string(package, "knowledge_profile_id", "admission_package")
+        if knowledge_profile_id not in load_admission_registry(repo_root):
+            raise CheckFailure("knowledge_profile_id is not registered")
+    else:
+        raise CheckFailure("Stage 1 admission_kind is not supported")
+
+    if package.get("review_status") != "approved":
+        raise CheckFailure("Stage 1 review_status must be approved")
+    return package
+
+
+def expected_asset_layer(admission_kind: str) -> str:
+    if admission_kind == "source_capture":
+        return "sources"
+    if admission_kind == "knowledge_asset":
+        return "knowledge"
+    raise CheckFailure("admission_kind is not supported")
+
+
+def expected_placement_policy(admission_kind: str) -> str:
+    if admission_kind == "source_capture":
+        return "kb_source_domain_first.v1"
+    if admission_kind == "knowledge_asset":
+        return "kb_knowledge_domain_first.v1"
+    raise CheckFailure("admission_kind is not supported")
+
+
+def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str, Any]) -> None:
+    admission_root = repo_root / "operations" / "admission"
+    validate_schema_path(admission_root / "schemas" / "admission_handoff.v1.schema.json", handoff, handoff_path)
+
+    admission_kind = require_string(handoff, "admission_kind", "admission_handoff")
+    asset_id = require_string(handoff, "asset_id", "admission_handoff")
+    profile_id = require_string(handoff, "profile_id", "admission_handoff")
+    if admission_kind == "source_capture" and profile_id != "source_capture.v1":
+        raise CheckFailure("source_capture handoff must use profile_id source_capture.v1")
+    if admission_kind == "knowledge_asset" and profile_id != "knowledge_asset.v1":
+        raise CheckFailure("knowledge_asset handoff must use profile_id knowledge_asset.v1")
+
+    package_ref = require_string(handoff, "admission_package_ref", "admission_handoff")
+    package_path = require_repo_ref(repo_root, package_ref, "admission_package_ref")
+    expected_package_sha = require_string(handoff, "admission_package_sha256", "admission_handoff")
+    if sha256_file(package_path) != expected_package_sha:
+        raise CheckFailure("admission_package_sha256 does not match referenced Stage 1 package")
+    package = validate_stage1_package(repo_root, package_path)
+
+    if package.get("admission_kind") != admission_kind:
+        raise CheckFailure("admission_kind must match Stage 1 package")
+    if package.get("profile_id") != profile_id:
+        raise CheckFailure("profile_id must match Stage 1 package")
+    if package.get("asset_id") != asset_id:
+        raise CheckFailure("asset_id must be preserved from Stage 1 package")
+
+    handoff_knowledge_profile_id = handoff.get("knowledge_profile_id")
+    if admission_kind == "source_capture":
+        if handoff_knowledge_profile_id is not None:
+            raise CheckFailure("source_capture handoff must not set knowledge_profile_id")
+    else:
+        if handoff_knowledge_profile_id != package.get("knowledge_profile_id"):
+            raise CheckFailure("knowledge_profile_id must match Stage 1 package")
+        registry_entry = load_admission_registry(repo_root).get(handoff_knowledge_profile_id)
+        if registry_entry is None:
+            raise CheckFailure("knowledge_profile_id is not registered")
+
+    review_evidence = require_mapping(handoff, "review_evidence", "admission_handoff")
+    if review_evidence.get("review_status") != "approved":
+        raise CheckFailure("review_evidence.review_status must be approved")
+    approval_ref = require_string(review_evidence, "approval_ref", "admission_handoff.review_evidence")
+    require_repo_ref(repo_root, approval_ref, "review_evidence.approval_ref")
+
+    placement = require_mapping(handoff, "placement", "admission_handoff")
+    domain_area = require_string(placement, "domain_area", "admission_handoff.placement")
+    source_family_id = require_string(placement, "source_family_id", "admission_handoff.placement")
+    asset_layer = require_string(placement, "asset_layer", "admission_handoff.placement")
+    destination_root = require_string(placement, "destination_root", "admission_handoff.placement")
+    placement_policy_id = require_string(placement, "placement_policy_id", "admission_handoff.placement")
+
+    expected_layer = expected_asset_layer(admission_kind)
+    if asset_layer != expected_layer:
+        raise CheckFailure("placement.asset_layer must match admission_kind")
+    if placement_policy_id != expected_placement_policy(admission_kind):
+        raise CheckFailure("placement.placement_policy_id must match admission_kind")
+    expected_destination_root = f"{domain_area}/{source_family_id}/{asset_layer}/{asset_id}"
+    if destination_root != expected_destination_root:
+        raise CheckFailure("placement.destination_root must follow domain-first layout")
+
+    phase_inputs = require_mapping(handoff, "phase_inputs", "admission_handoff")
+    phase2_ref = require_string(phase_inputs, "phase2_admission_ref", "admission_handoff.phase_inputs")
+    phase2_path = require_repo_ref(repo_root, phase2_ref, "phase_inputs.phase2_admission_ref")
+    if phase2_path.resolve(strict=False) != handoff_path.resolve(strict=False):
+        raise CheckFailure("phase_inputs.phase2_admission_ref must reference the Stage 2 handoff checked by Phase2")
+
+    target_ref = require_string(phase_inputs, "phase3_execution_target_ref", "admission_handoff.phase_inputs")
+    manifest_ref = require_string(phase_inputs, "phase3_admission_manifest_ref", "admission_handoff.phase_inputs")
+    target_path = require_repo_ref(repo_root, target_ref, "phase_inputs.phase3_execution_target_ref")
+    manifest_path = require_repo_ref(repo_root, manifest_ref, "phase_inputs.phase3_admission_manifest_ref")
+    target = load_json_object(target_path)
+    manifest = load_json_object(manifest_path)
+
+    if target.get("target_kind") != "kb_admission":
+        raise CheckFailure("Phase3 execution target kind must be kb_admission")
+    if target.get("admission_manifest_ref") != repo_ref_for_path(repo_root, manifest_path):
+        raise CheckFailure("Phase3 execution target admission_manifest_ref must match handoff manifest ref")
+    if manifest.get("admission_type") != admission_kind:
+        raise CheckFailure("Phase3 admission manifest admission_type must match Stage 1 admission_kind")
+
+    lineage = manifest.get("lineage")
+    if not isinstance(lineage, dict):
+        raise CheckFailure("Phase3 admission manifest lineage must be a mapping")
+    if lineage.get("asset_id") != asset_id:
+        raise CheckFailure("Phase3 admission manifest lineage.asset_id must preserve asset_id")
+    if admission_kind == "knowledge_asset" and lineage.get("knowledge_profile_id") != handoff_knowledge_profile_id:
+        raise CheckFailure("Phase3 admission manifest lineage.knowledge_profile_id must match handoff")
+
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise CheckFailure("Phase3 admission manifest must declare admitted artifacts")
+    destination_prefix = f"{destination_root}/"
+    for index, artifact in enumerate(artifacts):
+        if not isinstance(artifact, dict):
+            raise CheckFailure(f"Phase3 admission manifest artifact {index} must be a mapping")
+        destination = artifact.get("destination_kb_path")
+        if not isinstance(destination, str) or not destination.startswith(destination_prefix):
+            raise CheckFailure("Phase3 artifact destination_kb_path must be under placement.destination_root")
 
 
 def load_and_validate_ref(
@@ -93,6 +283,10 @@ def load_and_validate_ref(
 
 def check_admission(repo_root: Path, fixture_path: Path) -> None:
     fixture = load_json_object(fixture_path)
+    if fixture.get("handoff_version") == "admission_handoff.v1":
+        check_stage2_handoff(repo_root, fixture_path, fixture)
+        return
+
     fixture_dir = fixture_path.parent
 
     target_layer = require_string(fixture, "target_layer", "admission fixture")

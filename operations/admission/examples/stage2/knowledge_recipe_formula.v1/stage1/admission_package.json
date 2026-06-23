@@ -1,0 +1,15 @@
+{
+  "admission_kind": "knowledge_asset",
+  "asset_id": "recipe-formula-example",
+  "knowledge_profile_id": "recipe_formula_extraction.v1",
+  "payload_path": "../payload/recipe-formula.md",
+  "profile_data": {
+    "example_only": true
+  },
+  "profile_id": "knowledge_asset.v1",
+  "provenance": {
+    "source_asset_path": "cosmetics/example-source-family/sources/source-capture-example/",
+    "source_id": "source-capture-example"
+  },
+  "review_status": "approved"
+}
