@@ -31,7 +31,13 @@ Current duplicate or transitional checks are debt:
 
 - Admission Stage contracts are pre-Phase contracts, not runtime Phases.
 - `check_admission_policy.py` is a standalone repo-native preflight utility. Its output is manual/agent/batch-runner proof, not generic Phase2 bundle evidence and not canonical admission evidence.
-- The generic Phase2 bundle does not consume, approve, freeze, or prove a specific admission handoff. One accepted Phase2 baseline may be reused while the relevant repo/control-plane baseline is unchanged.
+- The generic Phase2 bundle does not consume, approve, freeze, or prove a specific admission handoff.
+- A Phase2 baseline is reusable only when the Phase2 run completed successfully, its canonical report and handoff-readiness result are passing, the tracked repository working tree is clean, the operator or batch runner recorded the exact repository Git HEAD when the baseline was accepted, and the current repository Git HEAD exactly equals that recorded HEAD.
+- Any new repository commit makes the previous Phase2 baseline stale. After any merge into `main`, including merge of this PR, a new Phase2 baseline must be created before the next admission pilot or batch.
+- The recorded relationship `phase2_run_id -> repo_head` belongs to operator or batch-runner operational state/logging. It is not canonical Phase2 evidence, admission handoff evidence, Phase3 frozen input, or a second canonical evidence surface.
+- Allowed claim: `Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>.`
+- Forbidden claim: `Phase2 baseline is current.`
+- No operator override may permit reuse across different Git HEADs.
 - Phase3 does not need to prove or freeze the entire pre-Phase governance chain.
 
 Adding a new registered knowledge profile must not require new Stage 2 admission code. Stage 2 contains no profile-specific executable implementation.

@@ -114,5 +114,28 @@ for handoff_path in examples:
     validate("operations/harness-phase3/contracts/kb_admission_manifest.schema.json", manifest, manifest_path)
 
 assert seen_profiles == set(profiles), seen_profiles
+doc_paths = [
+    repo / "docs/ADMISSION_STAGE2_CONTRACT.md",
+    repo / "docs/ADMISSION_CHECK_OWNERSHIP.md",
+    repo / "skills/source-admission/SKILL.md",
+]
+required_fragments = [
+    "the current repository Git HEAD exactly equals that recorded HEAD",
+    "Any new repository commit makes the previous Phase2 baseline stale",
+    "phase2_run_id -> repo_head",
+    "Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>",
+]
+for doc_path in doc_paths:
+    text = doc_path.read_text(encoding="utf-8")
+    for fragment in required_fragments:
+        assert fragment in text, (doc_path.as_posix(), fragment)
+    forbidden_fragments = [
+        "materially changed",
+        "probably still current",
+        "accepted after informal review",
+        "relevant repo/control-plane baseline remains unchanged",
+    ]
+    for fragment in forbidden_fragments:
+        assert fragment not in text, (doc_path.as_posix(), fragment)
 print("PASS admission contract validation")
 PY

@@ -198,7 +198,35 @@ Ownership:
 
 Stage 2 success and standalone preflight success do not mean the asset has been admitted.
 
-The generic Phase2 bundle does not consume, approve, freeze, or prove a specific admission handoff. One accepted Phase2 baseline may be reused while the relevant repo/control-plane baseline remains unchanged. Absence of a first-class checked-handoff-to-Phase2-run binding is an accepted boundary, not a wiring defect.
+The generic Phase2 bundle does not consume, approve, freeze, or prove a specific admission handoff. Absence of a first-class checked-handoff-to-Phase2-run binding is an accepted boundary, not a wiring defect.
+
+## Phase2 Baseline Reuse Eligibility
+
+A Phase2 baseline is reusable only when all of the following are true:
+
+1. the Phase2 run completed successfully;
+2. its canonical report and handoff-readiness result are passing;
+3. the tracked repository working tree is clean;
+4. the operator or batch runner recorded the exact repository Git HEAD when the baseline was accepted;
+5. the current repository Git HEAD exactly equals that recorded HEAD.
+
+Any new repository commit makes the previous Phase2 baseline stale. After any merge into `main`, including merge of this PR, a new Phase2 baseline must be created before the next admission pilot or batch.
+
+The recorded relationship `phase2_run_id -> repo_head` belongs to operator or batch-runner operational state/logging. It is not canonical Phase2 evidence, admission handoff evidence, Phase3 frozen input, or a second canonical evidence surface.
+
+Allowed claim:
+
+```text
+Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>.
+```
+
+Forbidden claim:
+
+```text
+Phase2 baseline is current.
+```
+
+Do not introduce an operator override that permits reuse across different Git HEADs.
 
 ## Failure Boundaries
 
@@ -242,7 +270,7 @@ Only Phase3 `kb_admission` evidence can support the claim that an asset was admi
    - knowledge: `<domain-area>/<source-family-id>/knowledge/<asset-id>/`
 6. Prepare `admission_handoff.json` with the Stage 1 package ref, package SHA-256, identity, review evidence, placement, Phase input refs, and route.
 7. Run standalone admission policy preflight against the handoff.
-8. Reuse an existing accepted Phase2 baseline while the repo/control-plane baseline is unchanged, or run the generic Phase2 bundle only to establish a new baseline.
+8. Reuse an existing accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 bundle to establish a new baseline.
 9. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
 10. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
    - runtime-KB-root-relative workflow input path

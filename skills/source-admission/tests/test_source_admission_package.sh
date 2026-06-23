@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PACKAGE_ROOT}/../.." && pwd)"
-EXPECTED_SKILL_SHA256="c72576a8668b59d31fe5a9867a5621fb4d91462d335c27bce5c581130c5dba95"
+EXPECTED_SKILL_SHA256="55feeba2b7386cf1af1325b095b5af2b8c75420404fcd6136cf25e786873ae96"
 
 fail() {
   printf 'FAIL %s\n' "$*" >&2

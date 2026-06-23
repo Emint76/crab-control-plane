@@ -249,7 +249,7 @@ pre-Phase preparation:
 
 Phase-owned evidence:
 - standalone admission policy preflight: pass/fail
-- accepted Phase2 baseline: <run-id>, handoff_ready=<ready|not ready>
+- accepted Phase2 baseline: <run-id>, repo_head=<sha>, handoff_ready=<ready|not ready>
 - Phase3 kb_admission run: <run-id>, exit_code=<0|nonzero>, evidence=<path>
 - copied destination paths and hashes
 

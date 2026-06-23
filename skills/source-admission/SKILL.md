@@ -19,7 +19,7 @@ external source
 → canonical Phase3 evidence
 ```
 
-**Standalone preflight checks concrete source admission inputs. A generic accepted Phase2 baseline covers repo/control-plane readiness and may be reused while that baseline is unchanged. Phase4 is the default operator-facing entrypoint. Phase3 performs admission and remains the only canonical execution owner.**
+**Standalone preflight checks concrete source admission inputs. A generic accepted Phase2 baseline covers repo/control-plane readiness and may be reused only when its recorded repository Git HEAD exactly equals the current repository Git HEAD. Phase4 is the default operator-facing entrypoint. Phase3 performs admission and remains the only canonical execution owner.**
 
 A source is not admitted until Phase3 `workspace/kb_admission` runs, freezes inputs, performs byte-for-byte copy, and emits canonical Phase3 evidence.
 
@@ -206,7 +206,17 @@ Source admission readiness has two distinct pre-Phase checks:
 1. Standalone admission policy preflight: `check_admission_policy.py` validates the concrete `admission-fixture.json` and source admission semantics.
 2. Generic Phase2 repo-native baseline: `run_phase2_bundle.sh <PHASE2_RUN_ID>` validates the current repo/control-plane baseline and produces reusable baseline evidence.
 
-Reuse an existing accepted Phase2 baseline while the relevant repo/control-plane baseline remains unchanged. Create a new Phase2 baseline only when no accepted baseline exists or the baseline has materially changed.
+Reuse an existing accepted Phase2 baseline only when all of the following are true:
+
+1. the Phase2 run completed successfully;
+2. its canonical report and handoff-readiness result are passing;
+3. the tracked repository working tree is clean;
+4. the operator or batch runner recorded the exact repository Git HEAD when the baseline was accepted;
+5. the current repository Git HEAD exactly equals that recorded HEAD.
+
+Any new repository commit makes the previous Phase2 baseline stale. After any merge into `main`, including merge of the corrective admission contract PR, create a new Phase2 baseline before the next admission pilot or batch.
+
+The recorded relationship `phase2_run_id -> repo_head` belongs to operator or batch-runner operational state/logging. It is not canonical Phase2 evidence, admission handoff evidence, Phase3 frozen input, or a second canonical evidence surface.
 
 Do not claim that `run_phase2_bundle.sh` consumed, approved, froze, or checked a specific source-admission fixture. Batch runners may reuse one accepted Phase2 baseline for many source and knowledge admissions. Historical generated Phase2/3/4 runs are not per-asset governance inputs.
 
@@ -276,7 +286,7 @@ If Phase4 and Phase3 evidence disagree, Phase3 canonical report and `exit_code` 
    - Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following an explicit existing test fixture.
    - Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
 7. Run standalone admission policy preflight with `check_admission_policy.py` against each concrete `admission-fixture.json`.
-8. Reuse an accepted Phase2 baseline if the repo/control-plane baseline is still current; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
+8. Reuse an accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
 9. Invoke Phase4 with the accepted Phase2 baseline run directory and repo-contained execution target. Phase4 must invoke Phase3.
 10. Inspect both:
     - Phase4 wrapper metadata;
@@ -340,7 +350,7 @@ Allowed:
 - “Enumerated N child source candidates from the source container.”
 - “Prepared separate source admission packages for N child sources.”
 - “Standalone admission-policy preflight passed for `<admission-fixture.json>`.”
-- “Accepted Phase2 baseline `<PHASE2_RUN_ID>` is current for this repo/control-plane baseline.”
+- “Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>.”
 - “Phase4 wrapper invoked Phase3 and recorded wrapper metadata under `<PHASE4_RUN_DIR>`.”
 - “Phase3 `workspace/kb_admission` copied N source artifacts and emitted canonical evidence under `<PHASE3_RUN_DIR>`.”
 - “N source artifacts were verified at their admitted destinations with matching SHA-256 values.”
@@ -349,6 +359,7 @@ Forbidden:
 
 - “Phase2 admitted the source.”
 - “Phase2 bundle consumed or approved the source fixture.”
+- “Phase2 baseline is current” without exact recorded and current Git HEAD equality.
 - “Phase4 admitted the source.”
 - “Phase4 is the canonical execution owner.”
 - “Schema validation admitted the source.”
