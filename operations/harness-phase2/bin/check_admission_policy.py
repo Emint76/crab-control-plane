@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Standalone Phase 2 admission policy fixture check.
+"""Standalone admission policy fixture/handoff preflight.
 
-This is a Phase-2-local external check-layer utility, not a production
-admission engine.
+This repo-native utility is intentionally separate from the generic Phase2
+bundle. It is not a production admission engine and does not emit canonical
+Phase evidence.
 """
 
 from __future__ import annotations
@@ -236,11 +237,6 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
         raise CheckFailure("placement.destination_root must follow domain-first layout")
 
     phase_inputs = require_mapping(handoff, "phase_inputs", "admission_handoff")
-    phase2_ref = require_string(phase_inputs, "phase2_admission_ref", "admission_handoff.phase_inputs")
-    phase2_path = require_repo_ref(repo_root, phase2_ref, "phase_inputs.phase2_admission_ref")
-    if phase2_path.resolve(strict=False) != handoff_path.resolve(strict=False):
-        raise CheckFailure("phase_inputs.phase2_admission_ref must reference the Stage 2 handoff checked by Phase2")
-
     target_ref = require_string(phase_inputs, "phase3_execution_target_ref", "admission_handoff.phase_inputs")
     manifest_ref = require_string(phase_inputs, "phase3_admission_manifest_ref", "admission_handoff.phase_inputs")
     target_path = require_repo_ref(repo_root, target_ref, "phase_inputs.phase3_execution_target_ref")
@@ -370,7 +366,10 @@ def check_admission(repo_root: Path, fixture_path: Path) -> None:
 
 def main() -> int:
     if len(sys.argv) != 3:
-        print("usage: check_admission_policy.py <repo-root> <admission-fixture-json>", file=sys.stderr)
+        print(
+            "usage: check_admission_policy.py <repo-root> <admission-handoff-or-legacy-fixture-json>",
+            file=sys.stderr,
+        )
         return 2
 
     repo_root = Path(sys.argv[1]).resolve()

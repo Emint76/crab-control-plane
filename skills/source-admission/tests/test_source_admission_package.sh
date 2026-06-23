@@ -4,8 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PACKAGE_ROOT}/../.." && pwd)"
-PYTHON_BIN="${PYTHON:-python3}"
-EXPECTED_SKILL_SHA256="d7fd264736122b4ffa486edce318482eae3cde304f7bc004eefc410244006cd0"
+EXPECTED_SKILL_SHA256="13443f90dac9f24877c0a0ef72d39db76abc3b08e8b0ebac28b31705dfb1e26f"
 
 fail() {
   printf 'FAIL %s\n' "$*" >&2
@@ -20,7 +19,6 @@ require_file() {
 cd "${REPO_ROOT}"
 
 require_file "${PACKAGE_ROOT}/SKILL.md"
-require_file "${PACKAGE_ROOT}/scripts/check_source_admission_inputs.py"
 require_file "${PACKAGE_ROOT}/references/source-admission-example.md"
 
 if find "${PACKAGE_ROOT}" -type l -print -quit | grep -q .; then
@@ -47,22 +45,11 @@ fi
 actual_sha256="$(sha256sum "${PACKAGE_ROOT}/SKILL.md" | awk '{print $1}')"
 [[ "${actual_sha256}" == "${EXPECTED_SKILL_SHA256}" ]] || fail "SKILL.md SHA-256 mismatch: ${actual_sha256}"
 
-"${PYTHON_BIN}" - "${PACKAGE_ROOT}/scripts/check_source_admission_inputs.py" <<'PY'
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-source = path.read_text(encoding="utf-8")
-compile(source, str(path), "exec")
-PY
-
 if find "${PACKAGE_ROOT}" -type f \( -iname '*secret*' -o -iname '*credential*' -o -iname '*token*' -o -iname '*password*' -o -iname '*.env' -o -iname 'id_rsa*' \) -print -quit | grep -q .; then
   fail "obvious secret or credential file found inside source-admission package"
 fi
 
-"${PYTHON_BIN}" - "${PACKAGE_ROOT}" <<'PY'
+python3 - "${PACKAGE_ROOT}" <<'PY'
 from __future__ import annotations
 
 import re
@@ -83,6 +70,44 @@ for path in sorted(item for item in root.rglob("*") if item.is_file()):
             break
 if violations:
     raise SystemExit("obvious credential material found: " + ", ".join(violations))
+PY
+
+python3 - "${PACKAGE_ROOT}" <<'PY'
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+skill = (root / "SKILL.md").read_text(encoding="utf-8")
+example = (root / "references" / "source-admission-example.md").read_text(encoding="utf-8")
+
+for text, label in [(skill, "SKILL.md"), (example, "source-admission-example.md")]:
+    for fragment in [
+        "admission_package.json",
+        "admission_handoff.json",
+        "Phase3 `admission_manifest.json`",
+        "Phase3 `execution_target.json`",
+        "check_admission_policy.py",
+    ]:
+        if fragment not in text:
+            raise SystemExit(f"{label} missing canonical source-admission fragment: {fragment}")
+    if "Legacy compatibility" not in text:
+        raise SystemExit(f"{label} must label legacy fixture compatibility")
+    before_legacy = text.split("Legacy compatibility", 1)[0]
+    if "admission-fixture.json" in before_legacy:
+        raise SystemExit(f"{label} presents admission-fixture.json before the legacy compatibility section")
+    if "admission-fixture.json` is not a Stage 2 handoff" not in text:
+        raise SystemExit(f"{label} must state that admission-fixture.json is not a Stage 2 handoff")
+
+if "operations/harness-phase2/bin/check_admission_policy.py \\\n  /home/node/.openclaw/workspace/repos/crab-control-plane \\\n  /path/to/source-admission-proof/admission_handoff.json" not in skill:
+    raise SystemExit("SKILL.md canonical preflight command must check admission_handoff.json")
+
+if "Never run standalone preflight before the files referenced by `admission_handoff.json` exist." not in example:
+    raise SystemExit("reference example must preserve the corrected preparation order")
+
+if "Phase3 remains the sole canonical execution owner" not in skill and "Phase3 performs admission and remains the only canonical execution owner" not in skill:
+    raise SystemExit("SKILL.md must preserve Phase3 canonical ownership")
 PY
 
 printf 'PASS source-admission skill package validation\n'

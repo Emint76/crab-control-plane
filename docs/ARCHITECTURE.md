@@ -53,7 +53,7 @@ The repository is the source of truth for:
 
 ## Phase 2 profiles
 
-Admission stages are not harness Phases. Admission Stage 1 is the universal package contract and isolated transitional dry-run validator. Admission Stage 2 is the universal contract bridge into existing Phase inputs. Phase2 remains policy/readiness, Phase4 remains the normal operator-facing wrapper, and Phase3 remains the sole canonical execution and evidence owner.
+Admission stages are not harness Phases. Admission Stage 1 is the universal package contract. Admission Stage 2 is the universal contract bridge into existing Phase3 inputs. Standalone admission policy preflight checks concrete admission handoffs before Phase execution. Phase2 remains a reusable repo/control-plane baseline surface, Phase4 remains the normal operator-facing wrapper, and Phase3 remains the sole canonical execution and evidence owner.
 
 Phase 2 contains two explicit profiles:
 - check-layer-strict: strict external check layer, closest repo-native equivalent of the earlier VPS Phase 2 harness.

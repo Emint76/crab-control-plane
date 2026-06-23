@@ -34,6 +34,7 @@ This repo defines how the system should be structured across seven layers:
 
 | Surface | Entrypoint | Status |
 |---|---|---|
+| Standalone admission policy preflight | `operations/harness-phase2/bin/check_admission_policy.py` | repo-native preflight for admission fixtures/handoffs; not generic Phase2 bundle evidence and not canonical admission evidence |
 | Phase 2 strict check layer | `operations/harness-phase2/bin/run_phase2_check_layer.sh` | external check layer; no render, no runtime-ready, no handoff |
 | Phase 2 repo-native scaffold | `operations/harness-phase2/bin/run_phase2_bundle.sh` | validates, renders scaffold decisions, runtime-ready package, conformance, report, handoff readiness |
 | Phase 3 execution surface | `operations/harness-phase3/bin/run_phase3_bundle.sh` | canonical execution owner surface; hardened with run-dir invariants, fail-closed behavior, execution target validation, canonical reporting, and CI |

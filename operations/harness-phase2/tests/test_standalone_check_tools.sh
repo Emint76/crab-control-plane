@@ -91,6 +91,18 @@ fail_case \
     . \
     operations/harness-phase2/tests/fixtures/admission-invalid-artifact-type.json
 
+fail_case \
+  "standalone admission mismatched source identity rejected" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
+    . \
+    operations/harness-phase2/tests/fixtures/admission-mismatched-source-identity.json
+
+fail_case \
+  "standalone admission missing source identity rejected" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
+    . \
+    operations/harness-phase2/tests/fixtures/admission-missing-source-identity.json
+
 pass_case \
   "standalone valid Stage 2 source handoff" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \

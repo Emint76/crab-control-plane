@@ -1,6 +1,6 @@
 # Source admission example
 
-Example request: “Admit `https://example.com/article` as a sanctioned source-bearing KB asset.”
+Example request: "Admit `https://example.com/article` as a sanctioned source-bearing KB asset."
 
 Core rule: this example prepares inputs; canonical admission happens only after Phase3 `workspace/kb_admission` succeeds.
 
@@ -10,89 +10,80 @@ Workspace KB preparation area, relative to `/home/node/.openclaw/workspace/kb`:
 
 ```text
 domain/web/workflow/source-admission-example-001/
-├── raw/source.html
-├── raw/source-readable.txt
-├── task-packet.json
-├── source-capture-package.json
-├── result-packet.json
-├── review-decision.json
-├── admission-decision.json
-├── placement-decision.json
-└── admission-fixture.json
+├── payload/
+│   ├── source.html
+│   └── source-readable.txt
+└── source-metadata.json
 ```
 
-Repo-contained Phase3 target area:
+Repo-contained preparation area:
 
 ```text
 <repo-contained-source-admission-target-dir>/
-├── admission_manifest.json
-└── execution_target.json
+├── stage1/
+│   └── admission_package.json
+├── review/
+│   └── review-decision.json
+├── phase3/
+│   ├── admission_manifest.json
+│   └── execution_target.json
+└── admission_handoff.json
 ```
 
-Do not place pre-Phase target inputs under canonical Phase3 run-dir unless following existing test fixtures. Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
+Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following existing test fixtures. Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
 
 Final KB destination is created only by Phase3:
 
 ```text
 /home/node/.openclaw/workspace/kb/domain/web/sources/source-example-article-001/
-├── source-capture-package.json
 ├── source.html
 └── source-readable.txt
 ```
 
-## Source package
+## Preparation order
 
-`domain/web/workflow/source-admission-example-001/source-capture-package.json`:
+1. Prepare the producer-reviewed `admission_package.json`.
+2. Prepare the canonical review decision.
+3. Establish stable `asset_id`.
+4. Choose domain-first placement.
+5. Materialize reviewed payload files under the runtime KB-root-relative workflow staging path.
+6. Calculate the real runtime payload SHA-256 values.
+7. Prepare Phase3 `admission_manifest.json`.
+8. Prepare Phase3 `execution_target.json`.
+9. Prepare `admission_handoff.json` referencing the already existing package, review decision, execution target, and admission manifest.
+10. Calculate and place the real Stage1 package SHA-256 in the handoff.
+11. Run standalone admission policy preflight against the handoff.
+12. Apply the exact-HEAD Phase2 baseline reuse rule.
+13. Invoke Phase4.
+14. Verify canonical Phase3 evidence and destination hashes.
+
+Never run standalone preflight before the files referenced by `admission_handoff.json` exist.
+
+## Stage 1 source package
+
+`<repo-contained-source-admission-target-dir>/stage1/admission_package.json`:
 
 ```json
 {
-  "source_id": "source-example-article-001",
-  "canonical_pointer": "https://example.com/article",
-  "retrieval_status": "success",
-  "retrieval_timestamp": "2026-06-03T05:00:00Z",
-  "content_type": "text/html; charset=UTF-8",
-  "stable_representation": "domain/web/workflow/source-admission-example-001/raw/source.html",
-  "human_identifier": "Example — Article",
-  "provenance_notes": "Captured by controlled web fetch into workspace KB workflow area.",
-  "linkage": ["task-source-example-article-001"],
-  "capture_method": "web-capture",
-  "hash": "sha256:replace-with-real-hash"
+  "admission_kind": "source_capture",
+  "profile_id": "source_capture.v1",
+  "asset_id": "source-example-article-001",
+  "payload_path": "../payload",
+  "review_status": "approved",
+  "provenance": {
+    "source_url": "https://example.com/article",
+    "retrieval_timestamp": "2026-06-03T05:00:00Z",
+    "content_type": "text/html; charset=UTF-8",
+    "stable_representation": "domain/web/workflow/source-admission-example-001/payload/source.html"
+  }
 }
 ```
 
-## Result packet
+For `source_capture`, do not include `knowledge_profile_id` or `profile_data`.
 
-`domain/web/workflow/source-admission-example-001/result-packet.json`:
+## Review decision
 
-```json
-{
-  "task_id": "task-source-example-article-001",
-  "result_summary": "Prepared a source capture package for KB source admission.",
-  "produced_artifacts": [
-    {
-      "artifact_id": "source-example-article-001",
-      "artifact_type": "source-capture-package",
-      "artifact_role": "source-bearing",
-      "ref": "domain/web/workflow/source-admission-example-001/source-capture-package.json"
-    }
-  ],
-  "unresolved_issues": [],
-  "confidence": "high",
-  "evidence": [
-    {
-      "type": "source-package",
-      "ref": "domain/web/workflow/source-admission-example-001/source-capture-package.json",
-      "description": "Validated source capture package"
-    }
-  ],
-  "suggested_placement": "kb",
-  "suggested_followups": []
-}
-```
-
-## Review / admission / placement evidence
-
-`review-decision.json`:
+`<repo-contained-source-admission-target-dir>/review/review-decision.json`:
 
 ```json
 {
@@ -105,83 +96,17 @@ Final KB destination is created only by Phase3:
 }
 ```
 
-`admission-decision.json`:
-
-```json
-{
-  "run_id": "source-example-article-kb-admission",
-  "generated_at": "2026-06-03T05:00:00Z",
-  "engine_mode": "scaffold",
-  "evaluation_mode": "static-v1",
-  "decision": "approved",
-  "checklist": [
-    "candidate_class=source-bearing",
-    "source_capture_package_schema=pass",
-    "stable_representation=present",
-    "review_decision_approves_kb=pass",
-    "blockers=none"
-  ],
-  "blockers": []
-}
-```
-
-`placement-decision.json`:
-
-```json
-{
-  "run_id": "source-example-article-kb-placement",
-  "generated_at": "2026-06-03T05:00:00Z",
-  "engine_mode": "scaffold",
-  "evaluation_mode": "static-v1",
-  "decision": "approved",
-  "target_layer": "kb",
-  "target_path": "domain/web/sources/source-example-article-001/source-capture-package.json",
-  "rationale": "Approved source-bearing package belongs in workspace KB sources, not repo knowledge/kb or draft workflow storage."
-}
-```
-
-## Phase2 admission fixture
-
-`admission-fixture.json`:
-
-```json
-{
-  "target_layer": "kb",
-  "result_packet_ref": "result-packet.json",
-  "source_capture_package_ref": "source-capture-package.json",
-  "review_decision_ref": "review-decision.json",
-  "admission_decision": {
-    "run_id": "source-example-article-kb-admission",
-    "generated_at": "2026-06-03T05:00:00Z",
-    "engine_mode": "scaffold",
-    "evaluation_mode": "static-v1",
-    "decision": "approved",
-    "checklist": ["candidate_class=source-bearing", "blockers=none"],
-    "blockers": []
-  },
-  "placement": {
-    "target_layer": "kb",
-    "artifact_id": "source-example-article-001",
-    "artifact_type": "source-capture-package"
-  }
-}
-```
-
-This fixture is for Phase2 readiness semantics only. It is not an apply/admission engine.
-
 ## Phase3 admission manifest
 
-`<repo-contained-source-admission-target-dir>/admission_manifest.json`:
+`<repo-contained-source-admission-target-dir>/phase3/admission_manifest.json`:
 
 ```json
 {
   "admission_type": "source_capture",
   "lineage": {
-    "task_packet_ref": "domain/web/workflow/source-admission-example-001/task-packet.json",
-    "result_packet_ref": "domain/web/workflow/source-admission-example-001/result-packet.json",
-    "review_decision_ref": "domain/web/workflow/source-admission-example-001/review-decision.json",
-    "admission_decision_ref": "domain/web/workflow/source-admission-example-001/admission-decision.json",
-    "placement_decision_ref": "domain/web/workflow/source-admission-example-001/placement-decision.json"
+    "asset_id": "source-example-article-001",
+    "admission_package_ref": "<repo-contained-source-admission-target-dir>/stage1/admission_package.json",
+    "review_decision_ref": "<repo-contained-source-admission-target-dir>/review/review-decision.json"
   },
   "copy_operation": {
     "operation_type": "copy",
@@ -191,19 +116,13 @@ This fixture is for Phase2 readiness semantics only. It is not an apply/admissio
   },
   "artifacts": [
     {
-      "input_workspace_path": "domain/web/workflow/source-admission-example-001/source-capture-package.json",
-      "expected_sha256": "replacewith64lowercasehexsha256sourcepackage",
-      "destination_kb_path": "domain/web/sources/source-example-article-001/source-capture-package.json",
-      "copy_metadata": {"artifact_type": "source-capture-package"}
-    },
-    {
-      "input_workspace_path": "domain/web/workflow/source-admission-example-001/raw/source.html",
+      "input_workspace_path": "domain/web/workflow/source-admission-example-001/payload/source.html",
       "expected_sha256": "replacewith64lowercasehexsha256sourcehtml",
       "destination_kb_path": "domain/web/sources/source-example-article-001/source.html",
       "copy_metadata": {"artifact_type": "stable-source-representation"}
     },
     {
-      "input_workspace_path": "domain/web/workflow/source-admission-example-001/raw/source-readable.txt",
+      "input_workspace_path": "domain/web/workflow/source-admission-example-001/payload/source-readable.txt",
       "expected_sha256": "replacewith64lowercasehexsha256readabletxt",
       "destination_kb_path": "domain/web/sources/source-example-article-001/source-readable.txt",
       "copy_metadata": {"artifact_type": "readable-source-representation"}
@@ -216,45 +135,133 @@ This fixture is for Phase2 readiness semantics only. It is not an apply/admissio
 
 ## Phase3 execution target
 
-`<repo-contained-source-admission-target-dir>/execution_target.json`:
+`<repo-contained-source-admission-target-dir>/phase3/execution_target.json`:
 
 ```json
 {
   "target_runtime": "workspace",
   "target_kind": "kb_admission",
   "kb_integration_ref": "control-plane/runtime/integrations/kb.template.yaml",
-  "admission_manifest_ref": "<repo-contained-source-admission-target-dir>/admission_manifest.json",
+  "admission_manifest_ref": "<repo-contained-source-admission-target-dir>/phase3/admission_manifest.json",
   "invoked_by": "agent://source-admission"
 }
 ```
 
 Phase3 freezes this target plus the manifest and KB integration into `operations/harness-phase3/runs/<RUN_ID>/input/`.
 
+## Stage 2 handoff
+
+`<repo-contained-source-admission-target-dir>/admission_handoff.json`:
+
+```json
+{
+  "handoff_version": "admission_handoff.v1",
+  "admission_package_ref": "<repo-contained-source-admission-target-dir>/stage1/admission_package.json",
+  "admission_package_sha256": "<real-sha256-of-stage1-admission-package>",
+  "admission_kind": "source_capture",
+  "profile_id": "source_capture.v1",
+  "asset_id": "source-example-article-001",
+  "knowledge_profile_id": null,
+  "review_evidence": {
+    "review_status": "approved",
+    "approval_ref": "<repo-contained-source-admission-target-dir>/review/review-decision.json"
+  },
+  "placement": {
+    "domain_area": "domain",
+    "source_family_id": "web",
+    "asset_layer": "sources",
+    "destination_root": "domain/web/sources/source-example-article-001",
+    "placement_policy_id": "kb_source_domain_first.v1"
+  },
+  "phase_inputs": {
+    "phase3_execution_target_ref": "<repo-contained-source-admission-target-dir>/phase3/execution_target.json",
+    "phase3_admission_manifest_ref": "<repo-contained-source-admission-target-dir>/phase3/admission_manifest.json"
+  }
+}
+```
+
+The handoff contains concrete asset contract and mapping data. It does not embed operational routing constants, Phase2 evidence, or canonical admission evidence.
+
+## Standalone policy preflight
+
+From repo root:
+
+```bash
+python3 operations/harness-phase2/bin/check_admission_policy.py \
+  /home/node/.openclaw/workspace/repos/crab-control-plane \
+  <repo-contained-source-admission-target-dir>/admission_handoff.json
+```
+
+This validates the package binding, review decision, identity, placement, registered contract shape, and Phase3 target/manifest mapping. It does not run Phase2, Phase3, or Phase4 and does not create canonical evidence.
+
+## Phase2 baseline and Phase4 invocation
+
+Reuse an accepted Phase2 baseline only when all exact-HEAD conditions hold:
+
+```text
+Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>.
+```
+
+Then invoke Phase4 with the accepted baseline and repo-contained execution target:
+
+```bash
+OPENCLAW_WORKSPACE_KB_ROOT=/home/node/.openclaw/workspace/kb \
+PHASE4_PYTHON_BIN=python3 \
+PHASE3_PYTHON_BIN=python3 \
+bash operations/harness-phase4/bin/run_phase4_wrapper.sh \
+  --phase2-run-dir operations/harness-phase2/runs/<PHASE2_RUN_ID> \
+  --execution-target-json <repo-contained-source-admission-target-dir>/phase3/execution_target.json \
+  --phase3-run-id <PHASE3_RUN_ID> \
+  --operator agent:source-admission \
+  --wrapper-run-id <PHASE4_RUN_ID>
+```
+
+## Legacy compatibility
+
+Historical source-admission workflows and existing batch runners may still use the older source-specific fixture set:
+
+```text
+admission-fixture.json
+source-capture-package.json
+result-packet.json
+admission-decision.json
+placement-decision.json
+```
+
+That path is supported by `check_admission_policy.py` for compatibility only. It is not the canonical path for new source admissions, and `admission-fixture.json` is not a Stage 2 handoff.
+
+The legacy identity invariant remains:
+
+```text
+placement.artifact_id == source_capture_package.source_id
+```
+
 ## Final report pattern
 
 ```text
 Execution owner:
-- pre-Phase preparation: manual/local proof
-- Phase2 readiness: Phase-owned
-- Phase3 admission: Phase-owned
+- pre-Phase preparation: agent-owned preparation
+- standalone admission policy preflight: repo-native preflight utility over admission_handoff.json
+- Phase2 baseline: reusable repo/control-plane baseline evidence for exact repository HEAD
+- Phase4 wrapper: normal operator-facing invocation
+- Phase3 admission: canonical execution and admission evidence
 
-repo-defined:
-- source contracts: source_capture_package, task_packet, result_packet, review_decision, admission_decision, placement_decision
-- Phase3 target: target_runtime=workspace, target_kind=kb_admission
-- Phase3 manifest: admission_type=source_capture, byte_for_byte copy, fail_closed_on_hash_mismatch
-
-manual/local proof:
+pre-Phase preparation:
+- Stage1 package prepared
+- review decision prepared
+- Phase3 manifest and execution target prepared
+- Stage2 handoff prepared
 - stable source files prepared under workspace KB workflow path
-- local helper validation: pass/fail
 
 Phase-owned evidence:
-- Phase2 admission fixture: pass/fail
-- Phase2 scaffold/handoff run: <run-id>, handoff_ready=<ready|not ready>
+- accepted Phase2 baseline: <run-id>, repo_head=<sha>, handoff_ready=<ready|not ready>
+- Phase4 wrapper run: <run-id>, exit_code=<0|nonzero>
 - Phase3 kb_admission run: <run-id>, exit_code=<0|nonzero>, evidence=<path>
 - copied destination paths and hashes
 
 limits:
-- Phase2 did not admit anything; it only checked readiness
+- standalone preflight did not admit anything
+- Phase2 did not admit anything; it only checked repo/control-plane baseline readiness
 - the skill did not admit anything
 - canonical admission claim depends on Phase3 `kb_admission` evidence
 - no semantic/distillation knowledge asset admission is claimed

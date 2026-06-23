@@ -1,22 +1,19 @@
 {
   "profiles": {
     "component_extraction.v1": {
-      "enabled_for_admission": true,
       "payload_kind": "file",
       "placement_policy_id": "kb_knowledge_domain_first.v1",
-      "status": "placeholder"
+      "status": "registered-placeholder"
     },
     "product_type_extraction.v1": {
-      "enabled_for_admission": true,
       "payload_kind": "file",
       "placement_policy_id": "kb_knowledge_domain_first.v1",
-      "status": "active"
+      "status": "registered"
     },
     "recipe_formula_extraction.v1": {
-      "enabled_for_admission": true,
       "payload_kind": "file",
       "placement_policy_id": "kb_knowledge_domain_first.v1",
-      "status": "placeholder"
+      "status": "registered-placeholder"
     }
   },
   "registry_id": "knowledge_profiles.v1"

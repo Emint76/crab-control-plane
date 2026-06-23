@@ -95,10 +95,10 @@ bash operations/harness-phase2/tests/run_fixture_smoke.sh
 ```bash
 bash operations/harness-phase2/bin/validate_json_against_schema.sh <schema> <json-file>
 python operations/harness-phase2/bin/check_placement_policy.py <repo-root> <placement-json>
-python operations/harness-phase2/bin/check_admission_policy.py <repo-root> <admission-fixture-json>
+python operations/harness-phase2/bin/check_admission_policy.py <repo-root> <admission-handoff-or-legacy-fixture-json>
 ```
 
-These are small Phase 2 external-check-layer utilities. They validate schema, placement policy, and admission fixture semantics without performing runtime writes.
+These are small Phase 2 external-check-layer utilities. They validate schema, placement policy, universal admission handoff semantics, and legacy admission fixture semantics without performing runtime writes. Legacy fixtures remain supported for historical workflows and existing batch runners; new source admissions should use the universal `admission_handoff.json` contract.
 
 ## Observability sample emitter
 
