@@ -82,6 +82,7 @@
         "domain_area",
         "source_family_id",
         "asset_layer",
+        "asset_slug",
         "destination_root",
         "placement_policy_id"
       ],
@@ -98,6 +99,9 @@
             "sources",
             "knowledge"
           ]
+        },
+        "asset_slug": {
+          "$ref": "#/$defs/path_segment"
         },
         "destination_root": {
           "$ref": "#/$defs/repo_relative_ref"
@@ -203,6 +207,12 @@
     "path_segment": {
       "type": "string",
       "minLength": 1,
+      "not": {
+        "enum": [
+          ".",
+          ".."
+        ]
+      },
       "pattern": "^[A-Za-z0-9._-]+$"
     },
     "repo_relative_ref": {

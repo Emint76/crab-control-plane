@@ -254,6 +254,28 @@ target["kb_integration_ref"] = "control-plane/runtime/integrations/kb.template.y
 
 if mutation == "none":
     pass
+elif mutation == "humblebee-slug":
+    asset_id = "humblebee-citrus-chamomile-liquid-shampoo-20260610"
+    asset_slug = "citrus-chamomile-liquid-shampoo-20260610"
+    package["asset_id"] = asset_id
+    review["artifact_id"] = asset_id
+    handoff["asset_id"] = asset_id
+    handoff["placement"]["domain_area"] = "cosmetics-household-chemistry"
+    handoff["placement"]["source_family_id"] = "humblebee-and-me"
+    handoff["placement"]["asset_layer"] = "sources"
+    handoff["placement"]["asset_slug"] = asset_slug
+    handoff["placement"]["placement_policy_id"] = "kb_source_domain_first.v1"
+    handoff["placement"]["destination_root"] = (
+        f"cosmetics-household-chemistry/humblebee-and-me/sources/{asset_slug}"
+    )
+    manifest["admission_type"] = "source_capture"
+    manifest["lineage"]["asset_id"] = asset_id
+    manifest["lineage"].pop("knowledge_profile_id", None)
+    for artifact in manifest["artifacts"]:
+        filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
+        artifact["destination_kb_path"] = (
+            f"cosmetics-household-chemistry/humblebee-and-me/sources/{asset_slug}/{filename}"
+        )
 elif mutation == "unknown-kind":
     handoff["admission_kind"] = "future_kind"
 elif mutation == "unknown-profile":
@@ -268,6 +290,24 @@ elif mutation == "role-first":
     handoff["placement"]["destination_root"] = "knowledge/cosmetics/example-source-family/product-type-example"
 elif mutation == "asset-id-mismatch":
     handoff["asset_id"] = "different-asset-id"
+elif mutation == "missing-asset-slug":
+    handoff["placement"].pop("asset_slug", None)
+elif mutation == "asset-slug-slash":
+    handoff["placement"]["asset_slug"] = "bad/slug"
+elif mutation == "asset-slug-traversal":
+    handoff["placement"]["asset_slug"] = ".."
+elif mutation == "destination-uses-asset-id":
+    handoff["placement"]["asset_slug"] = "product-type-local-slug"
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/product-type-example"
+    for artifact in manifest["artifacts"]:
+        filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/product-type-example/{filename}"
+elif mutation == "manifest-destination-outside-slug-root":
+    handoff["placement"]["asset_slug"] = "product-type-local-slug"
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/product-type-local-slug"
+    for artifact in manifest["artifacts"]:
+        filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/product-type-example/{filename}"
 elif mutation == "absolute-ref":
     handoff["phase_inputs"]["phase3_execution_target_ref"] = "/tmp/execution_target.json"
 elif mutation == "traversal-ref":
@@ -302,6 +342,11 @@ positive_case="$(make_case operations/admission/examples/stage2/knowledge_produc
 mutate_case "${positive_case}" "none"
 pass_case "Stage 2 generated repo-relative handoff passes standalone policy preflight"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${positive_case}/admission_handoff.json"
 
+humblebee_case="$(make_case operations/admission/examples/stage2/source_capture.v1 humblebee-slug-positive)"
+mutate_case "${humblebee_case}" "humblebee-slug"
+pass_case "Stage 2 accepts Humblebee source with global asset_id and local asset_slug" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${humblebee_case}/admission_handoff.json"
+
 source_case="$(make_case operations/admission/examples/stage2/source_capture.v1 source-targets-knowledge)"
 mutate_case "${source_case}" "source-targets-knowledge"
 fail_case "Stage 2 rejects source_capture targeting knowledge layer" "placement.destination_root must follow domain-first layout"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${source_case}/admission_handoff.json"
@@ -315,6 +360,11 @@ negative_cases=(
   "unknown-profile|knowledge_profile_id is not registered"
   "role-first|placement.destination_root must follow domain-first layout"
   "asset-id-mismatch|asset_id must be preserved from Stage 1 package"
+  "missing-asset-slug|'asset_slug' is a required property"
+  "asset-slug-slash|does not match"
+  "asset-slug-traversal|should not be valid under"
+  "destination-uses-asset-id|placement.destination_root must follow domain-first layout"
+  "manifest-destination-outside-slug-root|Phase3 artifact destination_kb_path must be under placement.destination_root"
   "absolute-ref|does not match"
   "traversal-ref|does not match"
   "manifest-type-mismatch|Phase3 admission manifest admission_type must match Stage 1 admission_kind"

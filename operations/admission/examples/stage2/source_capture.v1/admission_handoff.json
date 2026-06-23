@@ -10,11 +10,12 @@
     "phase3_execution_target_ref": "operations/admission/examples/stage2/source_capture.v1/phase3/execution_target.json"
   },
   "placement": {
-    "asset_layer": "sources",
-    "destination_root": "cosmetics/example-source-family/sources/source-capture-example",
     "domain_area": "cosmetics",
-    "placement_policy_id": "kb_source_domain_first.v1",
-    "source_family_id": "example-source-family"
+    "source_family_id": "example-source-family",
+    "asset_layer": "sources",
+    "asset_slug": "source-capture-example",
+    "destination_root": "cosmetics/example-source-family/sources/source-capture-example",
+    "placement_policy_id": "kb_source_domain_first.v1"
   },
   "profile_id": "source_capture.v1",
   "review_evidence": {

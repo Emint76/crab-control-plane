@@ -224,6 +224,7 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
     domain_area = require_string(placement, "domain_area", "admission_handoff.placement")
     source_family_id = require_string(placement, "source_family_id", "admission_handoff.placement")
     asset_layer = require_string(placement, "asset_layer", "admission_handoff.placement")
+    asset_slug = require_string(placement, "asset_slug", "admission_handoff.placement")
     destination_root = require_string(placement, "destination_root", "admission_handoff.placement")
     placement_policy_id = require_string(placement, "placement_policy_id", "admission_handoff.placement")
 
@@ -232,7 +233,7 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
         raise CheckFailure("placement.asset_layer must match admission_kind")
     if placement_policy_id != expected_placement_policy(admission_kind):
         raise CheckFailure("placement.placement_policy_id must match admission_kind")
-    expected_destination_root = f"{domain_area}/{source_family_id}/{asset_layer}/{asset_id}"
+    expected_destination_root = f"{domain_area}/{source_family_id}/{asset_layer}/{asset_slug}"
     if destination_root != expected_destination_root:
         raise CheckFailure("placement.destination_root must follow domain-first layout")
 
