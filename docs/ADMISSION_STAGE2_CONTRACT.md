@@ -4,7 +4,9 @@
 
 Admission Stage 2 is the universal contract bridge from a reviewed Admission Stage 1 package into the existing harness Phase execution path.
 
-It prepares one machine-readable handoff, `admission_handoff.json`, and binds the existing Phase2 and Phase3 input files needed for admission. It is not an execution framework.
+It prepares one machine-readable handoff, `admission_handoff.json`, and maps the reviewed package to existing Phase3 target and manifest inputs. It is not an execution framework.
+
+Admission Stage 1 and Admission Stage 2 are contract-layer labels. They are not harness Phases, runtime stages, or a second canonical evidence framework.
 
 ## Input
 
@@ -55,25 +57,24 @@ The handoff contains:
 
 The handoff is not canonical execution evidence.
 
-`review_evidence.approval_ref` points to the canonical review decision document for the reviewed package. Phase2 resolves that repo-contained reference and validates it against:
+`review_evidence.approval_ref` points to the canonical review decision document for the reviewed package. Standalone admission policy preflight resolves that repo-contained reference and validates it against:
 
 ```text
 control-plane/contracts/schemas/review_decision.schema.json
 ```
 
-For Stage 2 KB admission, Phase2 requires:
+For Stage 2 KB admission, standalone admission policy preflight requires:
 
 - `decision: approve`
 - `artifact_id` matching the handoff `asset_id`
 - `approved_destination: kb`
 
-The Stage 2 handoff field `review_evidence.review_status` is not sufficient by itself; the referenced canonical review decision is authoritative.
+The Stage 2 handoff field `review_evidence.review_status` is not sufficient by itself; the referenced canonical review decision is authoritative. This is pre-Phase policy proof, not generic Phase2 bundle evidence and not canonical admission evidence.
 
 ## Universal Mapping Rules
 
 Stage 2 maps one reviewed Stage 1 package into:
 
-- Phase2 admission/readiness input
 - Phase3 `execution_target.json`
 - Phase3 `admission_manifest.json`
 
@@ -106,7 +107,7 @@ The same value must be traceable through:
 
 - Stage 1 `admission_package.json`
 - Stage 2 `admission_handoff.json`
-- Phase2 placement/readiness input
+- standalone admission policy preflight
 - Phase3 manifest `lineage.asset_id`
 - final destination root
 
@@ -165,9 +166,9 @@ elif recipe_formula...
 elif component...
 ```
 
-Profile-specific semantic validation remains outside universal admission. Profile maturity and status should become descriptive metadata, not evidence of a profile-specific admission implementation.
+Profile-specific semantic validation remains outside universal admission. Profile maturity and status is descriptive metadata, not evidence of a profile-specific admission implementation.
 
-The Stage 1 registry field `enabled_for_admission` remains an explicit transitional Stage 1 gate. Stage 2 contains no profile-specific executable implementation, and adding a new registered knowledge profile must not require new Stage 2 admission code. Cleanup of the Stage 1 runtime gate is deferred to a later dedicated audit and is out of scope for this PR.
+Stage 2 contains no profile-specific executable implementation, and adding a new registered knowledge profile must not require new Stage 2 admission code.
 
 Out-of-repo packages using the old `component_profile.v1` identifier require migration to `component_extraction.v1`. No live data migration is part of this PR.
 
@@ -179,7 +180,8 @@ The intended route is:
 producer-prepared asset
 -> Admission Stage 1 package contract
 -> Admission Stage 2 handoff contract
--> Phase2 policy/readiness
+-> standalone admission policy preflight
+-> existing accepted reusable Phase2 baseline
 -> Phase4 operator-facing wrapper
 -> Phase3 kb_admission
 -> canonical Phase3 evidence
@@ -187,17 +189,20 @@ producer-prepared asset
 
 Ownership:
 
-- Admission Stage 1 owns the universal package contract and transitional isolated dry-run validator.
+- Admission Stage 1 owns the universal package contract.
 - Admission Stage 2 owns the universal bridge contract and mapping into Phase inputs.
-- Phase2 owns policy/readiness validation, review approval, package binding, identity preservation, and placement readiness.
+- Standalone admission policy preflight owns review-decision validation, package binding, identity consistency, source-versus-knowledge classification, placement validation, profile registration checks, and target/manifest mapping checks.
+- Phase2 owns reusable repo/control-plane baseline validation and generic render/apply-plan/runtime-ready/handoff readiness.
 - Phase4 is the normal operator-facing route to Phase3.
 - Phase3 is the sole canonical execution and evidence owner.
 
-Stage 2 success does not mean the asset has been admitted.
+Stage 2 success and standalone preflight success do not mean the asset has been admitted.
+
+The generic Phase2 bundle does not consume, approve, freeze, or prove a specific admission handoff. One accepted Phase2 baseline may be reused while the relevant repo/control-plane baseline remains unchanged. Absence of a first-class checked-handoff-to-Phase2-run binding is an accepted boundary, not a wiring defect.
 
 ## Failure Boundaries
 
-Stage 2 can fail when:
+Standalone admission policy preflight over the Stage 2 handoff can fail when:
 
 - the handoff does not match its schema;
 - referenced repo-contained inputs are missing or unsafe;
@@ -207,11 +212,11 @@ Stage 2 can fail when:
 - the Phase3 target is not `kb_admission`;
 - the Phase3 manifest admission type does not match the Stage 1 admission kind.
 
-Stage 2 does not fail or pass runtime payload-file hashes, copies, overwrite behavior, destination mutation, or canonical run evidence.
+Stage 2 and standalone preflight do not fail or pass runtime payload-file hashes, copies, overwrite behavior, destination mutation, or canonical run evidence.
 
 ## What Stage 2 Does Not Prove
 
-Stage 2 does not prove:
+Stage 2 and standalone preflight do not prove:
 
 - semantic correctness;
 - payload file existence;
@@ -221,6 +226,8 @@ Stage 2 does not prove:
 - destination mutation;
 - Phase4 invocation success;
 - canonical admission.
+- that the generic Phase2 bundle consumed a specific handoff;
+- the whole pre-Phase review/governance trail as canonical evidence.
 
 Only Phase3 `kb_admission` evidence can support the claim that an asset was admitted.
 
@@ -234,14 +241,14 @@ Only Phase3 `kb_admission` evidence can support the claim that an asset was admi
    - source: `<domain-area>/<source-family-id>/sources/<asset-id>/`
    - knowledge: `<domain-area>/<source-family-id>/knowledge/<asset-id>/`
 6. Prepare `admission_handoff.json` with the Stage 1 package ref, package SHA-256, identity, review evidence, placement, Phase input refs, and route.
-7. Prepare the Phase2 readiness input by pointing Phase2 at the handoff.
-8. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
-9. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
+7. Run standalone admission policy preflight against the handoff.
+8. Reuse an existing accepted Phase2 baseline while the repo/control-plane baseline is unchanged, or run the generic Phase2 bundle only to establish a new baseline.
+9. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
+10. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
    - runtime-KB-root-relative workflow input path
    - expected SHA-256
    - relative destination path
    - copy metadata
-10. Run the Phase2 admission policy/readiness check.
 11. Invoke the normal Phase4 wrapper route to Phase3.
 12. Verify Phase3 canonical evidence under the Phase3 run directory.
 13. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
@@ -258,9 +265,11 @@ Any profile-specific semantic validator belongs to the producer or extraction pr
 
 | Hash/check | Owner |
 |---|---|
-| Stage 1 package binding hash used by the handoff | Phase2 readiness and identity binding |
+| Stage 1 package binding hash used by the handoff | admission preparation / standalone policy preflight |
 | Runtime staged payload file hashes | Phase3 |
 | Destination/copied-result hashes | Phase3 |
 | Copy and overwrite evidence | Phase3 |
 
-Phase2 verifies `admission_package_sha256` only to bind the handoff to the exact reviewed Stage 1 package. It does not hash runtime staged payload files; those checks remain Phase3-owned.
+Standalone admission policy preflight verifies `admission_package_sha256` only to bind the handoff to the exact reviewed Stage 1 package. It does not hash runtime staged payload files; those checks remain Phase3-owned.
+
+Operational batch runners may execute standalone preflight and Phase invocation sequentially and retain their own logs or operational state. Those logs are not a second canonical Phase evidence surface.

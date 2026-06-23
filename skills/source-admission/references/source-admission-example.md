@@ -167,7 +167,7 @@ Final KB destination is created only by Phase3:
 }
 ```
 
-This fixture is for Phase2 readiness semantics only. It is not an apply/admission engine.
+This fixture is for standalone admission policy preflight semantics only. It is not an apply/admission engine.
 
 ## Phase3 admission manifest
 
@@ -234,8 +234,9 @@ Phase3 freezes this target plus the manifest and KB integration into `operations
 
 ```text
 Execution owner:
-- pre-Phase preparation: manual/local proof
-- Phase2 readiness: Phase-owned
+- pre-Phase preparation: agent-owned preparation
+- standalone admission policy preflight: repo-native preflight utility
+- Phase2 baseline: reusable repo/control-plane baseline evidence
 - Phase3 admission: Phase-owned
 
 repo-defined:
@@ -243,13 +244,12 @@ repo-defined:
 - Phase3 target: target_runtime=workspace, target_kind=kb_admission
 - Phase3 manifest: admission_type=source_capture, byte_for_byte copy, fail_closed_on_hash_mismatch
 
-manual/local proof:
+pre-Phase preparation:
 - stable source files prepared under workspace KB workflow path
-- local helper validation: pass/fail
 
 Phase-owned evidence:
-- Phase2 admission fixture: pass/fail
-- Phase2 scaffold/handoff run: <run-id>, handoff_ready=<ready|not ready>
+- standalone admission policy preflight: pass/fail
+- accepted Phase2 baseline: <run-id>, handoff_ready=<ready|not ready>
 - Phase3 kb_admission run: <run-id>, exit_code=<0|nonzero>, evidence=<path>
 - copied destination paths and hashes
 

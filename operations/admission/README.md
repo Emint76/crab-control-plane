@@ -1,34 +1,34 @@
 # Admission
 
-`operations/admission/` contains the Admission Stage 1 universal package scaffold and the Admission Stage 2 universal handoff contract.
+`operations/admission/` contains universal Admission Stage contracts.
 
-It performs dry-run validation for:
+These Stage labels are contract-layer labels, not harness Phases and not a second admission runtime.
+
+Stage 1 defines the universal `admission_package.json` contract for:
 
 - `source_capture.v1`
 - `knowledge_asset.v1`
 
-Admission validates generic package admissibility only.
-It does not run Phase2, Phase3, Phase4, OpenClaw, canonical writes, KB writes, or type-specific semantic validation.
+Stage 2 defines `admission_handoff.json` as a static contract bridge into existing Phase3 target and manifest inputs. It is not a runner, CLI, admission engine, wrapper, orchestration framework, or evidence system.
 
-Admission Stage 2 adds `admission_handoff.json` as a contract bridge into existing Phase inputs. It is not a runner or admission engine. Phase2 owns policy/readiness, Phase4 is the normal operator-facing wrapper, and Phase3 is the sole canonical execution and evidence owner.
+The operational route is:
 
-## CLI
-
-```bash
-bash operations/admission/bin/run_admission.sh \
-  --package <package-directory> \
-  --dry-run
+```text
+prepared asset
+-> universal admission package/handoff contract
+-> standalone admission policy preflight
+-> existing accepted reusable Phase2 baseline
+-> Phase4 thin wrapper by default
+-> Phase3 kb_admission
+-> canonical Phase3 evidence
 ```
 
-stdout contains only the JSON result.
-Diagnostics and dependency errors are written to stderr.
+The standalone policy preflight is implemented by `operations/harness-phase2/bin/check_admission_policy.py`. It is repo-native preflight, not the generic Phase2 bundle and not canonical admission evidence.
 
 ## Dependencies
 
-The CLI uses Python and the standard `jsonschema` package with Draft 2020-12.
-For Stage 1 validation and CI setup, the repository currently reuses the existing requirements surface at `operations/harness-phase2/requirements.txt`.
-Long-term admission dependency ownership is not defined by this PR.
-No custom or fallback JSON Schema validator exists in this scaffold.
+Admission contract validation uses Python and the standard `jsonschema` package with Draft 2020-12 through the repository validation requirements.
+No custom or fallback JSON Schema validator exists.
 
 ## Stage 2
 
@@ -49,3 +49,5 @@ Placement policies:
 ```text
 operations/admission/placement-policies/registry.v1.json
 ```
+
+Phase3 remains the sole canonical execution/admission evidence owner.

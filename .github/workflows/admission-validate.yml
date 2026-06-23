@@ -23,15 +23,11 @@ jobs:
 
       - name: Validate admission shell syntax
         run: |
-          bash -n operations/admission/bin/run_admission.sh
-          bash -n operations/admission/tests/test_admission_cli.sh
+          bash -n operations/admission/tests/test_admission_contracts.sh
           bash -n operations/admission/tests/test_stage2_handoff.sh
 
-      - name: Compile admission CLI
-        run: python -m py_compile operations/admission/lib/admission_cli.py
+      - name: Validate admission contracts
+        run: bash operations/admission/tests/test_admission_contracts.sh
 
-      - name: Run admission Stage 1 tests
-        run: bash operations/admission/tests/test_admission_cli.sh
-
-      - name: Run admission Stage 2 handoff tests
+      - name: Validate admission handoff examples
         run: bash operations/admission/tests/test_stage2_handoff.sh

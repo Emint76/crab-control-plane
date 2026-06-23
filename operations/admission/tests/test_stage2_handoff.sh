@@ -193,7 +193,7 @@ printf 'PASS Stage 2, Phase3, review, and KB integration example schemas
 '
 
 for example in "${stage2_examples[@]}"; do
-  pass_case "Stage 2 handoff passes Phase2 readiness: ${example}"     "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${example}"
+  pass_case "Stage 2 handoff passes standalone policy preflight: ${example}"     "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${example}"
 done
 
 make_case() {
@@ -247,7 +247,6 @@ review = json.loads(review_path.read_text(encoding="utf-8"))
 
 handoff["admission_package_ref"] = f"{case_rel}/stage1/admission_package.json"
 handoff["review_evidence"]["approval_ref"] = f"{case_rel}/review/approval.json"
-handoff["phase_inputs"]["phase2_admission_ref"] = f"{case_rel}/admission_handoff.json"
 handoff["phase_inputs"]["phase3_execution_target_ref"] = f"{case_rel}/phase3/execution_target.json"
 handoff["phase_inputs"]["phase3_admission_manifest_ref"] = f"{case_rel}/phase3/admission_manifest.json"
 target["admission_manifest_ref"] = f"{case_rel}/phase3/admission_manifest.json"
@@ -301,7 +300,7 @@ PY_STAGE2_MUTATE
 
 positive_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 generated-positive)"
 mutate_case "${positive_case}" "none"
-pass_case "Stage 2 generated repo-relative handoff passes Phase2 readiness"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${positive_case}/admission_handoff.json"
+pass_case "Stage 2 generated repo-relative handoff passes standalone policy preflight"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${positive_case}/admission_handoff.json"
 
 source_case="$(make_case operations/admission/examples/stage2/source_capture.v1 source-targets-knowledge)"
 mutate_case "${source_case}" "source-targets-knowledge"

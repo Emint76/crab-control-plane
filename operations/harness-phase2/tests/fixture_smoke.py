@@ -262,6 +262,16 @@ def main() -> int:
             "invalid_admission_artifact_type",
             lambda: suite.admission_allows("admission-invalid-artifact-type.json"),
         ),
+        fail_case(
+            "admission mismatched source identity rejected",
+            "source_capture_id_mismatch",
+            lambda: suite.admission_allows("admission-mismatched-source-identity.json"),
+        ),
+        fail_case(
+            "admission missing source identity rejected",
+            "schema_validation_failed",
+            lambda: suite.admission_allows("admission-missing-source-identity.json"),
+        ),
     ]
     return 0 if all(checks) else 1
 

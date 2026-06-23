@@ -116,14 +116,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "phase2_admission_ref",
         "phase3_execution_target_ref",
         "phase3_admission_manifest_ref"
       ],
       "properties": {
-        "phase2_admission_ref": {
-          "$ref": "#/$defs/repo_relative_ref"
-        },
         "phase3_execution_target_ref": {
           "$ref": "#/$defs/repo_relative_ref"
         },

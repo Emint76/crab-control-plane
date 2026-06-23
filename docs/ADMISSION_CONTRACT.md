@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Admission Stage 1 is the universal package contract and a transitional repo-native dry-run validation surface for package admissibility.
-It validates generic package structure before later canonicalization or execution stages.
+Admission Stage 1 is the universal package contract for package admissibility.
+Admission Stage labels are contract-layer labels, not harness Phases and not a second runtime framework.
 
 Admission Stage 1 does not perform canonical placement, Phase execution, canonical writes, hash sealing, final manifests, migration, or producer integration.
 Admission Stage 2 is the universal contract bridge into existing Phase inputs; see `docs/ADMISSION_STAGE2_CONTRACT.md`.
@@ -25,33 +25,12 @@ Stage 1 supports two universal admission profiles:
 - `admission_kind: knowledge_asset`, `profile_id: knowledge_asset.v1`
 
 Knowledge assets also carry a registered `knowledge_profile_id`.
-Stage 1 uses that ID only for admission-level enablement and payload-kind policy.
+Stage 1 uses that ID only for registry, payload-kind, placement-policy, and lineage metadata.
 It does not load type-specific schemas or validators.
-
-## CLI
-
-Stable external interface:
-
-```bash
-bash operations/admission/bin/run_admission.sh \
-  --package <package-directory> \
-  --dry-run
-```
-
-The command prints only the JSON result to stdout.
-Diagnostics and dependency errors go to stderr.
-Successful dry-run validation returns `0`; validation failures return non-zero.
-
-The wrapper selects `ADMISSION_PYTHON_BIN`, then `PYTHON`, then `python3`.
-It does not require manual `PYTHONPATH`.
 
 ## Dependencies
 
-Admission uses the standard Python `jsonschema` package and Draft 2020-12 schemas.
-For Stage 1 validation and CI setup, the repository currently reuses the existing requirements surface at `operations/harness-phase2/requirements.txt`.
-Long-term admission dependency ownership is not defined by this PR.
-
-If `jsonschema` is unavailable, the CLI fails closed with a non-zero exit code, writes no files, and does not claim validation success.
+Admission contract validation uses the standard Python `jsonschema` package and Draft 2020-12 schemas.
 There is no custom or fallback JSON Schema validator.
 
 ## Package Convention
@@ -100,43 +79,22 @@ It does not open canonical Source packages, verify Source package contents, fix 
 
 ## Knowledge Profile Registry
 
-`operations/admission/knowledge-profiles/registry.v1.json` is an admission-runtime registry.
+`operations/admission/knowledge-profiles/registry.v1.json` is contract metadata.
 It contains only:
 
-- `enabled_for_admission`
 - `payload_kind`
 - `placement_policy_id`
 - `status`
 
 Current registered knowledge profile entries:
 
-- `product_type_extraction.v1`: enabled
-- `recipe_formula_extraction.v1`: enabled placeholder
-- `component_extraction.v1`: enabled placeholder
+- `product_type_extraction.v1`: registered
+- `recipe_formula_extraction.v1`: registered placeholder
+- `component_extraction.v1`: registered placeholder
 
 `component_extraction.v1` is the extraction/profile identifier. The resulting knowledge asset type may still be described conceptually as a component profile.
 
 The registry must not contain semantic validators, type-specific schema references, extraction instructions, or template execution rules.
-
-## Result
-
-Dry-run success returns a schema-valid result with:
-
-- `validation_status: pass`
-- `admission_status: not_run`
-- `mode: dry_run`
-- `proposed_target_path: null`
-- empty `blockers`
-- `evidence.phase_invoked: false`
-- `evidence.canonical_write_performed: false`
-
-Validation failure returns:
-
-- `validation_status: fail`
-- `admission_status: not_run`
-- non-empty stable blockers
-- no Phase invocation
-- no canonical write
 
 ## Out Of Scope
 

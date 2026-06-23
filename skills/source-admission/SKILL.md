@@ -1,24 +1,25 @@
 ---
 name: source-admission
-description: Prepare, validate, and route external source material for canonical crab-control-plane/OpenClaw workspace KB admission. Use by default for source-bearing inputs intended for capture, preservation, ingestion, or KB admission. Phase2 checks readiness, Phase4 is the default operator-facing invocation wrapper, and Phase3 workspace/kb_admission remains the sole canonical execution owner.
+description: Prepare and route external source material for canonical crab-control-plane/OpenClaw workspace KB admission. Use by default for source-bearing inputs intended for capture, preservation, ingestion, or KB admission. Standalone policy preflight checks source admission inputs, an accepted reusable Phase2 baseline covers repo/control-plane readiness, Phase4 is the default operator-facing wrapper, and Phase3 workspace/kb_admission remains the sole canonical execution owner.
 ---
 
 # Source Admission
 
-Prepare **source-bearing** assets for canonical KB admission. This skill is a pre-Phase/Phase input helper and routing policy; it does not admit anything by itself.
+Prepare **source-bearing** assets for canonical KB admission. This skill is a preparation and routing policy; it does not admit anything by itself.
 
 Canonical rule:
 
 ```text
 external source
 → source-admission preparation
-→ Phase2 readiness
+→ standalone admission policy preflight
+→ accepted reusable Phase2 baseline
 → Phase4 wrapper by default
 → Phase3 workspace/kb_admission
 → canonical Phase3 evidence
 ```
 
-**Phase2 checks readiness. Phase4 is the default operator-facing entrypoint. Phase3 performs admission and remains the only canonical execution owner.**
+**Standalone preflight checks concrete source admission inputs. A generic accepted Phase2 baseline covers repo/control-plane readiness and may be reused while that baseline is unchanged. Phase4 is the default operator-facing entrypoint. Phase3 performs admission and remains the only canonical execution owner.**
 
 A source is not admitted until Phase3 `workspace/kb_admission` runs, freezes inputs, performs byte-for-byte copy, and emits canonical Phase3 evidence.
 
@@ -79,8 +80,9 @@ A container-level manifest or index may be admitted as its own source only when 
 ## Non-negotiables
 
 - State execution ownership precisely:
-  - pre-Phase capture/preparation is `manual/local proof` or agent-owned preparation;
-  - Phase2 provides readiness evidence;
+  - pre-Phase capture/preparation is agent-owned preparation;
+  - standalone admission policy preflight checks concrete source inputs;
+  - Phase2 provides reusable repo/control-plane baseline evidence;
   - Phase4 provides wrapper metadata and invokes Phase3;
   - Phase3 owns canonical execution and admission evidence.
 - Use Phase4 as the default invocation path for canonical source admission.
@@ -93,7 +95,7 @@ A container-level manifest or index may be admitted as its own source only when 
 - Treat repo `knowledge/kb/` as layout/docs/examples, not the live corpus.
 - Treat the live KB corpus as the configured workspace KB root, usually `OPENCLAW_WORKSPACE_KB_ROOT` or `/home/node/.openclaw/workspace/kb`.
 - Do not use `freeze` for pre-Phase work. Only Phase3 freezes `execution_target`, `admission_manifest`, and `kb_integration` into its run input directory.
-- Do not call Phase2 pass, Phase4 wrapper success, schema validation, approval evidence, or copied working files “admitted”.
+- Do not call standalone preflight pass, Phase2 baseline pass, Phase4 wrapper success, schema validation, approval evidence, or copied working files “admitted”.
 - Only Phase3 `kb_admission` evidence can support the claim that a source was admitted.
 - This skill is source-only. Do not use it for semantic distillation or generic knowledge-asset admission.
 - Preserve source bytes and provenance. Do not rewrite source content into a knowledge claim during source admission.
@@ -197,16 +199,18 @@ The Phase3 admission manifest must use:
 
 For batch/container admission, the manifest may contain multiple source artifacts, but each independently addressable source must retain its own identity, expected hash, provenance, and destination path.
 
-## Phase2 source readiness semantics
+## Standalone preflight and Phase2 baseline semantics
 
-Phase2 source readiness has two distinct parts:
+Source admission readiness has two distinct pre-Phase checks:
 
-1. Source-specific Phase2-local check: `check_admission_policy.py` validates the concrete `admission-fixture.json` and source admission semantics.
-2. Generic Phase2 repo-native scaffold: `run_phase2_bundle.sh <PHASE2_RUN_ID>` produces generic Phase2 scaffold/handoff readiness for Phase3 intake.
+1. Standalone admission policy preflight: `check_admission_policy.py` validates the concrete `admission-fixture.json` and source admission semantics.
+2. Generic Phase2 repo-native baseline: `run_phase2_bundle.sh <PHASE2_RUN_ID>` validates the current repo/control-plane baseline and produces reusable baseline evidence.
 
-Do not claim that `run_phase2_bundle.sh` consumed or approved a specific source-admission fixture unless the repo runner is extended to link that fixture into Phase2 outputs.
+Reuse an existing accepted Phase2 baseline while the relevant repo/control-plane baseline remains unchanged. Create a new Phase2 baseline only when no accepted baseline exists or the baseline has materially changed.
 
-Phase2 pass means readiness only. It does not mean:
+Do not claim that `run_phase2_bundle.sh` consumed, approved, froze, or checked a specific source-admission fixture. Batch runners may reuse one accepted Phase2 baseline for many source and knowledge admissions. Historical generated Phase2/3/4 runs are not per-asset governance inputs.
+
+Standalone preflight pass and Phase2 baseline pass do not mean:
 
 - admitted
 - copied into the canonical source corpus
@@ -232,7 +236,7 @@ Phase4 does not:
 - own canonical execution;
 - create competing `report.json`, `report.md`, `exit_code`, or `execution_result.json`;
 - mutate Phase2 or Phase3 evidence;
-- make Phase2 readiness equivalent to admission.
+- make Phase2 baseline readiness equivalent to admission.
 
 Canonical evidence remains under:
 
@@ -271,31 +275,20 @@ If Phase4 and Phase3 evidence disagree, Phase3 canonical report and `exit_code` 
 6. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
    - Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following an explicit existing test fixture.
    - Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
-7. Run local helper validation. Treat it only as `manual/local proof`.
-8. Run the source-specific Phase2-local check with `check_admission_policy.py` against each concrete `admission-fixture.json`.
-9. Run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` only as handoff readiness for Phase3 intake. Do not claim it proved a source fixture unless the runner links that fixture into outputs.
-10. Invoke Phase4 with the Phase2 run directory and repo-contained execution target. Phase4 must invoke Phase3.
-11. Inspect both:
+7. Run standalone admission policy preflight with `check_admission_policy.py` against each concrete `admission-fixture.json`.
+8. Reuse an accepted Phase2 baseline if the repo/control-plane baseline is still current; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
+9. Invoke Phase4 with the accepted Phase2 baseline run directory and repo-contained execution target. Phase4 must invoke Phase3.
+10. Inspect both:
     - Phase4 wrapper metadata;
     - Phase3 canonical report, canonical `exit_code`, frozen inputs, and copy evidence.
-12. Verify admitted destination files and expected SHA-256 values.
-13. Report exact paths, hashes, source counts, skipped/failed items, Phase2 readiness, Phase4 wrapper status, Phase3 evidence, and limits.
+11. Verify admitted destination files and expected SHA-256 values.
+12. Report exact paths, hashes, source counts, skipped/failed items, standalone preflight status, Phase2 baseline status, Phase4 wrapper status, Phase3 evidence, and limits.
 
 ## Commands
 
 From repo root:
 
 ```bash
-SOURCE_ADMISSION_SKILL_ROOT="${SOURCE_ADMISSION_SKILL_ROOT:-/home/node/.openclaw/workspace/skills/source-admission}"
-
-python3 "$SOURCE_ADMISSION_SKILL_ROOT/scripts/check_source_admission_inputs.py" \
-  --repo-root /home/node/.openclaw/workspace/repos/crab-control-plane \
-  --proof-dir /path/to/source-admission-proof \
-  --fixture admission-fixture.json \
-  --execution-target <repo-contained-source-admission-target-dir>/execution_target.json \
-  --admission-manifest <repo-contained-source-admission-target-dir>/admission_manifest.json \
-  --kb-integration control-plane/runtime/integrations/kb.template.yaml
-
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \
   /path/to/source-admission-proof/admission-fixture.json
@@ -346,8 +339,8 @@ Allowed:
 - “Prepared source admission inputs.”
 - “Enumerated N child source candidates from the source container.”
 - “Prepared separate source admission packages for N child sources.”
-- “Source-specific Phase2-local admission-policy check passed for `<admission-fixture.json>`.”
-- “Generic Phase2 repo-native scaffold produced handoff readiness for Phase3 intake.”
+- “Standalone admission-policy preflight passed for `<admission-fixture.json>`.”
+- “Accepted Phase2 baseline `<PHASE2_RUN_ID>` is current for this repo/control-plane baseline.”
 - “Phase4 wrapper invoked Phase3 and recorded wrapper metadata under `<PHASE4_RUN_DIR>`.”
 - “Phase3 `workspace/kb_admission` copied N source artifacts and emitted canonical evidence under `<PHASE3_RUN_DIR>`.”
 - “N source artifacts were verified at their admitted destinations with matching SHA-256 values.”
@@ -355,7 +348,7 @@ Allowed:
 Forbidden:
 
 - “Phase2 admitted the source.”
-- “Phase2 bundle consumed or approved the source fixture” unless the repo runner links that fixture into Phase2 outputs.
+- “Phase2 bundle consumed or approved the source fixture.”
 - “Phase4 admitted the source.”
 - “Phase4 is the canonical execution owner.”
 - “Schema validation admitted the source.”
@@ -374,8 +367,8 @@ The final report must include:
 - prepared child count
 - skipped child count and reasons
 - failed child count and reasons
-- Phase2 source-specific check paths and statuses
-- Phase2 scaffold run directory and status
+- standalone admission preflight paths and statuses
+- accepted Phase2 baseline run directory and status
 - Phase4 wrapper run directory and wrapper exit status
 - Phase3 canonical run directory and canonical exit status
 - Phase3 report path
