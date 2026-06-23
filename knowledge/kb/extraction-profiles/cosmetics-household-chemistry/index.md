@@ -59,7 +59,7 @@ For recipe/formula extraction, the agent should extract these entities when sour
 Initial allowed output asset types for this domain:
 
 - `recipe_formula_extraction`
-- `component_profile` (placeholder)
+- `component_extraction.v1` (placeholder extraction profile; resulting asset may be a component profile)
 - `protocol_extraction` (placeholder)
 - `article_extraction` (placeholder)
 - `process_analysis_asset` (placeholder)
@@ -165,7 +165,7 @@ For formula, recipe, and product-making sources, require:
 
 The agent must distinguish source asset, knowledge candidate, Phase-admitted asset, semantically reviewed asset, and domain-expert-validated asset.
 
-### component_profile
+### component_extraction.v1
 
 Placeholder. Future definition should require component identity, source-stated role, properties, use constraints, source-stated cautions, agent interpretation, inferred functions, and not-stated / not-validated boundaries.
 

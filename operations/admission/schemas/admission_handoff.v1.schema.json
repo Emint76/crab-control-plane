@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crab-control-plane.local/schemas/admission_handoff.v1.schema.json",
+  "title": "Admission Stage 2 handoff contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "handoff_version",
+    "admission_package_ref",
+    "admission_package_sha256",
+    "admission_kind",
+    "profile_id",
+    "asset_id",
+    "knowledge_profile_id",
+    "review_evidence",
+    "placement",
+    "phase_inputs",
+    "route"
+  ],
+  "properties": {
+    "handoff_version": {
+      "type": "string",
+      "const": "admission_handoff.v1"
+    },
+    "admission_package_ref": {
+      "$ref": "#/$defs/repo_relative_ref"
+    },
+    "admission_package_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "admission_kind": {
+      "type": "string",
+      "enum": [
+        "source_capture",
+        "knowledge_asset"
+      ]
+    },
+    "profile_id": {
+      "type": "string",
+      "enum": [
+        "source_capture.v1",
+        "knowledge_asset.v1"
+      ]
+    },
+    "asset_id": {
+      "$ref": "#/$defs/id"
+    },
+    "knowledge_profile_id": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/id"
+        }
+      ]
+    },
+    "review_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_status",
+        "approval_ref"
+      ],
+      "properties": {
+        "review_status": {
+          "type": "string",
+          "const": "approved"
+        },
+        "approval_ref": {
+          "$ref": "#/$defs/repo_relative_ref"
+        },
+        "reviewed_by": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "placement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain_area",
+        "source_family_id",
+        "asset_layer",
+        "destination_root",
+        "placement_policy_id"
+      ],
+      "properties": {
+        "domain_area": {
+          "$ref": "#/$defs/path_segment"
+        },
+        "source_family_id": {
+          "$ref": "#/$defs/path_segment"
+        },
+        "asset_layer": {
+          "type": "string",
+          "enum": [
+            "sources",
+            "knowledge"
+          ]
+        },
+        "destination_root": {
+          "$ref": "#/$defs/repo_relative_ref"
+        },
+        "placement_policy_id": {
+          "type": "string",
+          "enum": [
+            "kb_source_domain_first.v1",
+            "kb_knowledge_domain_first.v1"
+          ]
+        }
+      }
+    },
+    "phase_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase2_admission_ref",
+        "phase3_execution_target_ref",
+        "phase3_admission_manifest_ref"
+      ],
+      "properties": {
+        "phase2_admission_ref": {
+          "$ref": "#/$defs/repo_relative_ref"
+        },
+        "phase3_execution_target_ref": {
+          "$ref": "#/$defs/repo_relative_ref"
+        },
+        "phase3_admission_manifest_ref": {
+          "$ref": "#/$defs/repo_relative_ref"
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase2",
+        "phase4",
+        "phase3"
+      ],
+      "properties": {
+        "phase2": {
+          "type": "string",
+          "const": "policy_readiness"
+        },
+        "phase4": {
+          "type": "string",
+          "const": "operator_facing_wrapper"
+        },
+        "phase3": {
+          "type": "string",
+          "const": "kb_admission"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "admission_kind": {
+            "const": "source_capture"
+          }
+        },
+        "required": [
+          "admission_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "profile_id": {
+            "const": "source_capture.v1"
+          },
+          "knowledge_profile_id": {
+            "type": "null"
+          },
+          "placement": {
+            "properties": {
+              "asset_layer": {
+                "const": "sources"
+              },
+              "placement_policy_id": {
+                "const": "kb_source_domain_first.v1"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "admission_kind": {
+            "const": "knowledge_asset"
+          }
+        },
+        "required": [
+          "admission_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "profile_id": {
+            "const": "knowledge_asset.v1"
+          },
+          "knowledge_profile_id": {
+            "$ref": "#/$defs/id"
+          },
+          "placement": {
+            "properties": {
+              "asset_layer": {
+                "const": "knowledge"
+              },
+              "placement_policy_id": {
+                "const": "kb_knowledge_domain_first.v1"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "path_segment": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "repo_relative_ref": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*//)(?!.*(^|/)\\.\\.?(/|$)).*[^/]$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

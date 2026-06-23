@@ -1,0 +1,25 @@
+{
+  "admission_type": "knowledge_asset",
+  "artifacts": [
+    {
+      "copy_metadata": {
+        "content_role": "reviewed_knowledge_asset",
+        "example_only": true
+      },
+      "destination_kb_path": "cosmetics/example-source-family/knowledge/product-type-example/product-type.md",
+      "expected_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "input_workspace_path": "cosmetics/example-source-family/workflow/admission-stage2-example/product-type-example/payload/product-type.md"
+    }
+  ],
+  "copy_operation": {
+    "content_mode": "byte_for_byte",
+    "operation_type": "copy",
+    "overwrite_policy": "fail_closed_on_hash_mismatch",
+    "requested_by": "admission-stage2-example"
+  },
+  "lineage": {
+    "admission_package_ref": "operations/admission/examples/stage2/knowledge_product_type.v1/stage1/admission_package.json",
+    "asset_id": "product-type-example",
+    "knowledge_profile_id": "product_type_extraction.v1"
+  }
+}

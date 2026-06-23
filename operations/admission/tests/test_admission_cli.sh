@@ -234,6 +234,7 @@ schemas=(
   "${ADMISSION_ROOT}/schemas/admission_result.schema.json"
   "${ADMISSION_ROOT}/schemas/source_capture.v1.schema.json"
   "${ADMISSION_ROOT}/schemas/knowledge_asset.v1.schema.json"
+  "${ADMISSION_ROOT}/schemas/admission_handoff.v1.schema.json"
 )
 
 "${PYTHON_BIN}" - "${schemas[@]}" <<'PY'
@@ -429,7 +430,7 @@ PY
 [[ ! -e "${ADMISSION_ROOT}/schemas/knowledge-types" ]] || fail "admission knowledge-types schemas directory must not exist"
 [[ ! -e "${ADMISSION_ROOT}/schemas/product_type_extraction.v1.schema.json" ]] || fail "product type schema must not exist in admission"
 [[ ! -e "${ADMISSION_ROOT}/schemas/recipe_formula_extraction.v1.schema.json" ]] || fail "recipe schema must not exist in admission"
-[[ ! -e "${ADMISSION_ROOT}/schemas/component_profile.v1.schema.json" ]] || fail "component schema must not exist in admission"
+[[ ! -e "${ADMISSION_ROOT}/schemas/component_extraction.v1.schema.json" ]] || fail "component schema must not exist in admission"
 "${PYTHON_BIN}" - "${ADMISSION_ROOT}" <<'PY'
 from __future__ import annotations
 
@@ -441,7 +442,7 @@ root = Path(sys.argv[1])
 forbidden_files = {
     "product_type_extraction.v1.schema.json",
     "recipe_formula_extraction.v1.schema.json",
-    "component_profile.v1.schema.json",
+    "component_extraction.v1.schema.json",
 }
 found_files = [
     path.relative_to(root).as_posix()
@@ -465,9 +466,9 @@ patterns = [
     ("manual JSON Schema keyword implementation", re.compile(r"\b(anyOf|oneOf|allOf|patternProperties)\b.*\bin\s+schema\b")),
     ("profile_data_schema_failed blocker", re.compile(r"profile_data_schema_failed")),
     ("structural validator reference", re.compile(r"structural_validator_ref")),
-    ("type-specific schema_ref", re.compile(r"schema_ref.*(product_type|recipe_formula|component_profile)")),
+    ("type-specific schema_ref", re.compile(r"schema_ref.*(product_type|recipe_formula|component_extraction)")),
     ("semantic validator invocation", re.compile(r"semantic_.*validator|validator_ref")),
-    ("admission-owned type schema path", re.compile(r"(knowledge-types|product_type_extraction\.v1\.schema|recipe_formula_extraction\.v1\.schema|component_profile\.v1\.schema)")),
+    ("admission-owned type schema path", re.compile(r"(knowledge-types|product_type_extraction\.v1\.schema|recipe_formula_extraction\.v1\.schema|component_extraction\.v1\.schema)")),
     ("jsonschema validate shortcut", re.compile(r"jsonschema\.validate")),
 ]
 violations: list[str] = []
@@ -667,13 +668,15 @@ if run_package "${unknown_kp}" "${TMP_ROOT}/unknown-kp.out" "${TMP_ROOT}/unknown
 fi
 assert_blocker "${TMP_ROOT}/unknown-kp.out" "unknown_knowledge_profile_id"
 
-for disabled in recipe_formula_extraction.v1 component_profile.v1; do
-  disabled_pkg="${TMP_ROOT}/disabled-${disabled}"
-  write_knowledge_package "${disabled_pkg}" "${disabled}"
-  if run_package "${disabled_pkg}" "${TMP_ROOT}/disabled-${disabled}.out" "${TMP_ROOT}/disabled-${disabled}.err"; then
-    fail "disabled knowledge profile unexpectedly passed: ${disabled}"
+for registered_profile in recipe_formula_extraction.v1 component_extraction.v1; do
+  registered_pkg="${TMP_ROOT}/registered-${registered_profile}"
+  write_knowledge_package "${registered_pkg}" "${registered_profile}"
+  if ! run_package "${registered_pkg}" "${TMP_ROOT}/registered-${registered_profile}.out" "${TMP_ROOT}/registered-${registered_profile}.err"; then
+    cat "${TMP_ROOT}/registered-${registered_profile}.err" >&2
+    fail "registered knowledge profile failed generic admission: ${registered_profile}"
   fi
-  assert_blocker "${TMP_ROOT}/disabled-${disabled}.out" "disabled_knowledge_profile_id"
+  assert_result_field "${TMP_ROOT}/registered-${registered_profile}.out" "validation_status" '"pass"'
+  assert_result_field "${TMP_ROOT}/registered-${registered_profile}.out" "knowledge_profile_id" "\"${registered_profile}\""
 done
 
 missing_profile_data="${TMP_ROOT}/missing-profile-data"

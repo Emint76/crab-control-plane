@@ -1,0 +1,31 @@
+{
+  "admission_kind": "source_capture",
+  "admission_package_ref": "operations/admission/examples/stage2/source_capture.v1/stage1/admission_package.json",
+  "admission_package_sha256": "c076bbfa076becc008272898f8dc1f446aff48386700d45220763800acb6bdf1",
+  "asset_id": "source-capture-example",
+  "handoff_version": "admission_handoff.v1",
+  "knowledge_profile_id": null,
+  "phase_inputs": {
+    "phase2_admission_ref": "operations/admission/examples/stage2/source_capture.v1/admission_handoff.json",
+    "phase3_admission_manifest_ref": "operations/admission/examples/stage2/source_capture.v1/phase3/admission_manifest.json",
+    "phase3_execution_target_ref": "operations/admission/examples/stage2/source_capture.v1/phase3/execution_target.json"
+  },
+  "placement": {
+    "asset_layer": "sources",
+    "destination_root": "cosmetics/example-source-family/sources/source-capture-example",
+    "domain_area": "cosmetics",
+    "placement_policy_id": "kb_source_domain_first.v1",
+    "source_family_id": "example-source-family"
+  },
+  "profile_id": "source_capture.v1",
+  "review_evidence": {
+    "approval_ref": "operations/admission/examples/stage2/source_capture.v1/review/approval.json",
+    "review_status": "approved",
+    "reviewed_by": "example-reviewer"
+  },
+  "route": {
+    "phase2": "policy_readiness",
+    "phase3": "kb_admission",
+    "phase4": "operator_facing_wrapper"
+  }
+}

@@ -19,6 +19,7 @@ The repository is a versioned control surface for policies, contracts, schemas, 
 | `operations/harness-phase2/` | Phase 2 strict check-layer and repo-native scaffold surfaces |
 | `operations/harness-phase3/` | Phase 3 repo-native canonical execution owner surface |
 | `operations/harness-phase4/` | Phase 4 thin wrapper over Phase 3 |
+| `operations/admission/` | Admission Stage 1 package contract and Admission Stage 2 Phase bridge contracts |
 
 ## Architectural separation
 
@@ -51,6 +52,8 @@ The repository is the source of truth for:
 `observability/` models execution evidence and future reports, not runtime mutation.
 
 ## Phase 2 profiles
+
+Admission stages are not harness Phases. Admission Stage 1 is the universal package contract and isolated transitional dry-run validator. Admission Stage 2 is the universal contract bridge into existing Phase inputs. Phase2 remains policy/readiness, Phase4 remains the normal operator-facing wrapper, and Phase3 remains the sole canonical execution and evidence owner.
 
 Phase 2 contains two explicit profiles:
 - check-layer-strict: strict external check layer, closest repo-native equivalent of the earlier VPS Phase 2 harness.
