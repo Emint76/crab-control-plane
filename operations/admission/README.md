@@ -13,6 +13,14 @@ Stage 2 defines `admission_handoff.json` as a static contract bridge into existi
 
 Stage 2 keeps `asset_id` and `asset_slug` distinct. `asset_id` is the stable globally traceable identity; `asset_slug` is the source-family-local placement segment used in `destination_root`.
 
+For knowledge assets, Stage 2 also requires `placement.knowledge_type` and uses the typed destination shape:
+
+```text
+<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/
+```
+
+`knowledge_type` is instance-local placement taxonomy, not identity or lineage. The repository defines the contract and validation interface; real KB instances own concrete allowed values and profile-to-type mappings.
+
 The operational route is:
 
 ```text
@@ -53,5 +61,13 @@ Placement policies:
 ```text
 operations/admission/placement-policies/registry.v1.json
 ```
+
+Instance-local KB taxonomy config schema:
+
+```text
+operations/admission/schemas/kb_taxonomy_config.v1.schema.json
+```
+
+Standalone policy preflight loads real local taxonomy config from `ADMISSION_KB_TAXONOMY_CONFIG` for `knowledge_asset` handoffs and fails closed when it is missing, invalid, or does not allow the requested `knowledge_profile_id` and `knowledge_type`.
 
 Phase3 remains the sole canonical execution/admission evidence owner.

@@ -130,7 +130,7 @@ For `source_capture`:
 For `knowledge_asset`:
 
 ```text
-<domain-area>/<source-family-id>/knowledge/<asset-slug>/
+<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/
 ```
 
 The handoff requires:
@@ -139,12 +139,25 @@ The handoff requires:
 - `source_family_id`
 - `asset_layer`
 - `asset_slug`
+- `knowledge_type` for `knowledge_asset` only
 - `destination_root`
 - `placement_policy_id`
 
 `asset_slug` must be one non-empty path segment. It must not contain `/`, traversal, or another path component. Do not automatically set `asset_slug = asset_id`: choose a source-family-local directory name. Do not repeat a publisher or source-family prefix already represented by `source_family_id`.
 
 For an existing admitted/source corpus item, prefer the existing source directory basename. For a new webpage, normally derive the slug from the canonical URL or article slug plus the established date/version suffix where applicable.
+
+`knowledge_type` is an instance-local placement taxonomy segment for knowledge assets. It is required for `knowledge_asset` handoffs and forbidden for `source_capture` handoffs. It is not identity, not lineage, and not derived from `asset_id`, `asset_slug`, or by parsing `destination_root`.
+
+The repository owns the typed placement structure and the validation interface. The local KB instance owns concrete `knowledge_type` values, allowed knowledge types, and mappings from `knowledge_profile_id` to allowed `knowledge_type` values. The repository must not define a canonical taxonomy such as recipe, product type, formulation, or component.
+
+For real knowledge-asset admission readiness, standalone admission policy preflight loads instance-local KB taxonomy configuration from `ADMISSION_KB_TAXONOMY_CONFIG`. The referenced JSON file must conform to:
+
+```text
+operations/admission/schemas/kb_taxonomy_config.v1.schema.json
+```
+
+The config path may be absolute or repo-relative, but it is local operator/instance input and must not be committed as real instance configuration. It must declare allowed knowledge types and the `knowledge_profile_id -> allowed knowledge_type` mapping. Missing config, invalid config, unknown `knowledge_type`, or profile/type mismatch fails closed for knowledge assets. Shape-only diagnostic mode is not admission readiness.
 
 Example:
 
@@ -167,6 +180,18 @@ Do not use the redundant form:
 
 ```text
 cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
+```
+
+Knowledge example shape:
+
+```text
+domain_area       = cosmetics-household-chemistry
+source_family_id  = humblebee-and-me
+asset_layer       = knowledge
+knowledge_type    = <instance-local-knowledge-type>
+asset_id          = humblebee-citrus-chamomile-liquid-shampoo-extraction-20260610
+asset_slug        = citrus-chamomile-liquid-shampoo-extraction-20260610
+destination_root  = cosmetics-household-chemistry/humblebee-and-me/knowledge/<instance-local-knowledge-type>/citrus-chamomile-liquid-shampoo-extraction-20260610
 ```
 
 `asset_layer` is derived from `admission_kind`:
@@ -299,24 +324,25 @@ Only Phase3 `kb_admission` evidence can support the claim that an asset was admi
 3. Establish the stable `asset_id`.
 4. Classify the package as `source_capture` or `knowledge_asset`; for knowledge, preserve the registered `knowledge_profile_id`.
 5. Choose `asset_slug` as the source-family-local placement segment.
-6. Choose domain-first placement:
+6. For knowledge assets, choose `knowledge_type` from the instance-local KB taxonomy config.
+7. Choose domain-first placement:
    - source: `<domain-area>/<source-family-id>/sources/<asset-slug>/`
-   - knowledge: `<domain-area>/<source-family-id>/knowledge/<asset-slug>/`
-7. Materialize the reviewed payload under the runtime-KB-root-relative workflow staging path.
-8. Calculate the real runtime payload SHA-256.
-9. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
+   - knowledge: `<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/`
+8. Materialize the reviewed payload under the runtime-KB-root-relative workflow staging path.
+9. Calculate the real runtime payload SHA-256.
+10. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
    - runtime-KB-root-relative workflow input path
    - expected SHA-256
    - relative destination path
    - copy metadata
-10. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
-11. Prepare `admission_handoff.json` referencing the already existing Stage 1 package, canonical review decision, Phase3 execution target, and Phase3 admission manifest.
-12. Calculate and place the real Stage 1 package SHA-256 in the handoff.
-13. Run standalone admission policy preflight against the handoff.
-14. Apply the exact-HEAD Phase2 baseline reuse rule.
-15. Invoke the normal Phase4 wrapper route to Phase3.
-16. Verify Phase3 canonical evidence under the Phase3 run directory.
-17. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
+11. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
+12. Prepare `admission_handoff.json` referencing the already existing Stage 1 package, canonical review decision, Phase3 execution target, and Phase3 admission manifest.
+13. Calculate and place the real Stage 1 package SHA-256 in the handoff.
+14. Run standalone admission policy preflight against the handoff.
+15. Apply the exact-HEAD Phase2 baseline reuse rule.
+16. Invoke the normal Phase4 wrapper route to Phase3.
+17. Verify Phase3 canonical evidence under the Phase3 run directory.
+18. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
 
 Do not infer undocumented mappings. If a mapping is missing, stop before Phase execution.
 

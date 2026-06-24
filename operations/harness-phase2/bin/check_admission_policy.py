@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -125,6 +126,39 @@ def load_admission_registry(repo_root: Path) -> dict[str, Any]:
     return profiles
 
 
+def load_kb_taxonomy_config(repo_root: Path) -> dict[str, Any]:
+    if os.environ.get("ADMISSION_KB_TAXONOMY_MODE") == "shape-only-diagnostic":
+        raise CheckFailure("shape-only diagnostic taxonomy mode is not admission readiness")
+    config_ref = os.environ.get("ADMISSION_KB_TAXONOMY_CONFIG")
+    if not config_ref:
+        raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG is required for knowledge_asset admission")
+    config_path = Path(config_ref)
+    if not config_path.is_absolute():
+        config_path = repo_root / config_path
+    if not config_path.is_file():
+        raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file")
+    config = load_json_object(config_path)
+    validate_schema_path(repo_root / "operations" / "admission" / "schemas" / "kb_taxonomy_config.v1.schema.json", config, config_path)
+    return config
+
+
+def validate_knowledge_type_allowed(
+    repo_root: Path,
+    knowledge_profile_id: str,
+    knowledge_type: str,
+) -> None:
+    config = load_kb_taxonomy_config(repo_root)
+    allowed_types = config.get("allowed_knowledge_types")
+    profile_map = config.get("profile_knowledge_type_map")
+    if not isinstance(allowed_types, list) or not isinstance(profile_map, dict):
+        raise CheckFailure("KB taxonomy config must define allowed types and profile map")
+    if knowledge_type not in allowed_types:
+        raise CheckFailure("placement.knowledge_type is not allowed by local KB taxonomy config")
+    mapped_types = profile_map.get(knowledge_profile_id)
+    if not isinstance(mapped_types, list) or knowledge_type not in mapped_types:
+        raise CheckFailure("knowledge_profile_id is not allowed for placement.knowledge_type")
+
+
 def validate_stage1_package(repo_root: Path, package_path: Path) -> dict[str, Any]:
     package = load_json_object(package_path)
     admission_root = repo_root / "operations" / "admission"
@@ -233,7 +267,14 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
         raise CheckFailure("placement.asset_layer must match admission_kind")
     if placement_policy_id != expected_placement_policy(admission_kind):
         raise CheckFailure("placement.placement_policy_id must match admission_kind")
-    expected_destination_root = f"{domain_area}/{source_family_id}/{asset_layer}/{asset_slug}"
+    if admission_kind == "knowledge_asset":
+        knowledge_type = require_string(placement, "knowledge_type", "admission_handoff.placement")
+        validate_knowledge_type_allowed(repo_root, handoff_knowledge_profile_id, knowledge_type)
+        expected_destination_root = f"{domain_area}/{source_family_id}/{asset_layer}/{knowledge_type}/{asset_slug}"
+    else:
+        if "knowledge_type" in placement:
+            raise CheckFailure("source_capture handoff must not set placement.knowledge_type")
+        expected_destination_root = f"{domain_area}/{source_family_id}/{asset_layer}/{asset_slug}"
     if destination_root != expected_destination_root:
         raise CheckFailure("placement.destination_root must follow domain-first layout")
 

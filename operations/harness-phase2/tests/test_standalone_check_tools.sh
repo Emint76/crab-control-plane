@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PHASE2_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PHASE2_ROOT}/../.." && pwd)"
 PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON:-python3}}"
+TAXONOMY_CONFIG="operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json"
 TMP_PARENT="${TMPDIR:-/tmp}"
 TMP_ROOT="$(mktemp -d "${TMP_PARENT%/}/phase2-standalone-checks.XXXXXX")"
 CASE_INDEX=0
@@ -111,6 +112,7 @@ pass_case \
 
 pass_case \
   "standalone valid Stage 2 knowledge handoff" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
     . \
     operations/admission/examples/stage2/knowledge_product_type.v1/admission_handoff.json

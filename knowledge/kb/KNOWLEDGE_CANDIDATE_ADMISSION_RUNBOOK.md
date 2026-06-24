@@ -92,8 +92,10 @@ Phase-owned work:
    Final admitted knowledge asset path shape:
 
    ```text
-   <domain>/<source-family>/knowledge/<asset-id>/...
+   <domain>/<source-family>/knowledge/<knowledge-type>/<asset-slug>/...
    ```
+
+   `knowledge_type` is selected from instance-local KB taxonomy configuration and is used only as a placement segment. The repository defines the typed path shape and validation interface, but it does not define the concrete taxonomy. `asset_id` remains the stable identity in Stage 1, review authorization, handoff, and Phase3 lineage; `asset_slug` and `knowledge_type` must not be added to identity or lineage fields.
 
 ## Package admission metadata
 

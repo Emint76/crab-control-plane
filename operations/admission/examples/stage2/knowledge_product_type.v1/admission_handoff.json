@@ -13,8 +13,9 @@
     "domain_area": "cosmetics",
     "source_family_id": "example-source-family",
     "asset_layer": "knowledge",
+    "knowledge_type": "example-product-type",
     "asset_slug": "product-type-example",
-    "destination_root": "cosmetics/example-source-family/knowledge/product-type-example",
+    "destination_root": "cosmetics/example-source-family/knowledge/example-product-type/product-type-example",
     "placement_policy_id": "kb_knowledge_domain_first.v1"
   },
   "profile_id": "knowledge_asset.v1",

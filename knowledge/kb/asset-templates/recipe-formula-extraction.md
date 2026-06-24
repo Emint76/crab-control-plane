@@ -69,7 +69,7 @@ use_context: "<intended-use-context-as-stated-or-interpreted>"
 water_system: "<water-system-status-or-not-stated>"
 kb_family_root: "<domain-area>/<source-family-id>"
 source_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/sources/<source-asset-id>/"
-knowledge_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/knowledge/<asset-id>/"
+knowledge_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/"
 extraction_profile_path: "knowledge/kb/extraction-profiles/<domain>/index.md"
 extraction_workflow_path: "<workflow-or-evidence-path-or-not-available>"
 source_status: "<captured|source_admitted|reviewed|not_available>"
@@ -91,6 +91,8 @@ extraction:
     evidence_path: "<evidence-path-or-not-applicable>"
 ---
 ```
+
+The `knowledge_asset_path` example uses the Stage 2 typed placement shape. Its `<knowledge-type>` segment comes from instance-local KB taxonomy configuration and is placement metadata, not semantic validation and not `asset_id`.
 
 For a working pre-review candidate, candidate status may be recorded in workflow metadata or in a non-admitted draft copy. Do not submit candidate-status bytes to Phase if those bytes would become false after admission.
 

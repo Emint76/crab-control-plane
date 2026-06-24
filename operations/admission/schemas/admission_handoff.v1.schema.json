@@ -103,6 +103,9 @@
         "asset_slug": {
           "$ref": "#/$defs/path_segment"
         },
+        "knowledge_type": {
+          "$ref": "#/$defs/path_segment"
+        },
         "destination_root": {
           "$ref": "#/$defs/repo_relative_ref"
         },
@@ -153,6 +156,11 @@
             "type": "null"
           },
           "placement": {
+            "not": {
+              "required": [
+                "knowledge_type"
+              ]
+            },
             "properties": {
               "asset_layer": {
                 "const": "sources"
@@ -185,6 +193,9 @@
             "$ref": "#/$defs/id"
           },
           "placement": {
+            "required": [
+              "knowledge_type"
+            ],
             "properties": {
               "asset_layer": {
                 "const": "knowledge"

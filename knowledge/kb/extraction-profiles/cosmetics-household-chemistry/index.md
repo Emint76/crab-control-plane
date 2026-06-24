@@ -274,8 +274,10 @@ Domain/source-family-first source-bearing asset path:
 Domain/source-family-first knowledge asset path:
 
 ```text
-<workspace-kb-root>/cosmetics-household-chemistry/<source-family-id>/knowledge/<asset-id>/
+<workspace-kb-root>/cosmetics-household-chemistry/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/
 ```
+
+`<knowledge-type>` is an instance-local placement taxonomy segment selected through local KB taxonomy configuration. It is not a repository-defined canonical taxonomy and is not the stable asset identity.
 
 Domain/source-family-first collection path:
 

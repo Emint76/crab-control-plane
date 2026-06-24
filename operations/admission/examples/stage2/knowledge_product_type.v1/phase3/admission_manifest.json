@@ -6,7 +6,7 @@
         "content_role": "reviewed_knowledge_asset",
         "example_only": true
       },
-      "destination_kb_path": "cosmetics/example-source-family/knowledge/product-type-example/product-type.md",
+      "destination_kb_path": "cosmetics/example-source-family/knowledge/example-product-type/product-type-example/product-type.md",
       "expected_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
       "input_workspace_path": "cosmetics/example-source-family/workflow/admission-stage2-example/product-type-example/payload/product-type.md"
     }
