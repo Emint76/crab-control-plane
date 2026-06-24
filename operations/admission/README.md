@@ -11,6 +11,8 @@ Stage 1 defines the universal `admission_package.json` contract for:
 
 Stage 2 defines `admission_handoff.json` as a static contract bridge into existing Phase3 target and manifest inputs. It is not a runner, CLI, admission engine, wrapper, orchestration framework, or evidence system.
 
+Stage 2 keeps `asset_id` and `asset_slug` distinct. `asset_id` is the stable globally traceable identity; `asset_slug` is the source-family-local placement segment used in `destination_root`.
+
 The operational route is:
 
 ```text

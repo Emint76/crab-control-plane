@@ -3,13 +3,13 @@
     "kb_knowledge_domain_first.v1": {
       "admission_kind": "knowledge_asset",
       "asset_layer": "knowledge",
-      "path_template": "<domain-area>/<source-family-id>/knowledge/<asset-id>/",
+      "path_template": "<domain-area>/<source-family-id>/knowledge/<asset-slug>/",
       "scope": "kb-relative-domain-first"
     },
     "kb_source_domain_first.v1": {
       "admission_kind": "source_capture",
       "asset_layer": "sources",
-      "path_template": "<domain-area>/<source-family-id>/sources/<asset-id>/",
+      "path_template": "<domain-area>/<source-family-id>/sources/<asset-slug>/",
       "scope": "kb-relative-domain-first"
     }
   },

@@ -102,7 +102,9 @@ They must not use repository paths such as `operations/...`, `docs/...`, or `con
 
 ## Identity Preservation
 
-`asset_id` is preserved exactly from Stage 1.
+`asset_id` is preserved exactly from Stage 1. It is the stable globally traceable identity.
+
+`asset_slug` is placement metadata: a source-family-local directory segment used only to build the final destination root. It is not a second identity and may differ from `asset_id`.
 
 The same value must be traceable through:
 
@@ -110,9 +112,10 @@ The same value must be traceable through:
 - Stage 2 `admission_handoff.json`
 - standalone admission policy preflight
 - Phase3 manifest `lineage.asset_id`
-- final destination root
 
 Stage 2 must not create another identity system.
+
+Do not add `asset_slug` to Stage 1 `admission_package.json`, review-decision `artifact_id`, or Phase3 `lineage.asset_id`.
 
 ## Placement Rules
 
@@ -121,13 +124,13 @@ Placement is domain-first and KB-relative.
 For `source_capture`:
 
 ```text
-<domain-area>/<source-family-id>/sources/<asset-id>/
+<domain-area>/<source-family-id>/sources/<asset-slug>/
 ```
 
 For `knowledge_asset`:
 
 ```text
-<domain-area>/<source-family-id>/knowledge/<asset-id>/
+<domain-area>/<source-family-id>/knowledge/<asset-slug>/
 ```
 
 The handoff requires:
@@ -135,8 +138,36 @@ The handoff requires:
 - `domain_area`
 - `source_family_id`
 - `asset_layer`
+- `asset_slug`
 - `destination_root`
 - `placement_policy_id`
+
+`asset_slug` must be one non-empty path segment. It must not contain `/`, traversal, or another path component. Do not automatically set `asset_slug = asset_id`: choose a source-family-local directory name. Do not repeat a publisher or source-family prefix already represented by `source_family_id`.
+
+For an existing admitted/source corpus item, prefer the existing source directory basename. For a new webpage, normally derive the slug from the canonical URL or article slug plus the established date/version suffix where applicable.
+
+Example:
+
+```text
+domain_area       = cosmetics-household-chemistry
+source_family_id  = humblebee-and-me
+asset_layer       = sources
+asset_id          = humblebee-citrus-chamomile-liquid-shampoo-20260610
+asset_slug        = citrus-chamomile-liquid-shampoo-20260610
+destination_root  = cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
+```
+
+Use:
+
+```text
+cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
+```
+
+Do not use the redundant form:
+
+```text
+cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
+```
 
 `asset_layer` is derived from `admission_kind`:
 
@@ -267,24 +298,25 @@ Only Phase3 `kb_admission` evidence can support the claim that an asset was admi
 2. Prepare the canonical review decision with `decision: approve`, matching `artifact_id`, and `approved_destination: kb`.
 3. Establish the stable `asset_id`.
 4. Classify the package as `source_capture` or `knowledge_asset`; for knowledge, preserve the registered `knowledge_profile_id`.
-5. Choose domain-first placement:
-   - source: `<domain-area>/<source-family-id>/sources/<asset-id>/`
-   - knowledge: `<domain-area>/<source-family-id>/knowledge/<asset-id>/`
-6. Materialize the reviewed payload under the runtime-KB-root-relative workflow staging path.
-7. Calculate the real runtime payload SHA-256.
-8. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
+5. Choose `asset_slug` as the source-family-local placement segment.
+6. Choose domain-first placement:
+   - source: `<domain-area>/<source-family-id>/sources/<asset-slug>/`
+   - knowledge: `<domain-area>/<source-family-id>/knowledge/<asset-slug>/`
+7. Materialize the reviewed payload under the runtime-KB-root-relative workflow staging path.
+8. Calculate the real runtime payload SHA-256.
+9. Prepare Phase3 `admission_manifest.json` with `admission_type` matching Stage 1 and one explicit artifact entry per file:
    - runtime-KB-root-relative workflow input path
    - expected SHA-256
    - relative destination path
    - copy metadata
-9. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
-10. Prepare `admission_handoff.json` referencing the already existing Stage 1 package, canonical review decision, Phase3 execution target, and Phase3 admission manifest.
-11. Calculate and place the real Stage 1 package SHA-256 in the handoff.
-12. Run standalone admission policy preflight against the handoff.
-13. Apply the exact-HEAD Phase2 baseline reuse rule.
-14. Invoke the normal Phase4 wrapper route to Phase3.
-15. Verify Phase3 canonical evidence under the Phase3 run directory.
-16. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
+10. Prepare Phase3 `execution_target.json` using `target_runtime: workspace` and `target_kind: kb_admission`.
+11. Prepare `admission_handoff.json` referencing the already existing Stage 1 package, canonical review decision, Phase3 execution target, and Phase3 admission manifest.
+12. Calculate and place the real Stage 1 package SHA-256 in the handoff.
+13. Run standalone admission policy preflight against the handoff.
+14. Apply the exact-HEAD Phase2 baseline reuse rule.
+15. Invoke the normal Phase4 wrapper route to Phase3.
+16. Verify Phase3 canonical evidence under the Phase3 run directory.
+17. Report the admitted destination paths and Phase3-verified hashes only after Phase3 succeeds.
 
 Do not infer undocumented mappings. If a mapping is missing, stop before Phase execution.
 

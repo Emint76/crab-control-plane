@@ -45,17 +45,18 @@ Final KB destination is created only by Phase3:
 1. Prepare the producer-reviewed `admission_package.json`.
 2. Prepare the canonical review decision.
 3. Establish stable `asset_id`.
-4. Choose domain-first placement.
-5. Materialize reviewed payload files under the runtime KB-root-relative workflow staging path.
-6. Calculate the real runtime payload SHA-256 values.
-7. Prepare Phase3 `admission_manifest.json`.
-8. Prepare Phase3 `execution_target.json`.
-9. Prepare `admission_handoff.json` referencing the already existing package, review decision, execution target, and admission manifest.
-10. Calculate and place the real Stage1 package SHA-256 in the handoff.
-11. Run standalone admission policy preflight against the handoff.
-12. Apply the exact-HEAD Phase2 baseline reuse rule.
-13. Invoke Phase4.
-14. Verify canonical Phase3 evidence and destination hashes.
+4. Choose `asset_slug` as the source-family-local destination directory segment.
+5. Choose domain-first placement ending in `asset_slug`.
+6. Materialize reviewed payload files under the runtime KB-root-relative workflow staging path.
+7. Calculate the real runtime payload SHA-256 values.
+8. Prepare Phase3 `admission_manifest.json`.
+9. Prepare Phase3 `execution_target.json`.
+10. Prepare `admission_handoff.json` referencing the already existing package, review decision, execution target, and admission manifest.
+11. Calculate and place the real Stage1 package SHA-256 in the handoff.
+12. Run standalone admission policy preflight against the handoff.
+13. Apply the exact-HEAD Phase2 baseline reuse rule.
+14. Invoke Phase4.
+15. Verify canonical Phase3 evidence and destination hashes.
 
 Never run standalone preflight before the files referenced by `admission_handoff.json` exist.
 
@@ -67,7 +68,7 @@ Never run standalone preflight before the files referenced by `admission_handoff
 {
   "admission_kind": "source_capture",
   "profile_id": "source_capture.v1",
-  "asset_id": "source-example-article-001",
+  "asset_id": "web-source-example-article-001",
   "payload_path": "../payload",
   "review_status": "approved",
   "provenance": {
@@ -81,13 +82,15 @@ Never run standalone preflight before the files referenced by `admission_handoff
 
 For `source_capture`, do not include `knowledge_profile_id` or `profile_data`.
 
+`asset_id` remains `web-source-example-article-001` across Stage 1, the review decision, the handoff, and Phase3 lineage. `asset_slug` is only the source-family-local destination directory segment `source-example-article-001`. Do not add `asset_slug` to Stage 1, review `artifact_id`, or Phase3 `lineage.asset_id`.
+
 ## Review decision
 
 `<repo-contained-source-admission-target-dir>/review/review-decision.json`:
 
 ```json
 {
-  "artifact_id": "source-example-article-001",
+  "artifact_id": "web-source-example-article-001",
   "decision": "approve",
   "rationale": "Source package preserves canonical pointer, retrieval metadata, stable representation, and provenance suitable for KB source admission.",
   "blocking_issues": [],
@@ -104,7 +107,7 @@ For `source_capture`, do not include `knowledge_profile_id` or `profile_data`.
 {
   "admission_type": "source_capture",
   "lineage": {
-    "asset_id": "source-example-article-001",
+    "asset_id": "web-source-example-article-001",
     "admission_package_ref": "<repo-contained-source-admission-target-dir>/stage1/admission_package.json",
     "review_decision_ref": "<repo-contained-source-admission-target-dir>/review/review-decision.json"
   },
@@ -160,7 +163,7 @@ Phase3 freezes this target plus the manifest and KB integration into `operations
   "admission_package_sha256": "<real-sha256-of-stage1-admission-package>",
   "admission_kind": "source_capture",
   "profile_id": "source_capture.v1",
-  "asset_id": "source-example-article-001",
+  "asset_id": "web-source-example-article-001",
   "knowledge_profile_id": null,
   "review_evidence": {
     "review_status": "approved",
@@ -170,6 +173,7 @@ Phase3 freezes this target plus the manifest and KB integration into `operations
     "domain_area": "domain",
     "source_family_id": "web",
     "asset_layer": "sources",
+    "asset_slug": "source-example-article-001",
     "destination_root": "domain/web/sources/source-example-article-001",
     "placement_policy_id": "kb_source_domain_first.v1"
   },
@@ -181,6 +185,8 @@ Phase3 freezes this target plus the manifest and KB integration into `operations
 ```
 
 The handoff contains concrete asset contract and mapping data. It does not embed operational routing constants, Phase2 evidence, or canonical admission evidence.
+
+The source-family-local slug may differ from the global `asset_id`. Do not automatically set `asset_slug = asset_id`, and do not repeat a publisher/source-family prefix already represented by `source_family_id`. For Humblebee, use `cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610`, not `cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610`.
 
 ## Standalone policy preflight
 

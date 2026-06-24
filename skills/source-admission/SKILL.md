@@ -127,7 +127,7 @@ workflow/<domain-area>/<publisher-id-or-source-family-id>/...
 Final admitted source assets normally use:
 
 ```text
-<domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug-or-source-id>/
+<domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug>/
 ```
 
 New live assets must not use the legacy role-first source form:
@@ -146,6 +146,31 @@ Keep these surfaces distinct:
 - `<domain-area>/<publisher-id-or-source-family-id>/sources/...` under the live KB root = admitted source corpus
 
 Do not treat `runtime-ready/`, wrapper output, or a working copy as an admitted source destination.
+
+Keep identity and placement distinct:
+
+- `asset_id` is the stable globally traceable source identity.
+- `asset_slug` is a source-family-local directory segment used only for placement.
+- `asset_slug` may differ from `asset_id`.
+- Do not automatically set `asset_slug = asset_id`.
+- Do not repeat a publisher/source-family prefix already represented by `source_family_id`.
+- For an existing admitted/source corpus item, prefer the existing source directory basename.
+- For a new webpage, normally derive the slug from the canonical URL or article slug plus the established date/version suffix where applicable.
+
+Example:
+
+```text
+source_family_id = humblebee-and-me
+asset_id         = humblebee-citrus-chamomile-liquid-shampoo-20260610
+asset_slug       = citrus-chamomile-liquid-shampoo-20260610
+destination      = cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610
+```
+
+Do not use:
+
+```text
+cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610
+```
 
 ## Required inputs
 
@@ -198,7 +223,7 @@ The Phase3 admission manifest must use:
 - `copy_operation.overwrite_policy: fail_closed_on_hash_mismatch`
 - artifact `input_workspace_path` values relative to the configured KB root
 - artifact `expected_sha256` values matching the prepared source files
-- artifact `destination_kb_path` values relative to the KB root, normally under `<domain-area>/<publisher-id-or-source-family-id>/sources/...`
+- artifact `destination_kb_path` values relative to the KB root, normally under `<domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug>/...`
 
 For batch/container admission, the manifest may contain multiple source artifacts, but each independently addressable source must retain its own identity, expected hash, provenance, and destination path.
 
@@ -304,20 +329,21 @@ If Phase4 and Phase3 evidence disagree, Phase3 canonical report and `exit_code` 
 3. For a collection, enumerate child sources and establish one stable identity per child.
 4. Prepare stable source representations under the domain-first workspace KB workflow/staging path.
 5. Create the universal Admission Stage 1 `admission_package.json` and canonical `review-decision.json` for every source.
-6. Materialize the reviewed payload at the runtime-KB-root-relative workflow staging path and calculate its real SHA-256.
-7. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
+6. Choose the source-family-local `asset_slug` for placement; do not automatically reuse `asset_id`.
+7. Materialize the reviewed payload at the runtime-KB-root-relative workflow staging path and calculate its real SHA-256.
+8. Create Phase3 `admission_manifest.json` and `execution_target.json` in a repo-contained target directory.
    - Do not place pre-Phase target inputs under a canonical Phase3 run directory unless following an explicit existing test fixture.
    - Canonical Phase3 run evidence lives under `operations/harness-phase3/runs/<PHASE3_RUN_ID>/`.
-8. Create the universal Admission Stage 2 `admission_handoff.json` referencing the already existing package, review decision, execution target, and admission manifest.
-9. Calculate and place the real Stage 1 package SHA-256 in the handoff.
-10. Run standalone admission policy preflight with `check_admission_policy.py` against each concrete `admission_handoff.json`.
-11. Reuse an accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
-12. Invoke Phase4 with the accepted Phase2 baseline run directory and repo-contained execution target. Phase4 must invoke Phase3.
-13. Inspect both:
+9. Create the universal Admission Stage 2 `admission_handoff.json` referencing the already existing package, review decision, execution target, and admission manifest.
+10. Calculate and place the real Stage 1 package SHA-256 in the handoff.
+11. Run standalone admission policy preflight with `check_admission_policy.py` against each concrete `admission_handoff.json`.
+12. Reuse an accepted Phase2 baseline only when its recorded repository Git HEAD exactly equals the current repository Git HEAD and the tracked working tree is clean; otherwise run the generic Phase2 repo-native scaffold with `run_phase2_bundle.sh <PHASE2_RUN_ID>` to create a new baseline.
+13. Invoke Phase4 with the accepted Phase2 baseline run directory and repo-contained execution target. Phase4 must invoke Phase3.
+14. Inspect both:
     - Phase4 wrapper metadata;
     - Phase3 canonical report, canonical `exit_code`, frozen inputs, and copy evidence.
-14. Verify admitted destination files and expected SHA-256 values.
-15. Report exact paths, hashes, source counts, skipped/failed items, standalone preflight status, Phase2 baseline status, Phase4 wrapper status, Phase3 evidence, and limits.
+15. Verify admitted destination files and expected SHA-256 values.
+16. Report exact paths, hashes, source counts, skipped/failed items, standalone preflight status, Phase2 baseline status, Phase4 wrapper status, Phase3 evidence, and limits.
 
 ## Commands
 

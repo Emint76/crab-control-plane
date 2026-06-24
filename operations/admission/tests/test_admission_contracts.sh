@@ -75,6 +75,9 @@ for path in sorted((admission / "profiles").glob("*.json")):
 placement_registry = json.loads((admission / "placement-policies" / "registry.v1.json").read_text(encoding="utf-8"))
 assert "kb_source_domain_first.v1" in placement_registry["placement_policies"]
 assert "kb_knowledge_domain_first.v1" in placement_registry["placement_policies"]
+for policy in placement_registry["placement_policies"].values():
+    assert "<asset-slug>" in policy["path_template"], policy
+    assert "<asset-id>" not in policy["path_template"], policy
 
 examples = sorted((admission / "examples" / "stage2").glob("*/admission_handoff.json"))
 assert examples, "Stage 2 examples are required"
@@ -84,12 +87,17 @@ handoff_schema = schemas["operations/admission/schemas/admission_handoff.v1.sche
 assert "route" not in handoff_schema.get("required", []), "handoff schema must not require route"
 assert "route" not in handoff_schema.get("properties", {}), "handoff schema must not define route"
 assert "policy_readiness" not in handoff_schema_text, "handoff schema must not encode policy_readiness"
+placement_schema = handoff_schema["properties"]["placement"]
+assert "asset_slug" in placement_schema["required"], "handoff placement must require asset_slug"
+assert placement_schema["properties"]["asset_slug"] == {"$ref": "#/$defs/path_segment"}
 for handoff_path in examples:
     handoff_text = handoff_path.read_text(encoding="utf-8")
     assert "policy_readiness" not in handoff_text, handoff_path
     handoff = json.loads(handoff_path.read_text(encoding="utf-8"))
     assert "route" not in handoff, handoff_path
     validate("operations/admission/schemas/admission_handoff.v1.schema.json", handoff, handoff_path)
+    placement = handoff["placement"]
+    assert placement["destination_root"].endswith("/" + placement["asset_slug"]), handoff_path
 
     package_path = repo / handoff["admission_package_ref"]
     package = json.loads(package_path.read_text(encoding="utf-8"))
@@ -158,6 +166,14 @@ default_section = skill_text.split("## Legacy compatibility", 1)[0]
 assert "admission-fixture.json" not in default_section
 assert "Phase4 is the default operator-facing" in skill_text
 assert "Phase3 performs admission and remains the only canonical execution owner" in skill_text
+for fragment in [
+    "asset_id` is the stable globally traceable source identity",
+    "asset_slug` is a source-family-local directory segment used only for placement",
+    "Do not automatically set `asset_slug = asset_id`",
+    "cosmetics-household-chemistry/humblebee-and-me/sources/citrus-chamomile-liquid-shampoo-20260610",
+    "cosmetics-household-chemistry/humblebee-and-me/sources/humblebee-citrus-chamomile-liquid-shampoo-20260610",
+]:
+    assert fragment in skill_text, fragment
 
 runtime_files = [
     repo / "operations/harness-phase2/bin/run_phase2_bundle.sh",
@@ -180,5 +196,10 @@ for runtime_file in runtime_files:
 phase3_text = (repo / "operations/harness-phase3/bin/freeze_phase2_input.py").read_text(encoding="utf-8")
 for forbidden in ["admission_handoff", "admission_package", "review_decision"]:
     assert forbidden not in phase3_text, forbidden
+
+checker_text = (repo / "operations/harness-phase2/bin/check_admission_policy.py").read_text(encoding="utf-8")
+assert "asset_slug" in checker_text
+assert "humblebee" not in checker_text.lower()
+assert "citrus-chamomile" not in checker_text
 print("PASS admission contract validation")
 PY
