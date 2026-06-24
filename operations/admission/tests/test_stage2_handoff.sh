@@ -118,9 +118,27 @@ stage2_examples=(
   "operations/admission/examples/stage2/knowledge_recipe_formula.v1/admission_handoff.json"
   "operations/admission/examples/stage2/knowledge_component.v1/admission_handoff.json"
 )
-TAXONOMY_CONFIG="operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json"
+TAXONOMY_CONFIG="$(realpath operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json)"
+RELATIVE_TAXONOMY_CONFIG="operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json"
+NONEXISTENT_TAXONOMY_CONFIG="${TMP_ROOT}/missing-taxonomy.json"
 INVALID_TAXONOMY_CONFIG="${TMP_ROOT}/invalid-taxonomy.json"
+INCONSISTENT_TAXONOMY_CONFIG="${TMP_ROOT}/inconsistent-taxonomy.json"
 printf '{"config_kind":"kb_taxonomy_config"}\n' >"${INVALID_TAXONOMY_CONFIG}"
+cat >"${INCONSISTENT_TAXONOMY_CONFIG}" <<'EOF'
+{
+  "config_kind": "kb_taxonomy_config",
+  "config_version": 1,
+  "local_only": true,
+  "allowed_knowledge_types": [
+    "example-product-type"
+  ],
+  "profile_knowledge_type_map": {
+    "product_type_extraction.v1": [
+      "missing-example-type"
+    ]
+  }
+}
+EOF
 
 before_snapshot="$(snapshot_repo_surfaces)"
 
@@ -390,6 +408,24 @@ mutate_case "${invalid_config_case}" "none"
 fail_case "Stage 2 knowledge_asset rejects invalid taxonomy config" "'config_version' is a required property" \
   env ADMISSION_KB_TAXONOMY_CONFIG="${INVALID_TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${invalid_config_case}/admission_handoff.json"
+
+relative_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 relative-taxonomy-config)"
+mutate_case "${relative_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects relative taxonomy config path" "ADMISSION_KB_TAXONOMY_CONFIG must be an absolute path outside Git" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${RELATIVE_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${relative_config_case}/admission_handoff.json"
+
+nonexistent_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 nonexistent-taxonomy-config)"
+mutate_case "${nonexistent_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects nonexistent taxonomy config" "ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${NONEXISTENT_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${nonexistent_config_case}/admission_handoff.json"
+
+inconsistent_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 inconsistent-taxonomy-config)"
+mutate_case "${inconsistent_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects internally inconsistent taxonomy config" "KB taxonomy config maps knowledge types not present in allowed_knowledge_types" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${INCONSISTENT_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${inconsistent_config_case}/admission_handoff.json"
 
 diagnostic_mode_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 diagnostic-mode)"
 mutate_case "${diagnostic_mode_case}" "none"

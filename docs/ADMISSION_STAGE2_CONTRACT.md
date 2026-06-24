@@ -151,13 +151,13 @@ For an existing admitted/source corpus item, prefer the existing source director
 
 The repository owns the typed placement structure and the validation interface. The local KB instance owns concrete `knowledge_type` values, allowed knowledge types, and mappings from `knowledge_profile_id` to allowed `knowledge_type` values. The repository must not define a canonical taxonomy such as recipe, product type, formulation, or component.
 
-For real knowledge-asset admission readiness, standalone admission policy preflight loads instance-local KB taxonomy configuration from `ADMISSION_KB_TAXONOMY_CONFIG`. The referenced JSON file must conform to:
+For real knowledge-asset admission readiness, standalone admission policy preflight loads instance-local KB taxonomy configuration from `ADMISSION_KB_TAXONOMY_CONFIG`. The environment variable must contain an absolute filesystem path to an outside-Git local config file. Relative paths, missing paths, nonexistent files, and invalid files fail closed. The referenced JSON file must conform to:
 
 ```text
 operations/admission/schemas/kb_taxonomy_config.v1.schema.json
 ```
 
-The config path may be absolute or repo-relative, but it is local operator/instance input and must not be committed as real instance configuration. It must declare allowed knowledge types and the `knowledge_profile_id -> allowed knowledge_type` mapping. Missing config, invalid config, unknown `knowledge_type`, or profile/type mismatch fails closed for knowledge assets. Shape-only diagnostic mode is not admission readiness.
+The config is local operator/instance input and must not be committed as real instance configuration. It must declare allowed knowledge types and the `knowledge_profile_id -> allowed knowledge_type` mapping. Every mapped type must also appear in `allowed_knowledge_types`; otherwise the entire config is rejected before the current handoff is evaluated. Missing config, invalid config, unknown `knowledge_type`, or profile/type mismatch fails closed for knowledge assets. Shape-only diagnostic mode is not admission readiness.
 
 Example:
 

@@ -74,7 +74,7 @@ User defines domain/task
 -> User or reviewer approves/refines the profile
 -> Agent extracts knowledge candidates from admitted/reviewed/provenance-bearing sources
 -> Review decision records candidate acceptability and placement authorization
--> Agent/user finalizes a reviewed knowledge package for Phase input
+-> Agent/user finalizes an admission-authorized knowledge package for Phase input
 -> Phase3 kb_admission admits the knowledge package to the workspace KB
 ```
 
@@ -158,7 +158,7 @@ Profile approval confirms the structure the agent should use for extraction. It 
 
 Candidate review evaluates whether the prepared candidate is acceptable for its intended placement. A review decision is the artifact that may authorize KB placement.
 
-After review authorization, the Phase input is a reviewed knowledge package. Its content and metadata must already be suitable for the final admitted KB asset because Phase 3 `kb_admission` validates the manifest, verifies hashes, copies byte-for-byte, emits evidence, and fails closed on mismatch.
+After admission authorization, the Phase input is an admission-authorized knowledge package. Its content and metadata must already be suitable for the final admitted KB asset because Phase 3 `kb_admission` validates the manifest, verifies hashes, copies byte-for-byte, emits evidence, and fails closed on mismatch. Admission authorization is a placement gate, not proof that semantic review happened.
 
 ## Phase boundary
 

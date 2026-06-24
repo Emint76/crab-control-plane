@@ -174,6 +174,29 @@ for doc_path in doc_paths:
     for fragment in forbidden_fragments:
         assert fragment not in text, (doc_path.as_posix(), fragment)
 
+normative_text = "\n".join(
+    path.read_text(encoding="utf-8")
+    for path in [
+        repo / "docs/ADMISSION_CONTRACT.md",
+        repo / "docs/ADMISSION_STAGE2_CONTRACT.md",
+        repo / "docs/ADMISSION_CHECK_OWNERSHIP.md",
+        repo / "knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md",
+        repo / "knowledge/kb/asset-templates/recipe-formula-extraction.md",
+        repo / "control-plane/policy/KNOWLEDGE_EXTRACTION_PROFILE_POLICY.md",
+    ]
+)
+for forbidden in [
+    "semantic review has already happened",
+    "producer-side semantic review",
+    "reviewed knowledge package",
+]:
+    assert forbidden not in normative_text, forbidden
+
+stage2_contract = (repo / "docs/ADMISSION_STAGE2_CONTRACT.md").read_text(encoding="utf-8")
+assert "ADMISSION_KB_TAXONOMY_CONFIG" in stage2_contract
+assert "absolute filesystem path to an outside-Git local config file" in stage2_contract
+assert "Every mapped type must also appear in `allowed_knowledge_types`" in stage2_contract
+
 skill_text = (repo / "skills/source-admission/SKILL.md").read_text(encoding="utf-8")
 assert "admission_package.json" in skill_text
 assert "admission_handoff.json" in skill_text

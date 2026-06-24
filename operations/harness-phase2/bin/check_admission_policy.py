@@ -134,11 +134,28 @@ def load_kb_taxonomy_config(repo_root: Path) -> dict[str, Any]:
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG is required for knowledge_asset admission")
     config_path = Path(config_ref)
     if not config_path.is_absolute():
-        config_path = repo_root / config_path
+        raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG must be an absolute path outside Git")
     if not config_path.is_file():
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file")
     config = load_json_object(config_path)
     validate_schema_path(repo_root / "operations" / "admission" / "schemas" / "kb_taxonomy_config.v1.schema.json", config, config_path)
+    allowed_types = config.get("allowed_knowledge_types")
+    profile_map = config.get("profile_knowledge_type_map")
+    if not isinstance(allowed_types, list) or not isinstance(profile_map, dict):
+        raise CheckFailure("KB taxonomy config must define allowed types and profile map")
+    allowed_set = set(allowed_types)
+    inconsistent: list[str] = []
+    for profile_id, mapped_types in profile_map.items():
+        if not isinstance(mapped_types, list):
+            raise CheckFailure("KB taxonomy config profile map entries must be type lists")
+        for mapped_type in mapped_types:
+            if mapped_type not in allowed_set:
+                inconsistent.append(f"{profile_id}:{mapped_type}")
+    if inconsistent:
+        raise CheckFailure(
+            "KB taxonomy config maps knowledge types not present in allowed_knowledge_types: "
+            + ", ".join(sorted(inconsistent))
+        )
     return config
 
 

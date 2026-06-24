@@ -44,6 +44,6 @@ Current duplicate or transitional checks are debt:
 
 Adding a new registered knowledge profile must not require new Stage 2 admission code. Stage 2 contains no profile-specific executable implementation.
 
-For knowledge assets, standalone policy preflight consumes instance-local KB taxonomy configuration through `ADMISSION_KB_TAXONOMY_CONFIG`. That config is local operator/instance input, not canonical repository taxonomy. Missing config, invalid config, unknown `knowledge_type`, profile/type mismatch, or shape-only diagnostic mode fails closed and must not be reported as real admission readiness.
+For knowledge assets, standalone policy preflight consumes instance-local KB taxonomy configuration through `ADMISSION_KB_TAXONOMY_CONFIG`. The variable must contain an absolute filesystem path to outside-Git local config. That config is local operator/instance input, not canonical repository taxonomy. Relative config paths, missing config, nonexistent files, invalid config, internally inconsistent profile/type mappings, unknown `knowledge_type`, profile/type mismatch, or shape-only diagnostic mode fail closed and must not be reported as real admission readiness.
 
 Review decisions used by Stage 2 are admission authorization and placement gates. They authorize the package for KB placement when the canonical review decision says `decision: approve` and `approved_destination: kb`; they do not mean Phase approved knowledge quality, do not replace semantic review in later wiki/semantic layers, and do not make Phase2, Phase3, or Phase4 semantic validators.
