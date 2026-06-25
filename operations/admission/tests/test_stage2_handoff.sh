@@ -136,7 +136,6 @@ PLACEHOLDER_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-plac
 WRONG_CONTRACT_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-wrong-contract.json"
 MISSING_INSTRUCTION_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-missing-instruction.json"
 MISSING_TEMPLATE_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-missing-template.json"
-FORBIDDEN_FIELD_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-forbidden-field.json"
 cp "${REPO_TAXONOMY_FIXTURE}" "${TAXONOMY_CONFIG}"
 ln -s "${REPO_TAXONOMY_FIXTURE}" "${SYMLINK_TAXONOMY_CONFIG}"
 mkdir -p "${PROFILE_INSTRUCTION%/*}"
@@ -222,23 +221,6 @@ cat >"${MISSING_TEMPLATE_PROFILE_REGISTRY}" <<EOF
       "payload_kind": "file",
       "placement_policy_id": "kb_knowledge_domain_first.v1",
       "status": "registered"
-    }
-  }
-}
-EOF
-cat >"${FORBIDDEN_FIELD_PROFILE_REGISTRY}" <<EOF
-{
-  "registry_id": "knowledge_profiles.v1",
-  "profiles": {
-    "example_knowledge_profile.v1": {
-      "profile_contract_id": "knowledge_extraction.v1",
-      "knowledge_profile_id": "example_knowledge_profile.v1",
-      "instruction_ref": "profiles/example/instruction.md",
-      "output_template_ref": "profiles/example/output-template.md",
-      "payload_kind": "file",
-      "placement_policy_id": "kb_knowledge_domain_first.v1",
-      "status": "registered",
-      "knowledge_type": "example-knowledge-type"
     }
   }
 }
@@ -442,9 +424,9 @@ elif mutation == "unknown-profile":
     handoff["knowledge_profile_id"] = "future_profile.v1"
     manifest["lineage"]["knowledge_profile_id"] = "future_profile.v1"
 elif mutation == "source-targets-knowledge":
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/source-capture-example"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/knowledge/source-capture-example"
 elif mutation == "knowledge-targets-sources":
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/sources/example-knowledge-asset"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/sources/example-knowledge-asset"
 elif mutation == "role-first":
     handoff["placement"]["destination_root"] = "knowledge/cosmetics/example-source-family/example-knowledge-asset"
 elif mutation == "asset-id-mismatch":
@@ -453,25 +435,25 @@ elif mutation == "missing-knowledge-type":
     handoff["placement"].pop("knowledge_type", None)
 elif mutation == "unknown-knowledge-type":
     handoff["placement"]["knowledge_type"] = "unknown-example-type"
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/unknown-example-type/example-knowledge-asset"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/knowledge/unknown-example-type/example-knowledge-asset"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/unknown-example-type/example-knowledge-asset/{filename}"
+        artifact["destination_kb_path"] = f"example-domain/example-source-family/knowledge/unknown-example-type/example-knowledge-asset/{filename}"
 elif mutation == "profile-type-mismatch":
     handoff["placement"]["knowledge_type"] = "other-example-knowledge-type"
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/other-example-knowledge-type/example-knowledge-asset"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/knowledge/other-example-knowledge-type/example-knowledge-asset"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/other-example-knowledge-type/example-knowledge-asset/{filename}"
+        artifact["destination_kb_path"] = f"example-domain/example-source-family/knowledge/other-example-knowledge-type/example-knowledge-asset/{filename}"
 elif mutation == "knowledge-type-slash":
     handoff["placement"]["knowledge_type"] = "bad/type"
 elif mutation == "knowledge-type-traversal":
     handoff["placement"]["knowledge_type"] = ".."
 elif mutation == "old-untyped-knowledge-path":
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/example-knowledge-asset"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/knowledge/example-knowledge-asset"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/example-knowledge-asset/{filename}"
+        artifact["destination_kb_path"] = f"example-domain/example-source-family/knowledge/example-knowledge-asset/{filename}"
 elif mutation == "source-has-knowledge-type":
     handoff["placement"]["knowledge_type"] = "example-knowledge-type"
 elif mutation == "missing-asset-slug":
@@ -482,16 +464,16 @@ elif mutation == "asset-slug-traversal":
     handoff["placement"]["asset_slug"] = ".."
 elif mutation == "destination-uses-asset-id":
     handoff["placement"]["asset_slug"] = "example-knowledge-local-slug"
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset/{filename}"
+        artifact["destination_kb_path"] = f"example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset/{filename}"
 elif mutation == "manifest-destination-outside-slug-root":
     handoff["placement"]["asset_slug"] = "example-knowledge-local-slug"
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/example-knowledge-type/example-knowledge-local-slug"
+    handoff["placement"]["destination_root"] = "example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-local-slug"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset/{filename}"
+        artifact["destination_kb_path"] = f"example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset/{filename}"
 elif mutation == "absolute-ref":
     handoff["phase_inputs"]["phase3_execution_target_ref"] = "/tmp/execution_target.json"
 elif mutation == "traversal-ref":
@@ -558,11 +540,31 @@ fail_case "Stage 2 knowledge_asset rejects missing profile output template" "kno
   env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${MISSING_TEMPLATE_PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${missing_template_profile_case}/admission_handoff.json"
 
-forbidden_field_profile_case="$(make_case operations/admission/examples/stage2/knowledge_asset.v1 forbidden-field-profile-registry)"
-mutate_case "${forbidden_field_profile_case}" "none"
-fail_case "Stage 2 knowledge_asset rejects profile registry knowledge_type ownership" "must not contain knowledge_type" \
-  env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${FORBIDDEN_FIELD_PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
-  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${forbidden_field_profile_case}/admission_handoff.json"
+for forbidden_field in knowledge_type schema_ref semantic_validator structural_validator_ref parser_ref phase_check_ref; do
+  forbidden_registry="${CONFIG_TMP_ROOT}/knowledge-profile-registry-forbidden-${forbidden_field}.json"
+  cat >"${forbidden_registry}" <<EOF
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "knowledge_extraction.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "registered",
+      "${forbidden_field}": "example-forbidden-value"
+    }
+  }
+}
+EOF
+  forbidden_field_profile_case="$(make_case operations/admission/examples/stage2/knowledge_asset.v1 "forbidden-field-${forbidden_field}")"
+  mutate_case "${forbidden_field_profile_case}" "none"
+  fail_case "Stage 2 knowledge_asset rejects selected profile registry ${forbidden_field} ownership" "must not contain ${forbidden_field}" \
+    env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${forbidden_registry}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+    "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${forbidden_field_profile_case}/admission_handoff.json"
+done
 
 humblebee_case="$(make_case operations/admission/examples/stage2/source_capture.v1 humblebee-slug-positive)"
 mutate_case "${humblebee_case}" "humblebee-slug"

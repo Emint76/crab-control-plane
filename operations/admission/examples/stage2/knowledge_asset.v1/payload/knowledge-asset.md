@@ -1,3 +1,3 @@
-# Example Product Type
+# Example Knowledge Asset
 
-Dummy reviewed knowledge payload.
+Dummy non-live generic knowledge payload.

@@ -76,7 +76,7 @@ if violations:
 
 skill_required = [
     "Semantic extraction is agent-owned",
-    "Admission, Phase2, Phase3, and Phase4 do not validate semantics",
+    "Admission, Phase2, Phase3, and Phase4 do not validate semantic correctness, domain-specific correctness, domain-specific safety or compliance",
     "Semantic review is deferred to the later wiki/semantic layer",
     "profile_contract_id: knowledge_extraction.v1",
     "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY",
@@ -143,6 +143,11 @@ for text, label in [(skill, "SKILL.md"), (example, "knowledge-admission-example.
         "example-recipe-formula",
         "example-product-type",
         "example-component",
+        "recipe " + "correctness",
+        "ingredient " + "safety",
+        "source-stated formula " + "facts",
+        "preserva" + "tive",
+        "shelf-" + "life",
     ]:
         if forbidden in text:
             raise SystemExit(f"{label} must not contain concrete profile/example marker: {forbidden}")

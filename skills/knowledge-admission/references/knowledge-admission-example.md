@@ -66,14 +66,14 @@ The candidate separates directly source-stated content, agent interpretation, in
 
 Permitted final claims:
 
-- source-stated formula facts with evidence pointers;
+- source-stated claims with evidence pointers;
 - agent interpretations clearly labelled as interpretation;
 - inferred content clearly labelled as inferred;
 - explicit `not stated in source` and `not validated` boundaries.
 
 Forbidden final claims:
 
-- unsupported safety, stability, preservative, regulatory, manufacturing, shelf-life, or expert-validation claims;
+- unsupported domain-specific correctness, safety, compliance, readiness, or expert-validation claims;
 - source facts that are actually agent inference;
 - temporary candidate status that would become false after Phase admission.
 

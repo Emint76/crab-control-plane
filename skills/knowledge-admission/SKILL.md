@@ -106,7 +106,7 @@ The presence of a generic template mechanism does not activate a concrete profil
 
 Semantic extraction is agent-owned.
 
-Admission, Phase2, Phase3, and Phase4 do not validate semantics, recipe correctness, ingredient safety, domain expertise, vocabulary truth, or whether extracted claims are correct.
+Admission, Phase2, Phase3, and Phase4 do not validate semantic correctness, domain-specific correctness, domain-specific safety or compliance, expert validation, vocabulary truth, or whether extracted claims are correct.
 
 The required `review-decision.json` is admission authorization and placement authorization. It confirms that the final prepared bytes may proceed into the controlled admission path. It is not semantic review, independent expert review, validation of extracted claims, or proof that the extraction is correct.
 

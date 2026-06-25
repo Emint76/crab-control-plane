@@ -1,7 +1,7 @@
 {
   "admission_kind": "knowledge_asset",
   "admission_package_ref": "operations/admission/examples/stage2/knowledge_asset.v1/stage1/admission_package.json",
-  "admission_package_sha256": "5754e66e2f60e70ae6e135ab17b32c34c0d218c26c0457514014620fbfe2f816",
+  "admission_package_sha256": "938cee51ecd7098a18d7d6278c37e850f48e3870da641afa455521ae71d2e8b3",
   "asset_id": "example-knowledge-asset-001",
   "handoff_version": "admission_handoff.v1",
   "knowledge_profile_id": "example_knowledge_profile.v1",
@@ -10,12 +10,12 @@
     "phase3_execution_target_ref": "operations/admission/examples/stage2/knowledge_asset.v1/phase3/execution_target.json"
   },
   "placement": {
-    "domain_area": "cosmetics",
+    "domain_area": "example-domain",
     "source_family_id": "example-source-family",
     "asset_layer": "knowledge",
     "knowledge_type": "example-knowledge-type",
     "asset_slug": "example-knowledge-asset",
-    "destination_root": "cosmetics/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset",
+    "destination_root": "example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset",
     "placement_policy_id": "kb_knowledge_domain_first.v1"
   },
   "profile_id": "knowledge_asset.v1",

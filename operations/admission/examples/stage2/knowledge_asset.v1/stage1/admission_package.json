@@ -8,8 +8,8 @@
   },
   "profile_id": "knowledge_asset.v1",
   "provenance": {
-    "source_asset_path": "cosmetics/example-source-family/sources/source-capture-example/",
-    "source_id": "source-capture-example"
+    "source_asset_path": "example-domain/example-source-family/sources/example-source-asset/",
+    "source_id": "example-source-asset"
   },
   "review_status": "approved"
 }
