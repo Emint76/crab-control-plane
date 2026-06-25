@@ -222,7 +222,7 @@ Stop before Phase execution when:
 - the candidate contains unsupported claims presented as source facts;
 - final bytes still contain temporary candidate-only status;
 - admission authorization is missing;
-- local taxonomy config is missing, invalid, relative, inside the repository, or disallows the profile/type mapping;
+- local taxonomy config is missing, nonexistent, not a file, invalid JSON, schema-invalid, or disallows the selected profile/type mapping;
 - typed destination is unresolved;
 - expected hashes are missing or inconsistent;
 - exact-HEAD Phase2 baseline is unavailable and cannot be created;
