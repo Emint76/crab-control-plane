@@ -8,13 +8,9 @@
     "example-recipe-formula"
   ],
   "profile_knowledge_type_map": {
-    "component_extraction.v1": [
-      "example-component"
-    ],
-    "product_type_extraction.v1": [
-      "example-product-type"
-    ],
-    "recipe_formula_extraction.v1": [
+    "example_knowledge_profile.v1": [
+      "example-component",
+      "example-product-type",
       "example-recipe-formula"
     ]
   }

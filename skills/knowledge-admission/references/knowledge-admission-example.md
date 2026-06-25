@@ -8,20 +8,25 @@ Example values:
 domain_area          = example-domain
 source_family_id     = example-source-family
 source_asset_id      = example-source-article-001
-knowledge_profile_id = recipe_formula_extraction.v1
-knowledge_type       = example-recipe-formula
+profile_contract_id  = knowledge_extraction.v1
+knowledge_profile_id = <instance-defined-knowledge-profile-id>
+knowledge_type       = <instance-local-knowledge-type>
 asset_id             = example-recipe-formula-extraction-001
 asset_slug           = example-recipe-formula-001
 destination_root     = example-domain/example-source-family/knowledge/example-recipe-formula/example-recipe-formula-001
 ```
 
-`knowledge_type: example-recipe-formula` is non-canonical test/example taxonomy only. Real values come from outside-repository local config.
+`knowledge_type` is instance-local placement taxonomy only. Real values come from outside-repository local config.
+
+The concrete `knowledge_profile_id`, instruction, and output template are instance-local. The canonical repository supplies only the generic `knowledge_extraction.v1` contract.
 
 ## Route
 
 ```text
 accepted provenance-bearing source
-→ recipe_formula_extraction.v1 agent extraction
+→ instance profile registry
+→ instance instruction
+→ agent-owned extraction
 → working candidate
 → admission-authorized knowledge package
 → admission_package.json
@@ -51,11 +56,10 @@ The knowledge asset must use a new knowledge `asset_id`; do not reuse the source
 
 ## Candidate Discipline
 
-The agent prepares a working candidate using:
+The agent prepares a working candidate using the instance-local instruction and selected output template referenced by the active instance profile registry. The generic repository contract is:
 
 ```text
-knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md
-knowledge/kb/asset-templates/recipe-formula-extraction.md
+knowledge/kb/extraction-profiles/knowledge-extraction.v1.md
 ```
 
 The candidate separates directly source-stated content, agent interpretation, inferred content, not stated, and not validated.
@@ -81,13 +85,15 @@ Forbidden final claims:
 {
   "admission_kind": "knowledge_asset",
   "profile_id": "knowledge_asset.v1",
-  "knowledge_profile_id": "recipe_formula_extraction.v1",
+  "knowledge_profile_id": "<instance-defined-knowledge-profile-id>",
   "asset_id": "example-recipe-formula-extraction-001",
   "payload_path": "../payload/example-recipe-formula-001.md",
   "review_status": "approved",
   "profile_data": {
     "prepared_by": "agent://knowledge-admission",
-    "instruction_ref": "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
+    "profile_contract_id": "knowledge_extraction.v1",
+    "instruction_ref": "<instance-local-instruction-ref>",
+    "output_template_ref": "<instance-selected-output-template-ref>"
   },
   "provenance": {
     "source_id": "example-source-article-001",
@@ -137,7 +143,7 @@ This authorizes admission and placement only. It is not semantic review and does
   "lineage": {
     "admission_package_ref": "<repo-contained-knowledge-admission-target-dir>/stage1/admission_package.json",
     "asset_id": "example-recipe-formula-extraction-001",
-    "knowledge_profile_id": "recipe_formula_extraction.v1"
+    "knowledge_profile_id": "<instance-defined-knowledge-profile-id>"
   }
 }
 ```
@@ -170,13 +176,13 @@ This authorizes admission and placement only. It is not semantic review and does
   "admission_kind": "knowledge_asset",
   "profile_id": "knowledge_asset.v1",
   "asset_id": "example-recipe-formula-extraction-001",
-  "knowledge_profile_id": "recipe_formula_extraction.v1",
+  "knowledge_profile_id": "<instance-defined-knowledge-profile-id>",
   "placement": {
     "domain_area": "example-domain",
     "source_family_id": "example-source-family",
     "asset_layer": "knowledge",
     "asset_slug": "example-recipe-formula-001",
-    "knowledge_type": "example-recipe-formula",
+    "knowledge_type": "<instance-local-knowledge-type>",
     "destination_root": "example-domain/example-source-family/knowledge/example-recipe-formula/example-recipe-formula-001",
     "placement_policy_id": "kb_knowledge_domain_first.v1"
   },
@@ -205,7 +211,7 @@ python3 operations/harness-phase2/bin/check_admission_policy.py \
 The selected local config must allow:
 
 ```text
-recipe_formula_extraction.v1 -> example-recipe-formula
+<instance-defined-knowledge-profile-id> -> <instance-local-knowledge-type>
 ```
 
 That mapping is example-only. It is not repository taxonomy.

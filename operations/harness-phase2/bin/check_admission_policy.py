@@ -118,11 +118,57 @@ def repo_ref_for_path(repo_root: Path, path: Path) -> str:
         return path.as_posix()
 
 
-def load_admission_registry(repo_root: Path) -> dict[str, Any]:
-    registry = load_json_object(repo_root / "operations" / "admission" / "knowledge-profiles" / "registry.v1.json")
+def resolve_instance_ref(registry_dir: Path, ref: str, field_name: str) -> Path:
+    if not isinstance(ref, str) or not ref:
+        raise CheckFailure(f"knowledge profile registry {field_name} must be a non-empty string")
+    ref_path = Path(ref)
+    if ref_path.is_absolute():
+        resolved = ref_path.resolve(strict=False)
+    else:
+        if ".." in ref_path.parts:
+            raise CheckFailure(f"knowledge profile registry {field_name} must not contain traversal")
+        resolved = (registry_dir / ref_path).resolve(strict=False)
+    if not resolved.is_file():
+        raise CheckFailure(f"knowledge profile registry {field_name} does not reference an existing file")
+    return resolved
+
+
+def load_knowledge_profile_registry() -> dict[str, Any]:
+    registry_ref = os.environ.get("ADMISSION_KNOWLEDGE_PROFILE_REGISTRY")
+    if not registry_ref:
+        raise CheckFailure("ADMISSION_KNOWLEDGE_PROFILE_REGISTRY is required for knowledge_asset admission")
+    registry_path = Path(registry_ref)
+    if not registry_path.is_absolute():
+        registry_path = Path.cwd() / registry_path
+    if not registry_path.is_file():
+        raise CheckFailure("ADMISSION_KNOWLEDGE_PROFILE_REGISTRY does not reference an existing file")
+    registry = load_json_object(registry_path)
     profiles = registry.get("profiles")
     if not isinstance(profiles, dict):
         raise CheckFailure("knowledge profile registry profiles must be a mapping")
+    registry_dir = registry_path.resolve(strict=True).parent
+    for profile_id, entry in profiles.items():
+        if not isinstance(profile_id, str) or not profile_id:
+            raise CheckFailure("knowledge profile registry profile IDs must be non-empty strings")
+        if not isinstance(entry, dict):
+            raise CheckFailure(f"knowledge profile registry entry for {profile_id} must be a mapping")
+        if entry.get("status") != "registered":
+            raise CheckFailure(f"knowledge_profile_id {profile_id} is not registered")
+        if entry.get("profile_contract_id") != "knowledge_extraction.v1":
+            raise CheckFailure(f"knowledge_profile_id {profile_id} must use profile_contract_id knowledge_extraction.v1")
+        if entry.get("knowledge_profile_id") != profile_id:
+            raise CheckFailure(f"knowledge profile registry entry key must match knowledge_profile_id for {profile_id}")
+        for forbidden in ["knowledge_type", "schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref", "phase_check_ref"]:
+            if forbidden in entry:
+                raise CheckFailure(f"knowledge profile registry entry for {profile_id} must not contain {forbidden}")
+        resolve_instance_ref(registry_dir, require_string(entry, "instruction_ref", f"knowledge profile {profile_id}"), "instruction_ref")
+        resolve_instance_ref(
+            registry_dir,
+            require_string(entry, "output_template_ref", f"knowledge profile {profile_id}"),
+            "output_template_ref",
+        )
+        require_string(entry, "payload_kind", f"knowledge profile {profile_id}")
+        require_string(entry, "placement_policy_id", f"knowledge profile {profile_id}")
     return profiles
 
 
@@ -216,7 +262,7 @@ def validate_stage1_package(repo_root: Path, package_path: Path) -> dict[str, An
             raise CheckFailure("Stage 1 knowledge_asset package must use profile_id knowledge_asset.v1")
         validate_schema_path(admission_root / "schemas" / "knowledge_asset.v1.schema.json", package, package_path)
         knowledge_profile_id = require_string(package, "knowledge_profile_id", "admission_package")
-        if knowledge_profile_id not in load_admission_registry(repo_root):
+        if knowledge_profile_id not in load_knowledge_profile_registry():
             raise CheckFailure("knowledge_profile_id is not registered")
     else:
         raise CheckFailure("Stage 1 admission_kind is not supported")
@@ -275,7 +321,7 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
     else:
         if handoff_knowledge_profile_id != package.get("knowledge_profile_id"):
             raise CheckFailure("knowledge_profile_id must match Stage 1 package")
-        registry_entry = load_admission_registry(repo_root).get(handoff_knowledge_profile_id)
+        registry_entry = load_knowledge_profile_registry().get(handoff_knowledge_profile_id)
         if registry_entry is None:
             raise CheckFailure("knowledge_profile_id is not registered")
 

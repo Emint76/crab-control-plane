@@ -130,8 +130,101 @@ SYMLINK_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/repo-taxonomy-symlink.json"
 NONEXISTENT_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/missing-taxonomy.json"
 INVALID_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/invalid-taxonomy.json"
 INCONSISTENT_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/inconsistent-taxonomy.json"
+PROFILE_MISMATCH_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/profile-mismatch-taxonomy.json"
+PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry.json"
+PROFILE_INSTRUCTION="${CONFIG_TMP_ROOT}/profiles/example/instruction.md"
+PROFILE_OUTPUT_TEMPLATE="${CONFIG_TMP_ROOT}/profiles/example/output-template.md"
+PLACEHOLDER_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-placeholder.json"
+WRONG_CONTRACT_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-wrong-contract.json"
+MISSING_INSTRUCTION_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-missing-instruction.json"
+FORBIDDEN_FIELD_PROFILE_REGISTRY="${CONFIG_TMP_ROOT}/knowledge-profile-registry-forbidden-field.json"
 cp "${REPO_TAXONOMY_FIXTURE}" "${TAXONOMY_CONFIG}"
 ln -s "${REPO_TAXONOMY_FIXTURE}" "${SYMLINK_TAXONOMY_CONFIG}"
+mkdir -p "${PROFILE_INSTRUCTION%/*}"
+printf '# Example instance profile instruction\n' >"${PROFILE_INSTRUCTION}"
+printf '# Example instance output template\n' >"${PROFILE_OUTPUT_TEMPLATE}"
+cat >"${PROFILE_REGISTRY}" <<EOF
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "knowledge_extraction.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "registered"
+    }
+  }
+}
+EOF
+export ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${PROFILE_REGISTRY}"
+cat >"${PLACEHOLDER_PROFILE_REGISTRY}" <<EOF
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "knowledge_extraction.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "placeholder"
+    }
+  }
+}
+EOF
+cat >"${WRONG_CONTRACT_PROFILE_REGISTRY}" <<EOF
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "other_contract.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "registered"
+    }
+  }
+}
+EOF
+cat >"${MISSING_INSTRUCTION_PROFILE_REGISTRY}" <<EOF
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "knowledge_extraction.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/missing-instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "registered"
+    }
+  }
+}
+EOF
+cat >"${FORBIDDEN_FIELD_PROFILE_REGISTRY}" <<EOF
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "knowledge_extraction.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "registered",
+      "knowledge_type": "example-product-type"
+    }
+  }
+}
+EOF
 printf '{"config_kind":"kb_taxonomy_config"}\n' >"${INVALID_TAXONOMY_CONFIG}"
 cat >"${INCONSISTENT_TAXONOMY_CONFIG}" <<'EOF'
 {
@@ -142,8 +235,24 @@ cat >"${INCONSISTENT_TAXONOMY_CONFIG}" <<'EOF'
     "example-product-type"
   ],
   "profile_knowledge_type_map": {
-    "product_type_extraction.v1": [
+    "example_knowledge_profile.v1": [
       "missing-example-type"
+    ]
+  }
+}
+EOF
+cat >"${PROFILE_MISMATCH_TAXONOMY_CONFIG}" <<'EOF'
+{
+  "config_kind": "kb_taxonomy_config",
+  "config_version": 1,
+  "local_only": true,
+  "allowed_knowledge_types": [
+    "example-component",
+    "example-product-type"
+  ],
+  "profile_knowledge_type_map": {
+    "example_knowledge_profile.v1": [
+      "example-product-type"
     ]
   }
 }
@@ -401,9 +510,40 @@ pass_case "Stage 2 generated repo-relative handoff passes standalone policy pref
   env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${positive_case}/admission_handoff.json"
 
+missing_profile_registry_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 missing-profile-registry)"
+mutate_case "${missing_profile_registry_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects missing profile registry" "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY is required" \
+  env -u ADMISSION_KNOWLEDGE_PROFILE_REGISTRY ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${missing_profile_registry_case}/admission_handoff.json"
+
+placeholder_profile_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 placeholder-profile-registry)"
+mutate_case "${placeholder_profile_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects placeholder profile registry entry" "knowledge_profile_id example_knowledge_profile.v1 is not registered" \
+  env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${PLACEHOLDER_PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${placeholder_profile_case}/admission_handoff.json"
+
+wrong_contract_profile_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 wrong-contract-profile-registry)"
+mutate_case "${wrong_contract_profile_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects wrong profile contract" "must use profile_contract_id knowledge_extraction.v1" \
+  env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${WRONG_CONTRACT_PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${wrong_contract_profile_case}/admission_handoff.json"
+
+missing_instruction_profile_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 missing-instruction-profile-registry)"
+mutate_case "${missing_instruction_profile_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects missing profile instruction" "knowledge profile registry instruction_ref does not reference an existing file" \
+  env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${MISSING_INSTRUCTION_PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${missing_instruction_profile_case}/admission_handoff.json"
+
+forbidden_field_profile_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 forbidden-field-profile-registry)"
+mutate_case "${forbidden_field_profile_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects profile registry knowledge_type ownership" "must not contain knowledge_type" \
+  env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${FORBIDDEN_FIELD_PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${forbidden_field_profile_case}/admission_handoff.json"
+
 humblebee_case="$(make_case operations/admission/examples/stage2/source_capture.v1 humblebee-slug-positive)"
 mutate_case "${humblebee_case}" "humblebee-slug"
 pass_case "Stage 2 accepts Humblebee source with global asset_id and local asset_slug" \
+  env -u ADMISSION_KNOWLEDGE_PROFILE_REGISTRY \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${humblebee_case}/admission_handoff.json"
 
 missing_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 missing-taxonomy-config)"
@@ -476,7 +616,6 @@ negative_cases=(
   "asset-id-mismatch|asset_id must be preserved from Stage 1 package"
   "missing-knowledge-type|'knowledge_type' is a required property"
   "unknown-knowledge-type|placement.knowledge_type is not allowed by local KB taxonomy config"
-  "profile-type-mismatch|knowledge_profile_id is not allowed for placement.knowledge_type"
   "knowledge-type-slash|does not match"
   "knowledge-type-traversal|should not be valid under"
   "old-untyped-knowledge-path|placement.destination_root must follow domain-first layout"
@@ -507,6 +646,12 @@ for entry in "${negative_cases[@]}"; do
     env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
     "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${case_dir}/admission_handoff.json"
 done
+
+profile_type_mismatch_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 profile-type-mismatch)"
+mutate_case "${profile_type_mismatch_case}" "profile-type-mismatch"
+fail_case "Stage 2 rejects profile-type-mismatch" "knowledge_profile_id is not allowed for placement.knowledge_type" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${PROFILE_MISMATCH_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${profile_type_mismatch_case}/admission_handoff.json"
 
 after_snapshot="$(snapshot_repo_surfaces)"
 [[ "${before_snapshot}" == "${after_snapshot}" ]] || {

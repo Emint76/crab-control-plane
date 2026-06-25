@@ -27,7 +27,7 @@ Stage 1 supports two universal admission profiles:
 - `admission_kind: knowledge_asset`, `profile_id: knowledge_asset.v1`
 
 Knowledge assets also carry a registered `knowledge_profile_id`.
-Stage 1 uses that ID only for registry, payload-kind, placement-policy, and lineage metadata.
+Stage 1 uses that ID only for instance-supplied registry, payload-kind, placement-policy, and lineage metadata.
 It does not load type-specific schemas or validators.
 
 Stage 1 does not contain `asset_slug` or `knowledge_type`. Those are Stage 2 placement fields. `asset_slug` is a source-family-local destination segment, and `knowledge_type` is an instance-local placement taxonomy segment for knowledge assets.
@@ -83,22 +83,25 @@ It does not open canonical Source packages, verify Source package contents, fix 
 
 ## Knowledge Profile Registry
 
-`operations/admission/knowledge-profiles/registry.v1.json` is contract metadata.
-It contains only:
+The canonical repository owns the generic `knowledge_extraction.v1` profile contract and configuration templates. It does not own active concrete extraction profiles.
 
-- `payload_kind`
-- `placement_policy_id`
-- `status`
+For knowledge assets, standalone policy preflight loads the active deployed-instance profile registry from:
 
-Current registered knowledge profile entries:
+```text
+ADMISSION_KNOWLEDGE_PROFILE_REGISTRY
+```
 
-- `product_type_extraction.v1`: registered
-- `recipe_formula_extraction.v1`: registered placeholder
-- `component_extraction.v1`: registered placeholder
+The registry is instance-local configuration. It must identify concrete `knowledge_profile_id` entries whose `profile_contract_id` is `knowledge_extraction.v1`, status is `registered`, and instruction/template references resolve from the registry directory.
 
-`component_extraction.v1` is the extraction/profile identifier. The resulting knowledge asset type may still be described conceptually as a component profile.
+Repository templates live under:
 
-The registry must not contain semantic validators, type-specific schema references, extraction instructions, or template execution rules.
+```text
+operations/admission/knowledge-profiles/
+```
+
+`operations/admission/knowledge-profiles/registry.v1.json` is not an active profile catalog and contains no concrete profiles. Concrete profiles such as `recipe_formula_extraction.v1` are examples of instance-defined profile IDs, not canonical repository registrations.
+
+The registry must not contain `knowledge_type`, semantic validators, type-specific schema references, parsers, Phase behavior, or template execution rules.
 
 ## Out Of Scope
 

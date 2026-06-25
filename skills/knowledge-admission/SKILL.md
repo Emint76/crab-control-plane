@@ -13,7 +13,7 @@ Canonical route:
 
 ```text
 accepted provenance-bearing source
-→ select registered knowledge_profile_id
+→ select instance-registered knowledge_profile_id
 → agent-owned semantic extraction
 → knowledge candidate
 → admission-authorized knowledge package
@@ -53,7 +53,7 @@ Use knowledge-admission mode when:
 
 - the user asks to extract, distil, or prepare reusable knowledge from an accepted provenance-bearing source;
 - the result is intended for canonical KB admission;
-- a registered and sufficiently defined `knowledge_profile_id` exists.
+- an instance-registered and sufficiently defined `knowledge_profile_id` exists.
 
 Do not start canonical admission when the user asks only for transient analysis, summary, discussion, draft extraction, or source capture.
 
@@ -64,8 +64,8 @@ If the source has not been accepted or admitted, stop and report that source adm
 The agent must:
 
 1. identify the exact source asset and provenance;
-2. choose an explicit registered `knowledge_profile_id`;
-3. follow the referenced agent instruction profile;
+2. choose an explicit instance-registered `knowledge_profile_id`;
+3. follow the instance-local instruction referenced by that profile;
 4. prepare the semantic extraction as a working candidate;
 5. separate directly source-stated material, agent interpretation, inferred content, not stated, and not validated;
 6. finalize bytes suitable for an admission-authorized knowledge package;
@@ -82,31 +82,31 @@ The agent must:
 
 ## Profile Selection
 
-Select a registered `knowledge_profile_id` from:
+Select a concrete `knowledge_profile_id` from the instance registry supplied by:
 
 ```text
-operations/admission/knowledge-profiles/registry.v1.json
+ADMISSION_KNOWLEDGE_PROFILE_REGISTRY
 ```
+
+The canonical repository supplies the generic profile contract:
+
+```text
+profile_contract_id: knowledge_extraction.v1
+```
+
+The concrete `knowledge_profile_id` is instance-defined, for example only `<instance-defined-profile-id>`.
+
+The instance registry entry points to an instance-local instruction and selected output template. Follow that instruction and use that template.
 
 The profile entry is routing and instruction metadata, not a semantic validator. Do not branch into custom admission logic by profile.
 
-For recipe and formula extraction in cosmetics and household chemistry, use:
-
-```text
-knowledge_profile_id: recipe_formula_extraction.v1
-```
-
-Instruction document:
-
-```text
-knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md
-```
-
-Output template:
+Optional repository templates may exist, such as:
 
 ```text
 knowledge/kb/asset-templates/recipe-formula-extraction.md
 ```
+
+The presence of an optional template does not activate a concrete profile. Concrete profile registration is instance-local.
 
 ## Semantic Boundary
 
@@ -165,7 +165,7 @@ The selected `knowledge_profile_id -> knowledge_type` mapping must be allowed by
 
 Prepare:
 
-- `admission_package.json` with `admission_kind: knowledge_asset`, `profile_id: knowledge_asset.v1`, stable `asset_id`, registered `knowledge_profile_id`, package-relative `payload_path`, and opaque non-empty `profile_data`;
+- `admission_package.json` with `admission_kind: knowledge_asset`, `profile_id: knowledge_asset.v1`, stable `asset_id`, instance-registered `knowledge_profile_id`, package-relative `payload_path`, and opaque non-empty `profile_data`;
 - canonical `review-decision.json` with `decision: approve`, matching `artifact_id`, and `approved_destination: kb`;
 - Phase3 `admission_manifest.json`;
 - Phase3 `execution_target.json`;

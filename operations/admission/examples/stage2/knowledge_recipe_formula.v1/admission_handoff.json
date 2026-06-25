@@ -1,10 +1,10 @@
 {
   "admission_kind": "knowledge_asset",
   "admission_package_ref": "operations/admission/examples/stage2/knowledge_recipe_formula.v1/stage1/admission_package.json",
-  "admission_package_sha256": "88bc1c41bf94ede351272f6911703a8ac31fb21eb07b8b62041cd5170561f735",
+  "admission_package_sha256": "d7cbca2ccf2811d2f6bd4630d58a687ea907928ec9bae3f0570c52c4d9c8ea81",
   "asset_id": "recipe-formula-example",
   "handoff_version": "admission_handoff.v1",
-  "knowledge_profile_id": "recipe_formula_extraction.v1",
+  "knowledge_profile_id": "example_knowledge_profile.v1",
   "phase_inputs": {
     "phase3_admission_manifest_ref": "operations/admission/examples/stage2/knowledge_recipe_formula.v1/phase3/admission_manifest.json",
     "phase3_execution_target_ref": "operations/admission/examples/stage2/knowledge_recipe_formula.v1/phase3/execution_target.json"

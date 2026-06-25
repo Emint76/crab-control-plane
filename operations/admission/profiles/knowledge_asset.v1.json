@@ -10,7 +10,7 @@
   "profile_data_required": true,
   "profile_data_semantics": "opaque_producer_owned",
   "profile_id": "knowledge_asset.v1",
-  "registry_ref": "knowledge-profiles/registry.v1.json",
+  "registry_ref": "instance-supplied:ADMISSION_KNOWLEDGE_PROFILE_REGISTRY",
   "required_review_status": "approved",
   "schema_ref": "schemas/knowledge_asset.v1.schema.json"
 }

@@ -1,10 +1,10 @@
 {
   "admission_kind": "knowledge_asset",
   "admission_package_ref": "operations/admission/examples/stage2/knowledge_component.v1/stage1/admission_package.json",
-  "admission_package_sha256": "e902b15b2a1a09946b7b190c8bf9065e97253def40a90a38352b0e110e3c4f8c",
+  "admission_package_sha256": "984ebedeb309f188f6d4562c87b0ee7a0c8b89dae02a218bb3397c7eafdfad33",
   "asset_id": "component-example",
   "handoff_version": "admission_handoff.v1",
-  "knowledge_profile_id": "component_extraction.v1",
+  "knowledge_profile_id": "example_knowledge_profile.v1",
   "phase_inputs": {
     "phase3_admission_manifest_ref": "operations/admission/examples/stage2/knowledge_component.v1/phase3/admission_manifest.json",
     "phase3_execution_target_ref": "operations/admission/examples/stage2/knowledge_component.v1/phase3/execution_target.json"

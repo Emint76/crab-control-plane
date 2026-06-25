@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Template for `recipe_formula_extraction` working candidates, admission-authorized knowledge packages, and future admitted knowledge assets.
+Optional output template for recipe/formula working candidates, admission-authorized knowledge packages, and future admitted knowledge assets.
 
-This template defines an agreed extraction output structure for agent-led semantic extraction. It is markdown-first documentation. It does not create a schema, validator, Phase behavior, admission mechanic, runtime write, or live KB asset.
+This template defines a reusable extraction output shape that an instance-defined profile may select. It is markdown-first documentation. It does not create a schema, validator, Phase behavior, admission mechanic, runtime write, live KB asset, active `knowledge_profile_id`, or canonical concrete profile.
 
 ## Asset kind semantics
 
@@ -57,7 +57,8 @@ Use these fields as a minimum shape for an admission-authorized knowledge packag
 ---
 asset_id: "<stable-asset-id>"
 artifact_type: "knowledge_package"
-knowledge_profile_id: "recipe_formula_extraction.v1"
+profile_contract_id: "knowledge_extraction.v1"
+knowledge_profile_id: "<instance-defined-profile-id>"
 knowledge_type: "<instance-local-knowledge-type>"
 domain_area: "<domain-area>"
 source_family_id: "<publisher-or-source-family-id>"
@@ -93,7 +94,7 @@ extraction:
 ---
 ```
 
-The `knowledge_profile_id` identifies the agent extraction profile. The `knowledge_type` value is an instance-local placement taxonomy segment selected from outside-repository local taxonomy configuration. Do not use `knowledge_type: recipe_formula_extraction` as a substitute for the profile ID.
+The `profile_contract_id` identifies the generic canonical mechanism. The `knowledge_profile_id` identifies the concrete instance-defined extraction profile. The `knowledge_type` value is an instance-local placement taxonomy segment selected from outside-repository local taxonomy configuration. Do not use `knowledge_type` as a substitute for the profile ID.
 
 The `source_asset_path` value must be copied from accepted source provenance. It is the actual admitted source placement path. Do not synthesize it from the source `asset_id`; source identity and source placement remain distinct.
 

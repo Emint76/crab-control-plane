@@ -1,7 +1,7 @@
 {
   "admission_kind": "knowledge_asset",
   "asset_id": "recipe-formula-example",
-  "knowledge_profile_id": "recipe_formula_extraction.v1",
+  "knowledge_profile_id": "example_knowledge_profile.v1",
   "payload_path": "../payload/recipe-formula.md",
   "profile_data": {
     "example_only": true

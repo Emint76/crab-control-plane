@@ -20,6 +20,6 @@
   "lineage": {
     "admission_package_ref": "operations/admission/examples/stage2/knowledge_recipe_formula.v1/stage1/admission_package.json",
     "asset_id": "recipe-formula-example",
-    "knowledge_profile_id": "recipe_formula_extraction.v1"
+    "knowledge_profile_id": "example_knowledge_profile.v1"
   }
 }

@@ -78,7 +78,8 @@ skill_required = [
     "Semantic extraction is agent-owned",
     "Admission, Phase2, Phase3, and Phase4 do not validate semantics",
     "Semantic review is deferred to the later wiki/semantic layer",
-    "knowledge_profile_id: recipe_formula_extraction.v1",
+    "profile_contract_id: knowledge_extraction.v1",
+    "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY",
     "knowledge_type` is an instance-local placement taxonomy segment",
     "<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/",
     "ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json",
@@ -98,7 +99,8 @@ for fragment in skill_required:
 
 example_required = [
     "accepted provenance-bearing source",
-    "recipe_formula_extraction.v1",
+    "knowledge_extraction.v1",
+    "<instance-defined-knowledge-profile-id>",
     "candidate",
     "knowledge package",
     "admission_package.json",
@@ -114,18 +116,27 @@ for fragment in example_required:
         raise SystemExit(f"knowledge-admission example missing route fragment: {fragment}")
 
 profiles = registry["profiles"]
-entry = profiles["recipe_formula_extraction.v1"]
-instruction_ref = entry.get("instruction_ref")
-if not isinstance(instruction_ref, str) or not instruction_ref:
-    raise SystemExit("recipe_formula_extraction.v1 must have instruction_ref")
-if instruction_ref.startswith("/") or ".." in Path(instruction_ref).parts:
-    raise SystemExit("instruction_ref must be repo-relative and safe")
-if not (repo / instruction_ref).is_file():
-    raise SystemExit("instruction_ref target is missing: " + instruction_ref)
+if profiles:
+    raise SystemExit("canonical knowledge profile registry must not contain active concrete profiles")
 
-for forbidden in ["schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref"]:
-    if forbidden in entry:
-        raise SystemExit(f"registry entry must not contain {forbidden}")
+generic_contract = repo / "knowledge/kb/extraction-profiles/knowledge-extraction.v1.md"
+if not generic_contract.is_file():
+    raise SystemExit("missing generic knowledge_extraction.v1 contract")
+
+profile_template = json.loads((repo / "operations/admission/knowledge-profiles/profile.template.json").read_text(encoding="utf-8"))
+registry_template = json.loads((repo / "operations/admission/knowledge-profiles/registry.template.json").read_text(encoding="utf-8"))
+if profile_template.get("profile_contract_id") != "knowledge_extraction.v1":
+    raise SystemExit("profile template must use knowledge_extraction.v1")
+for field in ["knowledge_profile_id", "instruction_ref", "output_template_ref", "payload_kind", "placement_policy_id", "status"]:
+    if field not in profile_template:
+        raise SystemExit(f"profile template missing {field}")
+if "knowledge_type" in profile_template:
+    raise SystemExit("profile template must not contain knowledge_type")
+if registry_template != {"registry_id": "knowledge_profiles.v1", "profiles": {}}:
+    raise SystemExit("registry template must be empty")
+for text, label in [(skill, "SKILL.md"), (example, "knowledge-admission-example.md")]:
+    if "recipe_formula_extraction.v1" in text:
+        raise SystemExit(f"{label} must not hardcode recipe_formula_extraction.v1")
 
 print("PASS knowledge-admission skill package validation")
 PY
