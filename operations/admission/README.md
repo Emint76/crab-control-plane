@@ -68,6 +68,6 @@ Instance-local KB taxonomy config schema:
 operations/admission/schemas/kb_taxonomy_config.v1.schema.json
 ```
 
-Standalone policy preflight loads real local taxonomy config from `ADMISSION_KB_TAXONOMY_CONFIG` for `knowledge_asset` handoffs. The variable must contain an absolute filesystem path to an outside-Git local config file. Preflight fails closed when the path is missing, relative, nonexistent, invalid, internally inconsistent, or does not allow the requested `knowledge_profile_id` and `knowledge_type`.
+Standalone policy preflight loads real local taxonomy config from `ADMISSION_KB_TAXONOMY_CONFIG` for `knowledge_asset` handoffs. The variable must contain an absolute filesystem path to an outside-Git local config file, and the resolved real path must be outside the repository root. Symlinks cannot be used to point an outside path back into the repository. Preflight fails closed when the path is missing, relative, inside the repository, nonexistent, invalid, internally inconsistent, or does not allow the requested `knowledge_profile_id` and `knowledge_type`.
 
 Phase3 remains the sole canonical execution/admission evidence owner.

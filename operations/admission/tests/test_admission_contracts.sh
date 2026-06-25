@@ -195,6 +195,9 @@ for forbidden in [
 stage2_contract = (repo / "docs/ADMISSION_STAGE2_CONTRACT.md").read_text(encoding="utf-8")
 assert "ADMISSION_KB_TAXONOMY_CONFIG" in stage2_contract
 assert "absolute filesystem path to an outside-Git local config file" in stage2_contract
+assert "resolved real path must be outside the repository root" in stage2_contract
+assert "symlink outside the repository that resolves back into the repository is rejected" in stage2_contract
+assert "positive validation tests copy them outside the repository" in stage2_contract
 assert "Every mapped type must also appear in `allowed_knowledge_types`" in stage2_contract
 
 skill_text = (repo / "skills/source-admission/SKILL.md").read_text(encoding="utf-8")

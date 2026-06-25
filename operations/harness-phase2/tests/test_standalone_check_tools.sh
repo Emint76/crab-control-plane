@@ -5,7 +5,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PHASE2_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PHASE2_ROOT}/../.." && pwd)"
 PYTHON_BIN="${PHASE2_PYTHON_BIN:-${PYTHON:-python3}}"
-TAXONOMY_CONFIG="$(realpath operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json)"
 TMP_PARENT="${TMPDIR:-/tmp}"
 TMP_ROOT="$(mktemp -d "${TMP_PARENT%/}/phase2-standalone-checks.XXXXXX")"
 CASE_INDEX=0
@@ -23,6 +22,8 @@ if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
 fi
 
 cd "${REPO_ROOT}"
+TAXONOMY_CONFIG="${TMP_ROOT}/kb_taxonomy_config.noncanonical.json"
+cp operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json "${TAXONOMY_CONFIG}"
 
 pass_case() {
   local label="$1"

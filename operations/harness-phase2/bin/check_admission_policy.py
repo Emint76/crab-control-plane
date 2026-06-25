@@ -135,10 +135,32 @@ def load_kb_taxonomy_config(repo_root: Path) -> dict[str, Any]:
     config_path = Path(config_ref)
     if not config_path.is_absolute():
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG must be an absolute path outside Git")
-    if not config_path.is_file():
+    if not config_path.exists():
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file")
-    config = load_json_object(config_path)
-    validate_schema_path(repo_root / "operations" / "admission" / "schemas" / "kb_taxonomy_config.v1.schema.json", config, config_path)
+    resolved_repo = repo_root.resolve(strict=True)
+    resolved_config = config_path.resolve(strict=True)
+    try:
+        if resolved_config == resolved_repo or resolved_config.is_relative_to(resolved_repo):
+            raise CheckFailure(
+                "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file"
+            )
+    except AttributeError:
+        try:
+            resolved_config.relative_to(resolved_repo)
+        except ValueError:
+            pass
+        else:
+            raise CheckFailure(
+                "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file"
+            )
+    if not resolved_config.is_file():
+        raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file")
+    config = load_json_object(resolved_config)
+    validate_schema_path(
+        repo_root / "operations" / "admission" / "schemas" / "kb_taxonomy_config.v1.schema.json",
+        config,
+        resolved_config,
+    )
     allowed_types = config.get("allowed_knowledge_types")
     profile_map = config.get("profile_knowledge_type_map")
     if not isinstance(allowed_types, list) or not isinstance(profile_map, dict):

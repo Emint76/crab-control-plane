@@ -7,11 +7,16 @@ REPO_ROOT="$(cd "${ADMISSION_ROOT}/../.." && pwd)"
 PYTHON_BIN="${ADMISSION_TEST_PYTHON_BIN:-${PYTHON:-python3}}"
 TMP_PARENT="${SCRIPT_DIR}"
 TMP_ROOT="$(mktemp -d "${TMP_PARENT%/}/.tmp-stage2.XXXXXX")"
+CONFIG_TMP_PARENT="${TMPDIR:-/tmp}"
+CONFIG_TMP_ROOT="$(mktemp -d "${CONFIG_TMP_PARENT%/}/admission-taxonomy-config.XXXXXX")"
 CASE_INDEX=0
 
 cleanup() {
   if [[ -n "${TMP_ROOT:-}" && -d "${TMP_ROOT}" && "${TMP_ROOT}" == "${TMP_PARENT%/}"/.tmp-stage2.* ]]; then
     rm -rf "${TMP_ROOT}"
+  fi
+  if [[ -n "${CONFIG_TMP_ROOT:-}" && -d "${CONFIG_TMP_ROOT}" && "${CONFIG_TMP_ROOT}" == "${CONFIG_TMP_PARENT%/}"/admission-taxonomy-config.* ]]; then
+    rm -rf "${CONFIG_TMP_ROOT}"
   fi
 }
 trap cleanup EXIT
@@ -118,11 +123,15 @@ stage2_examples=(
   "operations/admission/examples/stage2/knowledge_recipe_formula.v1/admission_handoff.json"
   "operations/admission/examples/stage2/knowledge_component.v1/admission_handoff.json"
 )
-TAXONOMY_CONFIG="$(realpath operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json)"
+REPO_TAXONOMY_FIXTURE="$(realpath operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json)"
+TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/kb_taxonomy_config.noncanonical.json"
 RELATIVE_TAXONOMY_CONFIG="operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json"
-NONEXISTENT_TAXONOMY_CONFIG="${TMP_ROOT}/missing-taxonomy.json"
-INVALID_TAXONOMY_CONFIG="${TMP_ROOT}/invalid-taxonomy.json"
-INCONSISTENT_TAXONOMY_CONFIG="${TMP_ROOT}/inconsistent-taxonomy.json"
+SYMLINK_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/repo-taxonomy-symlink.json"
+NONEXISTENT_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/missing-taxonomy.json"
+INVALID_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/invalid-taxonomy.json"
+INCONSISTENT_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/inconsistent-taxonomy.json"
+cp "${REPO_TAXONOMY_FIXTURE}" "${TAXONOMY_CONFIG}"
+ln -s "${REPO_TAXONOMY_FIXTURE}" "${SYMLINK_TAXONOMY_CONFIG}"
 printf '{"config_kind":"kb_taxonomy_config"}\n' >"${INVALID_TAXONOMY_CONFIG}"
 cat >"${INCONSISTENT_TAXONOMY_CONFIG}" <<'EOF'
 {
@@ -409,11 +418,23 @@ fail_case "Stage 2 knowledge_asset rejects invalid taxonomy config" "'config_ver
   env ADMISSION_KB_TAXONOMY_CONFIG="${INVALID_TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${invalid_config_case}/admission_handoff.json"
 
+in_repo_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 in-repo-taxonomy-config)"
+mutate_case "${in_repo_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects absolute taxonomy config inside repository" "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${REPO_TAXONOMY_FIXTURE}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${in_repo_config_case}/admission_handoff.json"
+
 relative_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 relative-taxonomy-config)"
 mutate_case "${relative_config_case}" "none"
 fail_case "Stage 2 knowledge_asset rejects relative taxonomy config path" "ADMISSION_KB_TAXONOMY_CONFIG must be an absolute path outside Git" \
   env ADMISSION_KB_TAXONOMY_CONFIG="${RELATIVE_TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${relative_config_case}/admission_handoff.json"
+
+symlink_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 symlink-taxonomy-config)"
+mutate_case "${symlink_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects outside symlink to repository taxonomy config" "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${SYMLINK_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${symlink_config_case}/admission_handoff.json"
 
 nonexistent_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 nonexistent-taxonomy-config)"
 mutate_case "${nonexistent_config_case}" "none"
