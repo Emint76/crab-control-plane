@@ -16,7 +16,7 @@ asset_slug           = example-knowledge-asset
 destination_root     = example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset
 ```
 
-`knowledge_type` is instance-local placement taxonomy only. Real values come from outside-repository local config.
+`knowledge_type` is instance-local placement taxonomy only. Real values come from explicitly supplied instance config.
 
 The concrete `knowledge_profile_id`, instruction, and output template are instance-local. The canonical repository supplies only the generic `knowledge_extraction.v1` contract.
 
@@ -199,11 +199,11 @@ This authorizes admission and placement only. It is not semantic review and does
 
 ## Standalone Preflight
 
-Use an outside-repository local taxonomy config:
+Use an explicitly supplied instance taxonomy config:
 
 ```bash
 ADMISSION_KNOWLEDGE_PROFILE_REGISTRY=/path/to/instance/knowledge-profile-registry.json \
-ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json \
+ADMISSION_KB_TAXONOMY_CONFIG=/path/to/instance/kb-taxonomy-config.json \
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \
   <repo-contained-knowledge-admission-target-dir>/admission_handoff.json

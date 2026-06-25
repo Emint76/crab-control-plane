@@ -83,7 +83,7 @@ skill_required = [
     "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY=/path/to/instance/knowledge-profile-registry.json",
     "knowledge_type` is an instance-local placement taxonomy segment",
     "<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/",
-    "ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json",
+    "ADMISSION_KB_TAXONOMY_CONFIG=/path/to/instance/kb-taxonomy-config.json",
     "Phase4 is the default operator-facing invocation route",
     "Phase3 remains the sole canonical execution owner",
     "Only Phase3 freezes execution inputs",
