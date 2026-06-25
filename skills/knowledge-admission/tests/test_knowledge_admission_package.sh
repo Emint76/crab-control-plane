@@ -84,6 +84,7 @@ skill_required = [
     "knowledge_type` is an instance-local placement taxonomy segment",
     "<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/",
     "ADMISSION_KB_TAXONOMY_CONFIG=/path/to/instance/kb-taxonomy-config.json",
+    "local taxonomy config is missing, nonexistent, not a file, invalid JSON, schema-invalid, or disallows the selected profile/type mapping",
     "Phase4 is the default operator-facing invocation route",
     "Phase3 remains the sole canonical execution owner",
     "Only Phase3 freezes execution inputs",
@@ -148,6 +149,7 @@ for text, label in [(skill, "SKILL.md"), (example, "knowledge-admission-example.
         "source-stated formula " + "facts",
         "preserva" + "tive",
         "shelf-" + "life",
+        "relative, inside " + "the repository",
     ]:
         if forbidden in text:
             raise SystemExit(f"{label} must not contain concrete profile/example marker: {forbidden}")
