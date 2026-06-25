@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define the practical workflow for staging an agent-prepared knowledge candidate, reviewing it into a KB-ready knowledge package, and admitting that package through Phase3 `kb_admission` as `admission_type: knowledge_asset`.
+Define the practical workflow for staging an agent-prepared knowledge candidate, authorizing it for KB placement as a KB-ready knowledge package, and admitting that package through Phase3 `kb_admission` as `admission_type: knowledge_asset`.
 
 This runbook is documentation only. It does not add a Phase target, schema, validator, runner behavior, admission mechanism, smoke target, live KB asset, or runtime evidence artifact.
 
@@ -21,7 +21,7 @@ draft/candidate -> review -> knowledge package -> Phase3 admission -> admitted k
 ```
 
 - `candidate`: pre-review or working semantic extraction output.
-- `knowledge package`: reviewed, KB-ready, byte-for-byte artifact prepared for Phase admission.
+- `knowledge package`: admission-authorized, KB-ready, byte-for-byte artifact prepared for Phase admission.
 - `admitted knowledge asset`: sanctioned KB asset after Phase3 admission completes.
 
 Do not rely on Phase to convert candidate metadata into asset metadata. Phase copies bytes, so package bytes must already contain metadata that remains true after admission.
@@ -34,7 +34,7 @@ Agent/user-owned work:
 - semantic extraction;
 - working knowledge candidate;
 - candidate review decision;
-- reviewed knowledge package prepared for Phase admission.
+- admission-authorized knowledge package prepared for Phase admission.
 
 Phase-owned work:
 
@@ -75,7 +75,7 @@ Phase-owned work:
 
 5. Candidate gets reviewed for KB placement and finalized as a knowledge package.
 
-   Candidate review evaluates whether the prepared candidate may be placed as a knowledge asset, subject to existing admission policy and placement policy. After approval, the Phase input is the reviewed knowledge package, not an unreviewed working candidate.
+   Admission authorization evaluates whether the prepared candidate may be placed as a knowledge asset, subject to existing admission policy and placement policy. After approval, the Phase input is the authorization-ready knowledge package, not an unapproved working candidate. This authorization is not proof that semantic review happened.
 
    Review decision path shape:
 
@@ -87,17 +87,19 @@ Phase-owned work:
 
 6. Phase3 admits the knowledge package.
 
-   Phase3 workspace `kb_admission` admits the reviewed knowledge package as `admission_type: knowledge_asset`. The target performs manifest, hash, and path controls, copies the package byte-for-byte, and emits admission evidence.
+   Phase3 workspace `kb_admission` admits the admission-authorized knowledge package as `admission_type: knowledge_asset`. The target performs manifest, hash, and path controls, copies the package byte-for-byte, and emits admission evidence.
 
    Final admitted knowledge asset path shape:
 
    ```text
-   <domain>/<source-family>/knowledge/<asset-id>/...
+   <domain>/<source-family>/knowledge/<knowledge-type>/<asset-slug>/...
    ```
+
+   `knowledge_type` is selected from instance-local KB taxonomy configuration and is used only as a placement segment. The repository defines the typed path shape and validation interface, but it does not define the concrete taxonomy. `asset_id` remains the stable identity in Stage 1, review authorization, handoff, and Phase3 lineage; `asset_slug` and `knowledge_type` must not be added to identity or lineage fields.
 
 ## Package admission metadata
 
-The run should include admission metadata that identifies the reviewed knowledge package and its intended admission target.
+The run should include admission metadata that identifies the admission-authorized knowledge package and its intended admission target.
 
 Metadata path shape:
 
@@ -161,7 +163,7 @@ Phase3 only admits already prepared knowledge packages byte-for-byte according t
 Knowledge admission and source admission are structurally similar at the Phase layer. The admitted object differs:
 
 - source admission admits a source package or other source-bearing artifacts;
-- knowledge admission admits an agent-prepared, reviewed knowledge package.
+- knowledge admission admits an agent-prepared, admission-authorized knowledge package.
 
 ## Evidence boundary
 

@@ -88,7 +88,7 @@ Live KB paths use the domain/source-family container first, then the asset layer
 
 ```text
 <domain-area>/<publisher-id-or-source-family-id>/sources/<asset-slug>-<YYYYMMDD>/
-<domain-area>/<publisher-id-or-source-family-id>/knowledge/<asset-id>/
+<domain-area>/<publisher-id-or-source-family-id>/knowledge/<knowledge-type>/<asset-slug>/
 <domain-area>/<publisher-id-or-source-family-id>/collections/<collection-id>/
 ```
 
@@ -96,9 +96,13 @@ For Humblebee & Me:
 
 ```text
 cosmetics-household-chemistry/humblebee-and-me/sources/<asset-slug>-<YYYYMMDD>/
-cosmetics-household-chemistry/humblebee-and-me/knowledge/<asset-id>/
+cosmetics-household-chemistry/humblebee-and-me/knowledge/<knowledge-type>/<asset-slug>/
 cosmetics-household-chemistry/humblebee-and-me/collections/<collection-id>/
 ```
+
+For knowledge assets, `<knowledge-type>` is an instance-local placement taxonomy segment. The repository defines the typed placement shape and validation interface, but it does not define a canonical taxonomy of concrete knowledge type values. Local KB instance configuration owns allowed knowledge types and mappings from `knowledge_profile_id` to allowed `knowledge_type` values.
+
+`asset_id` remains the stable globally traceable identity and may differ from `<asset-slug>`. `asset_slug` and `knowledge_type` are placement metadata only; they are not lineage fields and must not be derived by parsing the destination path.
 
 Do not use the older role-first layout for new live assets:
 

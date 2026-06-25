@@ -15,7 +15,9 @@ Semantic profiles own type-specific structure and meaning.
 Admission owns only generic package admissibility in Stage 1.
 
 Admission does not validate Product Type vocabulary, recipe structure, component profile structure, or semantic truth.
-`review_status: approved` records that producer-side semantic review has already happened before the package is submitted.
+`review_status: approved` is an admission-readiness status used by the package contract. It is not proof that semantic review happened.
+
+The canonical review decision consumed by Stage 2 is an admission authorization and placement gate. It does not mean Phase approved knowledge quality, does not require a separate fake self-review pass, and does not move semantic extraction responsibility into Phase2, Phase3, or Phase4. Semantic extraction responsibility belongs to the agent; later semantic review belongs to the wiki/semantic layer.
 
 ## Supported Package Classes
 
@@ -27,6 +29,8 @@ Stage 1 supports two universal admission profiles:
 Knowledge assets also carry a registered `knowledge_profile_id`.
 Stage 1 uses that ID only for registry, payload-kind, placement-policy, and lineage metadata.
 It does not load type-specific schemas or validators.
+
+Stage 1 does not contain `asset_slug` or `knowledge_type`. Those are Stage 2 placement fields. `asset_slug` is a source-family-local destination segment, and `knowledge_type` is an instance-local placement taxonomy segment for knowledge assets.
 
 ## Dependencies
 

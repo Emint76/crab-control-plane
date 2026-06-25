@@ -22,6 +22,8 @@ if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
 fi
 
 cd "${REPO_ROOT}"
+TAXONOMY_CONFIG="${TMP_ROOT}/kb_taxonomy_config.noncanonical.json"
+cp operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json "${TAXONOMY_CONFIG}"
 
 pass_case() {
   local label="$1"
@@ -111,6 +113,7 @@ pass_case \
 
 pass_case \
   "standalone valid Stage 2 knowledge handoff" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
     . \
     operations/admission/examples/stage2/knowledge_product_type.v1/admission_handoff.json

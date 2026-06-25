@@ -7,11 +7,16 @@ REPO_ROOT="$(cd "${ADMISSION_ROOT}/../.." && pwd)"
 PYTHON_BIN="${ADMISSION_TEST_PYTHON_BIN:-${PYTHON:-python3}}"
 TMP_PARENT="${SCRIPT_DIR}"
 TMP_ROOT="$(mktemp -d "${TMP_PARENT%/}/.tmp-stage2.XXXXXX")"
+CONFIG_TMP_PARENT="${TMPDIR:-/tmp}"
+CONFIG_TMP_ROOT="$(mktemp -d "${CONFIG_TMP_PARENT%/}/admission-taxonomy-config.XXXXXX")"
 CASE_INDEX=0
 
 cleanup() {
   if [[ -n "${TMP_ROOT:-}" && -d "${TMP_ROOT}" && "${TMP_ROOT}" == "${TMP_PARENT%/}"/.tmp-stage2.* ]]; then
     rm -rf "${TMP_ROOT}"
+  fi
+  if [[ -n "${CONFIG_TMP_ROOT:-}" && -d "${CONFIG_TMP_ROOT}" && "${CONFIG_TMP_ROOT}" == "${CONFIG_TMP_PARENT%/}"/admission-taxonomy-config.* ]]; then
+    rm -rf "${CONFIG_TMP_ROOT}"
   fi
 }
 trap cleanup EXIT
@@ -118,6 +123,31 @@ stage2_examples=(
   "operations/admission/examples/stage2/knowledge_recipe_formula.v1/admission_handoff.json"
   "operations/admission/examples/stage2/knowledge_component.v1/admission_handoff.json"
 )
+REPO_TAXONOMY_FIXTURE="$(realpath operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json)"
+TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/kb_taxonomy_config.noncanonical.json"
+RELATIVE_TAXONOMY_CONFIG="operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json"
+SYMLINK_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/repo-taxonomy-symlink.json"
+NONEXISTENT_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/missing-taxonomy.json"
+INVALID_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/invalid-taxonomy.json"
+INCONSISTENT_TAXONOMY_CONFIG="${CONFIG_TMP_ROOT}/inconsistent-taxonomy.json"
+cp "${REPO_TAXONOMY_FIXTURE}" "${TAXONOMY_CONFIG}"
+ln -s "${REPO_TAXONOMY_FIXTURE}" "${SYMLINK_TAXONOMY_CONFIG}"
+printf '{"config_kind":"kb_taxonomy_config"}\n' >"${INVALID_TAXONOMY_CONFIG}"
+cat >"${INCONSISTENT_TAXONOMY_CONFIG}" <<'EOF'
+{
+  "config_kind": "kb_taxonomy_config",
+  "config_version": 1,
+  "local_only": true,
+  "allowed_knowledge_types": [
+    "example-product-type"
+  ],
+  "profile_knowledge_type_map": {
+    "product_type_extraction.v1": [
+      "missing-example-type"
+    ]
+  }
+}
+EOF
 
 before_snapshot="$(snapshot_repo_surfaces)"
 
@@ -193,7 +223,9 @@ printf 'PASS Stage 2, Phase3, review, and KB integration example schemas
 '
 
 for example in "${stage2_examples[@]}"; do
-  pass_case "Stage 2 handoff passes standalone policy preflight: ${example}"     "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${example}"
+  pass_case "Stage 2 handoff passes standalone policy preflight: ${example}" \
+    env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+    "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${example}"
 done
 
 make_case() {
@@ -290,6 +322,31 @@ elif mutation == "role-first":
     handoff["placement"]["destination_root"] = "knowledge/cosmetics/example-source-family/product-type-example"
 elif mutation == "asset-id-mismatch":
     handoff["asset_id"] = "different-asset-id"
+elif mutation == "missing-knowledge-type":
+    handoff["placement"].pop("knowledge_type", None)
+elif mutation == "unknown-knowledge-type":
+    handoff["placement"]["knowledge_type"] = "unknown-example-type"
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/unknown-example-type/product-type-example"
+    for artifact in manifest["artifacts"]:
+        filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/unknown-example-type/product-type-example/{filename}"
+elif mutation == "profile-type-mismatch":
+    handoff["placement"]["knowledge_type"] = "example-component"
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/example-component/product-type-example"
+    for artifact in manifest["artifacts"]:
+        filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/example-component/product-type-example/{filename}"
+elif mutation == "knowledge-type-slash":
+    handoff["placement"]["knowledge_type"] = "bad/type"
+elif mutation == "knowledge-type-traversal":
+    handoff["placement"]["knowledge_type"] = ".."
+elif mutation == "old-untyped-knowledge-path":
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/product-type-example"
+    for artifact in manifest["artifacts"]:
+        filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/product-type-example/{filename}"
+elif mutation == "source-has-knowledge-type":
+    handoff["placement"]["knowledge_type"] = "example-product-type"
 elif mutation == "missing-asset-slug":
     handoff["placement"].pop("asset_slug", None)
 elif mutation == "asset-slug-slash":
@@ -298,16 +355,16 @@ elif mutation == "asset-slug-traversal":
     handoff["placement"]["asset_slug"] = ".."
 elif mutation == "destination-uses-asset-id":
     handoff["placement"]["asset_slug"] = "product-type-local-slug"
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/product-type-example"
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/example-product-type/product-type-example"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/product-type-example/{filename}"
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/example-product-type/product-type-example/{filename}"
 elif mutation == "manifest-destination-outside-slug-root":
     handoff["placement"]["asset_slug"] = "product-type-local-slug"
-    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/product-type-local-slug"
+    handoff["placement"]["destination_root"] = "cosmetics/example-source-family/knowledge/example-product-type/product-type-local-slug"
     for artifact in manifest["artifacts"]:
         filename = artifact["destination_kb_path"].rsplit("/", 1)[-1]
-        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/product-type-example/{filename}"
+        artifact["destination_kb_path"] = f"cosmetics/example-source-family/knowledge/example-product-type/product-type-example/{filename}"
 elif mutation == "absolute-ref":
     handoff["phase_inputs"]["phase3_execution_target_ref"] = "/tmp/execution_target.json"
 elif mutation == "traversal-ref":
@@ -340,26 +397,89 @@ PY_STAGE2_MUTATE
 
 positive_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 generated-positive)"
 mutate_case "${positive_case}" "none"
-pass_case "Stage 2 generated repo-relative handoff passes standalone policy preflight"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${positive_case}/admission_handoff.json"
+pass_case "Stage 2 generated repo-relative handoff passes standalone policy preflight" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${positive_case}/admission_handoff.json"
 
 humblebee_case="$(make_case operations/admission/examples/stage2/source_capture.v1 humblebee-slug-positive)"
 mutate_case "${humblebee_case}" "humblebee-slug"
 pass_case "Stage 2 accepts Humblebee source with global asset_id and local asset_slug" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${humblebee_case}/admission_handoff.json"
 
+missing_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 missing-taxonomy-config)"
+mutate_case "${missing_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects missing taxonomy config" "ADMISSION_KB_TAXONOMY_CONFIG is required" \
+  env -u ADMISSION_KB_TAXONOMY_CONFIG \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${missing_config_case}/admission_handoff.json"
+
+invalid_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 invalid-taxonomy-config)"
+mutate_case "${invalid_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects invalid taxonomy config" "'config_version' is a required property" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${INVALID_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${invalid_config_case}/admission_handoff.json"
+
+in_repo_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 in-repo-taxonomy-config)"
+mutate_case "${in_repo_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects absolute taxonomy config inside repository" "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${REPO_TAXONOMY_FIXTURE}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${in_repo_config_case}/admission_handoff.json"
+
+relative_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 relative-taxonomy-config)"
+mutate_case "${relative_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects relative taxonomy config path" "ADMISSION_KB_TAXONOMY_CONFIG must be an absolute path outside Git" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${RELATIVE_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${relative_config_case}/admission_handoff.json"
+
+symlink_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 symlink-taxonomy-config)"
+mutate_case "${symlink_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects outside symlink to repository taxonomy config" "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${SYMLINK_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${symlink_config_case}/admission_handoff.json"
+
+nonexistent_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 nonexistent-taxonomy-config)"
+mutate_case "${nonexistent_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects nonexistent taxonomy config" "ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${NONEXISTENT_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${nonexistent_config_case}/admission_handoff.json"
+
+inconsistent_config_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 inconsistent-taxonomy-config)"
+mutate_case "${inconsistent_config_case}" "none"
+fail_case "Stage 2 knowledge_asset rejects internally inconsistent taxonomy config" "KB taxonomy config maps knowledge types not present in allowed_knowledge_types" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${INCONSISTENT_TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${inconsistent_config_case}/admission_handoff.json"
+
+diagnostic_mode_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 diagnostic-mode)"
+mutate_case "${diagnostic_mode_case}" "none"
+fail_case "Stage 2 shape-only diagnostic mode is not admission readiness" "shape-only diagnostic taxonomy mode is not admission readiness" \
+  env ADMISSION_KB_TAXONOMY_MODE="shape-only-diagnostic" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${diagnostic_mode_case}/admission_handoff.json"
+
 source_case="$(make_case operations/admission/examples/stage2/source_capture.v1 source-targets-knowledge)"
 mutate_case "${source_case}" "source-targets-knowledge"
 fail_case "Stage 2 rejects source_capture targeting knowledge layer" "placement.destination_root must follow domain-first layout"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${source_case}/admission_handoff.json"
 
+source_type_case="$(make_case operations/admission/examples/stage2/source_capture.v1 source-has-knowledge-type)"
+mutate_case "${source_type_case}" "source-has-knowledge-type"
+fail_case "Stage 2 rejects knowledge_type on source_capture" "should not be valid under" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${source_type_case}/admission_handoff.json"
+
 knowledge_case="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 knowledge-targets-sources)"
 mutate_case "${knowledge_case}" "knowledge-targets-sources"
-fail_case "Stage 2 rejects knowledge_asset targeting sources layer" "placement.destination_root must follow domain-first layout"   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${knowledge_case}/admission_handoff.json"
+fail_case "Stage 2 rejects knowledge_asset targeting sources layer" "placement.destination_root must follow domain-first layout" \
+  env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${knowledge_case}/admission_handoff.json"
 
 negative_cases=(
   "unknown-kind|'future_kind' is not one of"
   "unknown-profile|knowledge_profile_id is not registered"
   "role-first|placement.destination_root must follow domain-first layout"
   "asset-id-mismatch|asset_id must be preserved from Stage 1 package"
+  "missing-knowledge-type|'knowledge_type' is a required property"
+  "unknown-knowledge-type|placement.knowledge_type is not allowed by local KB taxonomy config"
+  "profile-type-mismatch|knowledge_profile_id is not allowed for placement.knowledge_type"
+  "knowledge-type-slash|does not match"
+  "knowledge-type-traversal|should not be valid under"
+  "old-untyped-knowledge-path|placement.destination_root must follow domain-first layout"
   "missing-asset-slug|'asset_slug' is a required property"
   "asset-slug-slash|does not match"
   "asset-slug-traversal|should not be valid under"
@@ -383,7 +503,9 @@ for entry in "${negative_cases[@]}"; do
   expected="${entry#*|}"
   case_dir="$(make_case operations/admission/examples/stage2/knowledge_product_type.v1 "${mutation}")"
   mutate_case "${case_dir}" "${mutation}"
-  fail_case "Stage 2 rejects ${mutation}" "${expected}"     "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${case_dir}/admission_handoff.json"
+  fail_case "Stage 2 rejects ${mutation}" "${expected}" \
+    env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+    "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py . "${case_dir}/admission_handoff.json"
 done
 
 after_snapshot="$(snapshot_repo_surfaces)"

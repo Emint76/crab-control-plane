@@ -78,6 +78,8 @@ assert "kb_knowledge_domain_first.v1" in placement_registry["placement_policies"
 for policy in placement_registry["placement_policies"].values():
     assert "<asset-slug>" in policy["path_template"], policy
     assert "<asset-id>" not in policy["path_template"], policy
+assert "<knowledge-type>" in placement_registry["placement_policies"]["kb_knowledge_domain_first.v1"]["path_template"]
+assert "<knowledge-type>" not in placement_registry["placement_policies"]["kb_source_domain_first.v1"]["path_template"]
 
 examples = sorted((admission / "examples" / "stage2").glob("*/admission_handoff.json"))
 assert examples, "Stage 2 examples are required"
@@ -90,6 +92,7 @@ assert "policy_readiness" not in handoff_schema_text, "handoff schema must not e
 placement_schema = handoff_schema["properties"]["placement"]
 assert "asset_slug" in placement_schema["required"], "handoff placement must require asset_slug"
 assert placement_schema["properties"]["asset_slug"] == {"$ref": "#/$defs/path_segment"}
+assert placement_schema["properties"]["knowledge_type"] == {"$ref": "#/$defs/path_segment"}
 for handoff_path in examples:
     handoff_text = handoff_path.read_text(encoding="utf-8")
     assert "policy_readiness" not in handoff_text, handoff_path
@@ -109,10 +112,12 @@ for handoff_path in examples:
         profile_id = package["knowledge_profile_id"]
         seen_profiles.add(profile_id)
         assert profile_id in profiles
+    assert "knowledge_type" not in package, package_path
 
     review_path = repo / handoff["review_evidence"]["approval_ref"]
     review = json.loads(review_path.read_text(encoding="utf-8"))
     validate("control-plane/contracts/schemas/review_decision.schema.json", review, review_path)
+    assert "knowledge_type" not in review, review_path
 
     target_path = repo / handoff["phase_inputs"]["phase3_execution_target_ref"]
     target = json.loads(target_path.read_text(encoding="utf-8"))
@@ -128,8 +133,21 @@ for handoff_path in examples:
     manifest_path = repo / handoff["phase_inputs"]["phase3_admission_manifest_ref"]
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     validate("operations/harness-phase3/contracts/kb_admission_manifest.schema.json", manifest, manifest_path)
+    assert "knowledge_type" not in manifest["lineage"], manifest_path
+    placement = handoff["placement"]
+    if handoff["admission_kind"] == "knowledge_asset":
+        assert "knowledge_type" in placement, handoff_path
+        typed_prefix = f'{placement["domain_area"]}/{placement["source_family_id"]}/knowledge/{placement["knowledge_type"]}/{placement["asset_slug"]}/'
+        for artifact in manifest["artifacts"]:
+            assert artifact["destination_kb_path"].startswith(typed_prefix), artifact
+    else:
+        assert "knowledge_type" not in placement, handoff_path
 
 assert seen_profiles == set(profiles), seen_profiles
+taxonomy_fixture = json.loads((admission / "tests/fixtures/kb_taxonomy_config.noncanonical.json").read_text(encoding="utf-8"))
+validate("operations/admission/schemas/kb_taxonomy_config.v1.schema.json", taxonomy_fixture, admission / "tests/fixtures/kb_taxonomy_config.noncanonical.json")
+for example_type in taxonomy_fixture["allowed_knowledge_types"]:
+    assert example_type.startswith("example-"), example_type
 doc_paths = [
     repo / "docs/ADMISSION_STAGE2_CONTRACT.md",
     repo / "docs/ADMISSION_CHECK_OWNERSHIP.md",
@@ -155,6 +173,32 @@ for doc_path in doc_paths:
     ]
     for fragment in forbidden_fragments:
         assert fragment not in text, (doc_path.as_posix(), fragment)
+
+normative_text = "\n".join(
+    path.read_text(encoding="utf-8")
+    for path in [
+        repo / "docs/ADMISSION_CONTRACT.md",
+        repo / "docs/ADMISSION_STAGE2_CONTRACT.md",
+        repo / "docs/ADMISSION_CHECK_OWNERSHIP.md",
+        repo / "knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md",
+        repo / "knowledge/kb/asset-templates/recipe-formula-extraction.md",
+        repo / "control-plane/policy/KNOWLEDGE_EXTRACTION_PROFILE_POLICY.md",
+    ]
+)
+for forbidden in [
+    "semantic review has already happened",
+    "producer-side semantic review",
+    "reviewed knowledge package",
+]:
+    assert forbidden not in normative_text, forbidden
+
+stage2_contract = (repo / "docs/ADMISSION_STAGE2_CONTRACT.md").read_text(encoding="utf-8")
+assert "ADMISSION_KB_TAXONOMY_CONFIG" in stage2_contract
+assert "absolute filesystem path to an outside-Git local config file" in stage2_contract
+assert "resolved real path must be outside the repository root" in stage2_contract
+assert "symlink outside the repository that resolves back into the repository is rejected" in stage2_contract
+assert "positive validation tests copy them outside the repository" in stage2_contract
+assert "Every mapped type must also appear in `allowed_knowledge_types`" in stage2_contract
 
 skill_text = (repo / "skills/source-admission/SKILL.md").read_text(encoding="utf-8")
 assert "admission_package.json" in skill_text
