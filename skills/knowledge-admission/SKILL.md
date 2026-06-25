@@ -1,0 +1,217 @@
+---
+name: knowledge-admission
+description: Prepare agent-owned knowledge extraction outputs from accepted provenance-bearing sources for canonical crab-control-plane/OpenClaw workspace KB admission. Use when a registered knowledge_profile_id exists and the user wants reusable knowledge prepared for KB admission. Semantic extraction is agent-owned; Admission and Phase validate contracts, placement, execution, hashes, and evidence, not semantic correctness.
+---
+
+# Knowledge Admission
+
+Prepare **knowledge assets** for canonical KB admission from accepted provenance-bearing sources.
+
+This skill is a preparation and routing policy. It does not admit anything by itself and does not validate semantic correctness.
+
+Canonical route:
+
+```text
+accepted provenance-bearing source
+→ select registered knowledge_profile_id
+→ agent-owned semantic extraction
+→ knowledge candidate
+→ admission-authorized knowledge package
+→ Admission Stage 1 package and authorization artifact
+→ instance-local typed placement
+→ Phase3 manifest and execution target
+→ Admission Stage 2 handoff
+→ standalone admission preflight
+→ accepted exact-HEAD Phase2 baseline
+→ Phase4 default wrapper
+→ Phase3 kb_admission
+→ canonical Phase3 evidence
+→ later semantic review in wiki layer
+```
+
+Phase3 remains the sole canonical execution owner. Phase4 is the default invocation route. Phase2 checks exact-HEAD repo/control-plane readiness. Admission Stage 1 and Stage 2 are contract layers, not runtime phases.
+
+## Activation
+
+Use knowledge-admission mode when:
+
+- the user asks to extract, distil, or prepare reusable knowledge from an accepted provenance-bearing source;
+- the result is intended for canonical KB admission;
+- a registered and sufficiently defined `knowledge_profile_id` exists.
+
+Do not start canonical admission when the user asks only for transient analysis, summary, discussion, draft extraction, or source capture.
+
+If the source has not been accepted or admitted, stop and report that source admission is the prerequisite. Route to `source-admission` when the user wants to capture or admit the source.
+
+## Responsibilities
+
+The agent must:
+
+1. identify the exact source asset and provenance;
+2. choose an explicit registered `knowledge_profile_id`;
+3. follow the referenced agent instruction profile;
+4. prepare the semantic extraction as a working candidate;
+5. separate directly source-stated material, agent interpretation, inferred content, not stated, and not validated;
+6. finalize bytes suitable for an admission-authorized knowledge package;
+7. establish a new stable knowledge `asset_id`;
+8. retain source lineage without reusing the source asset ID as the knowledge asset ID;
+9. choose placement-only `asset_slug`;
+10. load outside-repository instance taxonomy config;
+11. choose an allowed placement-only `knowledge_type`;
+12. prepare the universal Stage 1 and Stage 2 artifacts;
+13. run standalone admission preflight;
+14. check or create the exact-HEAD Phase2 baseline;
+15. invoke Phase4 by default;
+16. verify Phase3 canonical evidence and admitted hashes.
+
+## Profile Selection
+
+Select a registered `knowledge_profile_id` from:
+
+```text
+operations/admission/knowledge-profiles/registry.v1.json
+```
+
+The profile entry is routing and instruction metadata, not a semantic validator. Do not branch into custom admission logic by profile.
+
+For recipe and formula extraction in cosmetics and household chemistry, use:
+
+```text
+knowledge_profile_id: recipe_formula_extraction.v1
+```
+
+Instruction document:
+
+```text
+knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md
+```
+
+Output template:
+
+```text
+knowledge/kb/asset-templates/recipe-formula-extraction.md
+```
+
+## Semantic Boundary
+
+Semantic extraction is agent-owned.
+
+Admission, Phase2, Phase3, and Phase4 do not validate semantics, recipe correctness, ingredient safety, domain expertise, vocabulary truth, or whether extracted claims are correct.
+
+The required `review-decision.json` is admission authorization and placement authorization. It confirms that the final prepared bytes may proceed into the controlled admission path. It is not semantic review, independent expert review, validation of extracted claims, or proof that the extraction is correct.
+
+Semantic review is deferred to the later wiki/semantic layer.
+
+## Claim Discipline
+
+The candidate and final package must distinguish:
+
+- directly source-stated material;
+- agent interpretation grounded in source evidence;
+- inferred content;
+- not stated;
+- not validated.
+
+Unsupported claims must be removed, narrowed, or marked as inferred, not stated, or not validated. Do not submit bytes to Phase if they still contain temporary candidate-only status that becomes false after admission.
+
+## Placement Model
+
+For knowledge assets:
+
+```text
+<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/
+```
+
+Rules:
+
+- `asset_id` is stable global identity and lineage.
+- `asset_slug` is a source-family-local placement segment.
+- `knowledge_type` is an instance-local placement taxonomy segment.
+- Neither `asset_slug` nor `knowledge_type` belongs in lineage identity.
+- Do not derive `knowledge_type` from profile ID, asset ID, slug, or destination path.
+- Do not hardcode a repository-owned knowledge taxonomy.
+
+The repository must not define canonical values such as recipe, component, formulation, or product type.
+
+## Local Taxonomy Config
+
+Real knowledge admission requires:
+
+```text
+ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json
+```
+
+The config is outside Git, must be an absolute path, and must resolve outside the repository. Symlinks cannot point back into repository files. Missing, invalid, relative, in-repository, or internally inconsistent config fails closed.
+
+The selected `knowledge_profile_id -> knowledge_type` mapping must be allowed by the instance-local config. There is no shape-only production fallback.
+
+## Required Artifacts
+
+Prepare:
+
+- `admission_package.json` with `admission_kind: knowledge_asset`, `profile_id: knowledge_asset.v1`, stable `asset_id`, registered `knowledge_profile_id`, package-relative `payload_path`, and opaque non-empty `profile_data`;
+- canonical `review-decision.json` with `decision: approve`, matching `artifact_id`, and `approved_destination: kb`;
+- Phase3 `admission_manifest.json`;
+- Phase3 `execution_target.json`;
+- Admission Stage 2 `admission_handoff.json` with typed placement and references to the already existing package, authorization, manifest, and execution target.
+
+Run standalone preflight after all referenced files exist:
+
+```bash
+ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json \
+python3 operations/harness-phase2/bin/check_admission_policy.py \
+  /home/node/.openclaw/workspace/repos/crab-control-plane \
+  /path/to/knowledge-admission-proof/admission_handoff.json
+```
+
+## Phase2 Baseline Rule
+
+Reuse a Phase2 baseline only when:
+
+1. the Phase2 run completed successfully;
+2. its canonical report and handoff-readiness result are passing;
+3. the tracked repository working tree is clean;
+4. the operator or batch runner recorded the exact repository Git HEAD when the baseline was accepted;
+5. the current repository Git HEAD exactly equals that recorded HEAD.
+
+Any new repository commit makes the previous Phase2 baseline stale. No operator override may permit reuse across different Git HEADs.
+
+Allowed claim:
+
+```text
+Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD <SHA>.
+```
+
+## Phase4 And Phase3
+
+Phase4 is the default operator-facing invocation route.
+
+Phase3 `kb_admission` is the sole canonical execution and evidence owner. Do not claim admission until Phase3 succeeds, emits canonical evidence, and the admitted destination hashes match expected values.
+
+## Fail Closed
+
+Stop before Phase execution when:
+
+- source identity or provenance is missing;
+- the selected profile is absent, placeholder-only, or lacks a usable instruction document;
+- the candidate contains unsupported claims presented as source facts;
+- final bytes still contain temporary candidate-only status;
+- admission authorization is missing;
+- local taxonomy config is missing, invalid, relative, inside the repository, or disallows the profile/type mapping;
+- typed destination is unresolved;
+- expected hashes are missing or inconsistent;
+- exact-HEAD Phase2 baseline is unavailable and cannot be created;
+- Phase4 or Phase3 prerequisites are unresolved.
+
+## Contract References
+
+Use these canonical contracts instead of duplicating generic route details:
+
+- `docs/ADMISSION_CONTRACT.md`
+- `docs/ADMISSION_STAGE2_CONTRACT.md`
+- `docs/ADMISSION_CHECK_OWNERSHIP.md`
+- `operations/admission/README.md`
+- `knowledge/kb/KB_LAYOUT.md`
+- `knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md`
+- `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`
+- `operations/harness-phase3/PHASE3_EXECUTION_CONTRACT.md`

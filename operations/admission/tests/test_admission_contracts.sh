@@ -66,7 +66,20 @@ profiles = registry["profiles"]
 assert {"product_type_extraction.v1", "recipe_formula_extraction.v1", "component_extraction.v1"} <= set(profiles)
 for profile_id, entry in profiles.items():
     assert "enabled_for_admission" not in entry, profile_id
-    assert set(entry) == {"payload_kind", "placement_policy_id", "status"}, profile_id
+    assert set(entry).issubset({"payload_kind", "placement_policy_id", "status", "instruction_ref"}), profile_id
+    if "instruction_ref" in entry:
+        instruction_ref = entry["instruction_ref"]
+        assert isinstance(instruction_ref, str) and instruction_ref, profile_id
+        assert not instruction_ref.startswith("/"), profile_id
+        assert ".." not in instruction_ref.split("/"), profile_id
+        instruction_path = repo / instruction_ref
+        assert instruction_path.is_file(), instruction_ref
+        instruction_text = instruction_path.read_text(encoding="utf-8")
+        assert profile_id in instruction_text, profile_id
+    for forbidden in ["knowledge_type", "schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref"]:
+        assert forbidden not in entry, (profile_id, forbidden)
+assert profiles["recipe_formula_extraction.v1"]["status"] == "registered"
+assert profiles["recipe_formula_extraction.v1"]["instruction_ref"] == "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
 
 for path in sorted((admission / "profiles").glob("*.json")):
     payload = json.loads(path.read_text(encoding="utf-8"))

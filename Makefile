@@ -88,6 +88,10 @@ crab-approved-live-rollout-ci:
 source-admission-skill-validate:
 	bash skills/source-admission/tests/test_source_admission_package.sh
 
+.PHONY: knowledge-admission-skill-validate
+knowledge-admission-skill-validate:
+	bash skills/knowledge-admission/tests/test_knowledge_admission_package.sh
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci

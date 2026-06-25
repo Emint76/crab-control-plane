@@ -18,7 +18,7 @@ Admission still requires review/admission path.
 
 This profile applies when a user or reviewer asks the agent to extract reusable knowledge candidates from admitted, reviewed, or otherwise provenance-bearing sources in the cosmetics and household chemistry domain.
 
-For formula and recipe tasks, the default output type is `recipe_formula_extraction`.
+For formula and recipe tasks, the default registered knowledge profile is `recipe_formula_extraction.v1`.
 
 ## Source families
 
@@ -58,7 +58,7 @@ For recipe/formula extraction, the agent should extract these entities when sour
 
 Initial allowed output asset types for this domain:
 
-- `recipe_formula_extraction`
+- `recipe_formula_extraction.v1`
 - `component_extraction.v1` (placeholder extraction profile; resulting asset may be a component profile)
 - `protocol_extraction` (placeholder)
 - `article_extraction` (placeholder)
@@ -66,11 +66,17 @@ Initial allowed output asset types for this domain:
 - `comparison_asset` (placeholder)
 - `decision_record` (placeholder)
 
-Only `recipe_formula_extraction` has a concrete template in this PR.
+Only `recipe_formula_extraction.v1` has a concrete agent instruction document and output template.
 
 ## Default asset type for recipes
 
-Default asset type for DIY/product formulas: `recipe_formula_extraction`.
+Default knowledge profile for DIY/product formulas: `recipe_formula_extraction.v1`.
+
+Instruction path:
+
+```text
+knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md
+```
 
 Template path:
 
@@ -80,13 +86,14 @@ knowledge/kb/asset-templates/recipe-formula-extraction.md
 
 ## Required fields by asset type
 
-### recipe_formula_extraction
+### recipe_formula_extraction.v1
 
 Required front matter follows:
 
 ```text
 asset_id
 asset_kind
+knowledge_profile_id
 knowledge_type
 domain_area
 source_family_id
@@ -115,7 +122,7 @@ Other asset types are placeholders and have no complete field requirements in th
 
 ## Required tables by asset type
 
-### recipe_formula_extraction
+### recipe_formula_extraction.v1
 
 The candidate must include:
 
@@ -144,7 +151,7 @@ A recipe/formula candidate should preserve these relationships:
 
 ## Extraction rules by asset type
 
-### recipe_formula_extraction
+### recipe_formula_extraction.v1
 
 For formula, recipe, and product-making sources, require:
 

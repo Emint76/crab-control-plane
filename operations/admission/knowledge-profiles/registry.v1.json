@@ -11,9 +11,10 @@
       "status": "registered"
     },
     "recipe_formula_extraction.v1": {
+      "instruction_ref": "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md",
       "payload_kind": "file",
       "placement_policy_id": "kb_knowledge_domain_first.v1",
-      "status": "registered-placeholder"
+      "status": "registered"
     }
   },
   "registry_id": "knowledge_profiles.v1"

@@ -57,7 +57,8 @@ Use these fields as a minimum shape for an admission-authorized knowledge packag
 ---
 asset_id: "<stable-asset-id>"
 artifact_type: "knowledge_package"
-knowledge_type: "recipe_formula_extraction"
+knowledge_profile_id: "recipe_formula_extraction.v1"
+knowledge_type: "<instance-local-knowledge-type>"
 domain_area: "<domain-area>"
 source_family_id: "<publisher-or-source-family-id>"
 publisher: "<publisher-name>"
@@ -91,6 +92,8 @@ extraction:
     evidence_path: "<evidence-path-or-not-applicable>"
 ---
 ```
+
+The `knowledge_profile_id` identifies the agent extraction profile. The `knowledge_type` value is an instance-local placement taxonomy segment selected from outside-repository local taxonomy configuration. Do not use `knowledge_type: recipe_formula_extraction` as a substitute for the profile ID.
 
 The `knowledge_asset_path` example uses the Stage 2 typed placement shape. Its `<knowledge-type>` segment comes from instance-local KB taxonomy configuration and is placement metadata, not semantic validation and not `asset_id`.
 
