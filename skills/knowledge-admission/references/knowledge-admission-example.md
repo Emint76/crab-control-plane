@@ -120,11 +120,13 @@ This authorizes admission and placement only. It is not semantic review and does
   "admission_type": "knowledge_asset",
   "artifacts": [
     {
-      "artifact_id": "example-recipe-formula-extraction-001",
-      "content_role": "admission_authorized_knowledge_package",
+      "input_workspace_path": "example-domain/example-source-family/workflow/knowledge-admission-example-001/example-recipe-formula-extraction-001/payload/example-recipe-formula-001.md",
+      "expected_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "destination_kb_path": "example-domain/example-source-family/knowledge/example-recipe-formula/example-recipe-formula-001/example-recipe-formula-001.md",
-      "expected_sha256": "<actual-runtime-staged-payload-sha256>",
-      "input_workspace_path": "example-domain/example-source-family/workflow/knowledge-admission-example-001/example-recipe-formula-extraction-001/payload/example-recipe-formula-001.md"
+      "copy_metadata": {
+        "content_role": "admission_authorized_knowledge_package",
+        "example_only": true
+      }
     }
   ],
   "copy_operation": {

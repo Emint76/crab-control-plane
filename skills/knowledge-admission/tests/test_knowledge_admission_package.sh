@@ -55,6 +55,8 @@ import re
 import sys
 from pathlib import Path
 
+from jsonschema import Draft202012Validator
+
 repo = Path(sys.argv[1])
 package = repo / "skills/knowledge-admission"
 skill = (package / "SKILL.md").read_text(encoding="utf-8")
@@ -63,6 +65,7 @@ profile_path = repo / "knowledge/kb/extraction-profiles/cosmetics-household-chem
 profile = profile_path.read_text(encoding="utf-8")
 template = (repo / "knowledge/kb/asset-templates/recipe-formula-extraction.md").read_text(encoding="utf-8")
 registry = json.loads((repo / "operations/admission/knowledge-profiles/registry.v1.json").read_text(encoding="utf-8"))
+manifest_schema = json.loads((repo / "operations/harness-phase3/contracts/kb_admission_manifest.schema.json").read_text(encoding="utf-8"))
 
 patterns = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
@@ -111,6 +114,29 @@ assert example.index("admission_package.json") < example.index("admission_handof
 assert "This authorizes admission and placement only. It is not semantic review" in example
 assert "Phase3 evidence proves runtime intake" in example
 
+manifest_marker = "## Phase3 Admission Manifest"
+manifest_start = example.index(manifest_marker)
+json_start = example.index("```json", manifest_start) + len("```json")
+json_end = example.index("```", json_start)
+manifest = json.loads(example[json_start:json_end].strip())
+Draft202012Validator.check_schema(manifest_schema)
+manifest_errors = sorted(
+    Draft202012Validator(manifest_schema).iter_errors(manifest),
+    key=lambda error: list(error.absolute_path),
+)
+assert not manifest_errors, "; ".join(error.message for error in manifest_errors)
+for artifact in manifest["artifacts"]:
+    expected_artifact_fields = {
+        "input_workspace_path",
+        "expected_sha256",
+        "destination_kb_path",
+        "copy_metadata",
+    }
+    assert set(artifact) == expected_artifact_fields, artifact
+    assert "artifact_id" not in artifact, artifact
+    assert "content_role" not in artifact, artifact
+    assert re.fullmatch(r"[0-9a-f]{64}", artifact["expected_sha256"]), artifact["expected_sha256"]
+
 profile_required = [
     "# recipe_formula_extraction.v1",
     "`recipe_formula_extraction.v1` is an agent instruction profile",
@@ -140,6 +166,20 @@ for profile_id, profile_entry in profiles.items():
 assert 'knowledge_type: "recipe_formula_extraction"' not in template
 assert 'knowledge_profile_id: "recipe_formula_extraction.v1"' in template
 assert 'knowledge_type: "<instance-local-knowledge-type>"' in template
+exact_profile_path = "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
+assert f'extraction_profile_path: "{exact_profile_path}"' in template
+assert f'profile_path: "{exact_profile_path}"' in template
+assert "knowledge/kb/extraction-profiles/<domain>/index.md" not in template
+assert "sources/<source-asset-id>" not in template
+assert 'source_asset_path: "<exact-accepted-source-asset-path>"' in template
+assert "source_asset_path` value must be copied from accepted source provenance" in template
+assert "Do not synthesize it from the source `asset_id`" in template
+
+profile_index = (repo / "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/index.md").read_text(encoding="utf-8")
+assert "artifact_type" in profile_index
+assert "admission_readiness" in profile_index
+assert "asset_kind" not in profile_index
+assert "knowledge_status" not in profile_index
 
 for text, label in [(skill, "SKILL.md"), (example, "knowledge-admission-example.md"), (profile, "recipe profile")]:
     for forbidden in [

@@ -53,6 +53,7 @@ The agent must not present inferred content as source-stated fact.
 Every candidate and admission-authorized package must preserve:
 
 - source asset or accepted source reference;
+- exact accepted source placement path copied from accepted source provenance, not reconstructed from the source `asset_id`;
 - source family ID;
 - domain area;
 - source title;

@@ -92,7 +92,7 @@ Required front matter follows:
 
 ```text
 asset_id
-asset_kind
+artifact_type
 knowledge_profile_id
 knowledge_type
 domain_area
@@ -110,7 +110,7 @@ knowledge_asset_path
 extraction_profile_path
 extraction_workflow_path
 source_status
-knowledge_status
+admission_readiness
 review_status
 claim_scope
 validation_scope

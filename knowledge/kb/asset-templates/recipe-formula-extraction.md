@@ -69,9 +69,9 @@ product_type: "<product-or-formula-type>"
 use_context: "<intended-use-context-as-stated-or-interpreted>"
 water_system: "<water-system-status-or-not-stated>"
 kb_family_root: "<domain-area>/<source-family-id>"
-source_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/sources/<source-asset-id>/"
+source_asset_path: "<exact-accepted-source-asset-path>"
 knowledge_asset_path: "<workspace-kb-root>/<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/"
-extraction_profile_path: "knowledge/kb/extraction-profiles/<domain>/index.md"
+extraction_profile_path: "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
 extraction_workflow_path: "<workflow-or-evidence-path-or-not-available>"
 source_status: "<captured|source_admitted|reviewed|not_available>"
 admission_readiness: "reviewed_for_kb_placement"
@@ -80,7 +80,7 @@ claim_scope: "<what-this-package-claims-to-cover>"
 validation_scope: "not validated beyond source-stated content unless explicitly reviewed"
 formula_summary: "<one-sentence-source-grounded-summary>"
 extraction:
-  profile_path: "knowledge/kb/extraction-profiles/<domain>/index.md"
+  profile_path: "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
   profile_approval_ref: "<profile-approval-or-refinement-ref>"
   prepared_by: "<agent-or-author-id>"
   prepared_at: "<YYYY-MM-DD-or-not-stated>"
@@ -94,6 +94,8 @@ extraction:
 ```
 
 The `knowledge_profile_id` identifies the agent extraction profile. The `knowledge_type` value is an instance-local placement taxonomy segment selected from outside-repository local taxonomy configuration. Do not use `knowledge_type: recipe_formula_extraction` as a substitute for the profile ID.
+
+The `source_asset_path` value must be copied from accepted source provenance. It is the actual admitted source placement path. Do not synthesize it from the source `asset_id`; source identity and source placement remain distinct.
 
 The `knowledge_asset_path` example uses the Stage 2 typed placement shape. Its `<knowledge-type>` segment comes from instance-local KB taxonomy configuration and is placement metadata, not semantic validation and not `asset_id`.
 
