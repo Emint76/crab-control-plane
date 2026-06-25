@@ -72,7 +72,7 @@ The agent must:
 7. establish a new stable knowledge `asset_id`;
 8. retain source lineage without reusing the source asset ID as the knowledge asset ID;
 9. choose placement-only `asset_slug`;
-10. load outside-repository instance taxonomy config;
+10. load the explicit instance taxonomy config;
 11. choose an allowed placement-only `knowledge_type`;
 12. prepare the universal Stage 1 and Stage 2 artifacts;
 13. run standalone admission preflight;
@@ -148,12 +148,12 @@ The repository must not define canonical values such as recipe, component, formu
 Real knowledge admission requires:
 
 ```text
-ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json
+ADMISSION_KB_TAXONOMY_CONFIG=/path/to/instance/kb-taxonomy-config.json
 ```
 
-The config is outside Git, must be an absolute path, and must resolve outside the repository. Symlinks cannot point back into repository files. Missing, invalid, relative, in-repository, or internally inconsistent config fails closed.
+The config path is explicit. Absolute paths are accepted. Relative paths resolve against the repository root supplied to the standalone checker. Missing, nonexistent, non-file, invalid, schema-invalid, or unauthorized selected profile/type config fails closed. The canonical repository does not own active instance taxonomy values, and physical filesystem containment is not enforced by the checker.
 
-The selected `knowledge_profile_id -> knowledge_type` mapping must be allowed by the instance-local config. There is no shape-only production fallback.
+The selected `knowledge_profile_id -> knowledge_type` mapping must be allowed by the instance-local config.
 
 ## Required Artifacts
 
@@ -169,7 +169,7 @@ Run standalone preflight after all referenced files exist:
 
 ```bash
 ADMISSION_KNOWLEDGE_PROFILE_REGISTRY=/path/to/instance/knowledge-profile-registry.json \
-ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json \
+ADMISSION_KB_TAXONOMY_CONFIG=/path/to/instance/kb-taxonomy-config.json \
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \
   /path/to/knowledge-admission-proof/admission_handoff.json

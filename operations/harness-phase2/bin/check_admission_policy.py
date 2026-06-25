@@ -186,32 +186,15 @@ def validate_selected_knowledge_profile(knowledge_profile_id: str) -> dict[str, 
 
 
 def load_kb_taxonomy_config(repo_root: Path) -> dict[str, Any]:
-    if os.environ.get("ADMISSION_KB_TAXONOMY_MODE") == "shape-only-diagnostic":
-        raise CheckFailure("shape-only diagnostic taxonomy mode is not admission readiness")
     config_ref = os.environ.get("ADMISSION_KB_TAXONOMY_CONFIG")
     if not config_ref:
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG is required for knowledge_asset admission")
     config_path = Path(config_ref)
     if not config_path.is_absolute():
-        raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG must be an absolute path outside Git")
+        config_path = repo_root / config_path
     if not config_path.exists():
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file")
-    resolved_repo = repo_root.resolve(strict=True)
     resolved_config = config_path.resolve(strict=True)
-    try:
-        if resolved_config == resolved_repo or resolved_config.is_relative_to(resolved_repo):
-            raise CheckFailure(
-                "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file"
-            )
-    except AttributeError:
-        try:
-            resolved_config.relative_to(resolved_repo)
-        except ValueError:
-            pass
-        else:
-            raise CheckFailure(
-                "ADMISSION_KB_TAXONOMY_CONFIG must reference an outside-repository local config file"
-            )
     if not resolved_config.is_file():
         raise CheckFailure("ADMISSION_KB_TAXONOMY_CONFIG does not reference an existing file")
     config = load_json_object(resolved_config)
@@ -220,23 +203,6 @@ def load_kb_taxonomy_config(repo_root: Path) -> dict[str, Any]:
         config,
         resolved_config,
     )
-    allowed_types = config.get("allowed_knowledge_types")
-    profile_map = config.get("profile_knowledge_type_map")
-    if not isinstance(allowed_types, list) or not isinstance(profile_map, dict):
-        raise CheckFailure("KB taxonomy config must define allowed types and profile map")
-    allowed_set = set(allowed_types)
-    inconsistent: list[str] = []
-    for profile_id, mapped_types in profile_map.items():
-        if not isinstance(mapped_types, list):
-            raise CheckFailure("KB taxonomy config profile map entries must be type lists")
-        for mapped_type in mapped_types:
-            if mapped_type not in allowed_set:
-                inconsistent.append(f"{profile_id}:{mapped_type}")
-    if inconsistent:
-        raise CheckFailure(
-            "KB taxonomy config maps knowledge types not present in allowed_knowledge_types: "
-            + ", ".join(sorted(inconsistent))
-        )
     return config
 
 

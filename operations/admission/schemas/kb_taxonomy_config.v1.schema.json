@@ -7,7 +7,6 @@
   "required": [
     "config_kind",
     "config_version",
-    "local_only",
     "allowed_knowledge_types",
     "profile_knowledge_type_map"
   ],

@@ -209,11 +209,11 @@ stage2_contract = (repo / "docs/ADMISSION_STAGE2_CONTRACT.md").read_text(encodin
 assert "ADMISSION_KB_TAXONOMY_CONFIG" in stage2_contract
 assert "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY" in stage2_contract
 assert "profile_contract_id: knowledge_extraction.v1" in stage2_contract
-assert "absolute filesystem path to an outside-Git local config file" in stage2_contract
-assert "resolved real path must be outside the repository root" in stage2_contract
-assert "symlink outside the repository that resolves back into the repository is rejected" in stage2_contract
-assert "positive validation tests copy them outside the repository" in stage2_contract
-assert "Every mapped type must also appear in `allowed_knowledge_types`" in stage2_contract
+assert "Absolute paths are accepted" in stage2_contract
+assert "Relative paths are resolved against the repository root supplied to the standalone checker" in stage2_contract
+assert "Physical filesystem containment is not enforced by the checker" in stage2_contract
+assert "Runtime preflight validates the selected `knowledge_profile_id` and selected `knowledge_type` pair only" in stage2_contract
+assert "Unused future mappings do not block the selected admission" in stage2_contract
 
 skill_text = (repo / "skills/source-admission/SKILL.md").read_text(encoding="utf-8")
 assert "admission_package.json" in skill_text
