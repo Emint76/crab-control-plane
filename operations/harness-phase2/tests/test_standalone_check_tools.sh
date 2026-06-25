@@ -136,4 +136,4 @@ pass_case \
   env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
     . \
-    operations/admission/examples/stage2/knowledge_product_type.v1/admission_handoff.json
+    operations/admission/examples/stage2/knowledge_asset.v1/admission_handoff.json

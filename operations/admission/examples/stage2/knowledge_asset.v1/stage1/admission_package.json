@@ -1,8 +1,8 @@
 {
   "admission_kind": "knowledge_asset",
-  "asset_id": "product-type-example",
+  "asset_id": "example-knowledge-asset-001",
   "knowledge_profile_id": "example_knowledge_profile.v1",
-  "payload_path": "../payload/product-type.md",
+  "payload_path": "../payload/knowledge-asset.md",
   "profile_data": {
     "example_only": true
   },

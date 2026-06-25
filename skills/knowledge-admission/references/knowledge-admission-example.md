@@ -11,9 +11,9 @@ source_asset_id      = example-source-article-001
 profile_contract_id  = knowledge_extraction.v1
 knowledge_profile_id = <instance-defined-knowledge-profile-id>
 knowledge_type       = <instance-local-knowledge-type>
-asset_id             = example-recipe-formula-extraction-001
-asset_slug           = example-recipe-formula-001
-destination_root     = example-domain/example-source-family/knowledge/example-recipe-formula/example-recipe-formula-001
+asset_id             = example-knowledge-asset-001
+asset_slug           = example-knowledge-asset
+destination_root     = example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset
 ```
 
 `knowledge_type` is instance-local placement taxonomy only. Real values come from outside-repository local config.
@@ -86,8 +86,8 @@ Forbidden final claims:
   "admission_kind": "knowledge_asset",
   "profile_id": "knowledge_asset.v1",
   "knowledge_profile_id": "<instance-defined-knowledge-profile-id>",
-  "asset_id": "example-recipe-formula-extraction-001",
-  "payload_path": "../payload/example-recipe-formula-001.md",
+  "asset_id": "example-knowledge-asset-001",
+  "payload_path": "../payload/example-knowledge-asset.md",
   "review_status": "approved",
   "profile_data": {
     "prepared_by": "agent://knowledge-admission",
@@ -108,7 +108,7 @@ Forbidden final claims:
 
 ```json
 {
-  "artifact_id": "example-recipe-formula-extraction-001",
+  "artifact_id": "example-knowledge-asset-001",
   "decision": "approve",
   "rationale": "Example final prepared bytes are authorized for controlled KB placement.",
   "approved_destination": "kb"
@@ -126,9 +126,9 @@ This authorizes admission and placement only. It is not semantic review and does
   "admission_type": "knowledge_asset",
   "artifacts": [
     {
-      "input_workspace_path": "example-domain/example-source-family/workflow/knowledge-admission-example-001/example-recipe-formula-extraction-001/payload/example-recipe-formula-001.md",
+      "input_workspace_path": "example-domain/example-source-family/workflow/knowledge-admission-example-001/example-knowledge-asset-001/payload/example-knowledge-asset.md",
       "expected_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-      "destination_kb_path": "example-domain/example-source-family/knowledge/example-recipe-formula/example-recipe-formula-001/example-recipe-formula-001.md",
+      "destination_kb_path": "example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset/example-knowledge-asset.md",
       "copy_metadata": {
         "content_role": "admission_authorized_knowledge_package",
         "example_only": true
@@ -142,7 +142,7 @@ This authorizes admission and placement only. It is not semantic review and does
   },
   "lineage": {
     "admission_package_ref": "<repo-contained-knowledge-admission-target-dir>/stage1/admission_package.json",
-    "asset_id": "example-recipe-formula-extraction-001",
+    "asset_id": "example-knowledge-asset-001",
     "knowledge_profile_id": "<instance-defined-knowledge-profile-id>"
   }
 }
@@ -175,15 +175,15 @@ This authorizes admission and placement only. It is not semantic review and does
   "admission_package_sha256": "<actual-stage1-package-sha256>",
   "admission_kind": "knowledge_asset",
   "profile_id": "knowledge_asset.v1",
-  "asset_id": "example-recipe-formula-extraction-001",
+  "asset_id": "example-knowledge-asset-001",
   "knowledge_profile_id": "<instance-defined-knowledge-profile-id>",
   "placement": {
     "domain_area": "example-domain",
     "source_family_id": "example-source-family",
     "asset_layer": "knowledge",
-    "asset_slug": "example-recipe-formula-001",
+    "asset_slug": "example-knowledge-asset",
     "knowledge_type": "<instance-local-knowledge-type>",
-    "destination_root": "example-domain/example-source-family/knowledge/example-recipe-formula/example-recipe-formula-001",
+    "destination_root": "example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset",
     "placement_policy_id": "kb_knowledge_domain_first.v1"
   },
   "review_evidence": {
@@ -202,13 +202,14 @@ This authorizes admission and placement only. It is not semantic review and does
 Use an outside-repository local taxonomy config:
 
 ```bash
+ADMISSION_KNOWLEDGE_PROFILE_REGISTRY=/path/to/instance/knowledge-profile-registry.json \
 ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json \
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \
   <repo-contained-knowledge-admission-target-dir>/admission_handoff.json
 ```
 
-The selected local config must allow:
+The selected instance registry must contain the chosen concrete profile and resolve its instruction/template references from the registry file's directory. The selected local taxonomy config must allow:
 
 ```text
 <instance-defined-knowledge-profile-id> -> <instance-local-knowledge-type>

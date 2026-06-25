@@ -195,7 +195,6 @@ normative_text = "\n".join(
         repo / "docs/ADMISSION_STAGE2_CONTRACT.md",
         repo / "docs/ADMISSION_CHECK_OWNERSHIP.md",
         repo / "knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md",
-        repo / "knowledge/kb/asset-templates/recipe-formula-extraction.md",
         repo / "control-plane/policy/KNOWLEDGE_EXTRACTION_PROFILE_POLICY.md",
     ]
 )

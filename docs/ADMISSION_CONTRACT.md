@@ -99,7 +99,7 @@ Repository templates live under:
 operations/admission/knowledge-profiles/
 ```
 
-`operations/admission/knowledge-profiles/registry.v1.json` is not an active profile catalog and contains no concrete profiles. Concrete profiles such as `recipe_formula_extraction.v1` are examples of instance-defined profile IDs, not canonical repository registrations.
+`operations/admission/knowledge-profiles/registry.v1.json` is not an active profile catalog and contains no concrete profiles. Concrete profile IDs are instance-defined, not canonical repository registrations.
 
 The registry must not contain `knowledge_type`, semantic validators, type-specific schema references, parsers, Phase behavior, or template execution rules.
 

@@ -133,7 +133,7 @@ def resolve_instance_ref(registry_dir: Path, ref: str, field_name: str) -> Path:
     return resolved
 
 
-def load_knowledge_profile_registry() -> dict[str, Any]:
+def load_knowledge_profile_registry() -> tuple[dict[str, Any], Path]:
     registry_ref = os.environ.get("ADMISSION_KNOWLEDGE_PROFILE_REGISTRY")
     if not registry_ref:
         raise CheckFailure("ADMISSION_KNOWLEDGE_PROFILE_REGISTRY is required for knowledge_asset admission")
@@ -146,30 +146,43 @@ def load_knowledge_profile_registry() -> dict[str, Any]:
     profiles = registry.get("profiles")
     if not isinstance(profiles, dict):
         raise CheckFailure("knowledge profile registry profiles must be a mapping")
-    registry_dir = registry_path.resolve(strict=True).parent
-    for profile_id, entry in profiles.items():
+    for profile_id in profiles:
         if not isinstance(profile_id, str) or not profile_id:
             raise CheckFailure("knowledge profile registry profile IDs must be non-empty strings")
-        if not isinstance(entry, dict):
-            raise CheckFailure(f"knowledge profile registry entry for {profile_id} must be a mapping")
-        if entry.get("status") != "registered":
-            raise CheckFailure(f"knowledge_profile_id {profile_id} is not registered")
-        if entry.get("profile_contract_id") != "knowledge_extraction.v1":
-            raise CheckFailure(f"knowledge_profile_id {profile_id} must use profile_contract_id knowledge_extraction.v1")
-        if entry.get("knowledge_profile_id") != profile_id:
-            raise CheckFailure(f"knowledge profile registry entry key must match knowledge_profile_id for {profile_id}")
-        for forbidden in ["knowledge_type", "schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref", "phase_check_ref"]:
-            if forbidden in entry:
-                raise CheckFailure(f"knowledge profile registry entry for {profile_id} must not contain {forbidden}")
-        resolve_instance_ref(registry_dir, require_string(entry, "instruction_ref", f"knowledge profile {profile_id}"), "instruction_ref")
-        resolve_instance_ref(
-            registry_dir,
-            require_string(entry, "output_template_ref", f"knowledge profile {profile_id}"),
-            "output_template_ref",
+    return profiles, registry_path.resolve(strict=True).parent
+
+
+def validate_selected_knowledge_profile(knowledge_profile_id: str) -> dict[str, Any]:
+    profiles, registry_dir = load_knowledge_profile_registry()
+    entry = profiles.get(knowledge_profile_id)
+    if entry is None:
+        raise CheckFailure("knowledge_profile_id is not registered")
+    if not isinstance(entry, dict):
+        raise CheckFailure(f"knowledge profile registry entry for {knowledge_profile_id} must be a mapping")
+    if entry.get("status") != "registered":
+        raise CheckFailure(f"knowledge_profile_id {knowledge_profile_id} is not registered")
+    if entry.get("profile_contract_id") != "knowledge_extraction.v1":
+        raise CheckFailure(
+            f"knowledge_profile_id {knowledge_profile_id} must use profile_contract_id knowledge_extraction.v1"
         )
-        require_string(entry, "payload_kind", f"knowledge profile {profile_id}")
-        require_string(entry, "placement_policy_id", f"knowledge profile {profile_id}")
-    return profiles
+    if entry.get("knowledge_profile_id") != knowledge_profile_id:
+        raise CheckFailure(f"knowledge profile registry entry key must match knowledge_profile_id for {knowledge_profile_id}")
+    for forbidden in ["knowledge_type", "schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref", "phase_check_ref"]:
+        if forbidden in entry:
+            raise CheckFailure(f"knowledge profile registry entry for {knowledge_profile_id} must not contain {forbidden}")
+    resolve_instance_ref(
+        registry_dir,
+        require_string(entry, "instruction_ref", f"knowledge profile {knowledge_profile_id}"),
+        "instruction_ref",
+    )
+    resolve_instance_ref(
+        registry_dir,
+        require_string(entry, "output_template_ref", f"knowledge profile {knowledge_profile_id}"),
+        "output_template_ref",
+    )
+    require_string(entry, "payload_kind", f"knowledge profile {knowledge_profile_id}")
+    require_string(entry, "placement_policy_id", f"knowledge profile {knowledge_profile_id}")
+    return entry
 
 
 def load_kb_taxonomy_config(repo_root: Path) -> dict[str, Any]:
@@ -262,8 +275,7 @@ def validate_stage1_package(repo_root: Path, package_path: Path) -> dict[str, An
             raise CheckFailure("Stage 1 knowledge_asset package must use profile_id knowledge_asset.v1")
         validate_schema_path(admission_root / "schemas" / "knowledge_asset.v1.schema.json", package, package_path)
         knowledge_profile_id = require_string(package, "knowledge_profile_id", "admission_package")
-        if knowledge_profile_id not in load_knowledge_profile_registry():
-            raise CheckFailure("knowledge_profile_id is not registered")
+        validate_selected_knowledge_profile(knowledge_profile_id)
     else:
         raise CheckFailure("Stage 1 admission_kind is not supported")
 
@@ -321,9 +333,7 @@ def check_stage2_handoff(repo_root: Path, handoff_path: Path, handoff: dict[str,
     else:
         if handoff_knowledge_profile_id != package.get("knowledge_profile_id"):
             raise CheckFailure("knowledge_profile_id must match Stage 1 package")
-        registry_entry = load_knowledge_profile_registry().get(handoff_knowledge_profile_id)
-        if registry_entry is None:
-            raise CheckFailure("knowledge_profile_id is not registered")
+        validate_selected_knowledge_profile(handoff_knowledge_profile_id)
 
     review_evidence = require_mapping(handoff, "review_evidence", "admission_handoff")
     if review_evidence.get("review_status") != "approved":

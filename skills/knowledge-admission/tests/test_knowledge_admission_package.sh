@@ -80,6 +80,7 @@ skill_required = [
     "Semantic review is deferred to the later wiki/semantic layer",
     "profile_contract_id: knowledge_extraction.v1",
     "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY",
+    "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY=/path/to/instance/knowledge-profile-registry.json",
     "knowledge_type` is an instance-local placement taxonomy segment",
     "<domain-area>/<source-family-id>/knowledge/<knowledge-type>/<asset-slug>/",
     "ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json",
@@ -135,8 +136,16 @@ if "knowledge_type" in profile_template:
 if registry_template != {"registry_id": "knowledge_profiles.v1", "profiles": {}}:
     raise SystemExit("registry template must be empty")
 for text, label in [(skill, "SKILL.md"), (example, "knowledge-admission-example.md")]:
-    if "recipe_formula_extraction.v1" in text:
-        raise SystemExit(f"{label} must not hardcode recipe_formula_extraction.v1")
+    for forbidden in [
+        "recipe_formula_extraction",
+        "product_type_extraction.v1",
+        "component_extraction.v1",
+        "example-recipe-formula",
+        "example-product-type",
+        "example-component",
+    ]:
+        if forbidden in text:
+            raise SystemExit(f"{label} must not contain concrete profile/example marker: {forbidden}")
 
 print("PASS knowledge-admission skill package validation")
 PY

@@ -100,13 +100,7 @@ The instance registry entry points to an instance-local instruction and selected
 
 The profile entry is routing and instruction metadata, not a semantic validator. Do not branch into custom admission logic by profile.
 
-Optional repository templates may exist, such as:
-
-```text
-knowledge/kb/asset-templates/recipe-formula-extraction.md
-```
-
-The presence of an optional template does not activate a concrete profile. Concrete profile registration is instance-local.
+The presence of a generic template mechanism does not activate a concrete profile. Concrete profile registration and concrete output-template selection are instance-local.
 
 ## Semantic Boundary
 
@@ -174,6 +168,7 @@ Prepare:
 Run standalone preflight after all referenced files exist:
 
 ```bash
+ADMISSION_KNOWLEDGE_PROFILE_REGISTRY=/path/to/instance/knowledge-profile-registry.json \
 ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json \
 python3 operations/harness-phase2/bin/check_admission_policy.py \
   /home/node/.openclaw/workspace/repos/crab-control-plane \

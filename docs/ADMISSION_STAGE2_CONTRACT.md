@@ -161,6 +161,8 @@ ADMISSION_KNOWLEDGE_PROFILE_REGISTRY
 
 The selected `knowledge_profile_id` must exist in that instance registry, have `status: registered`, use `profile_contract_id: knowledge_extraction.v1`, and include instruction/template references that resolve relative to the registry file's directory unless absolute. The registry entry must not contain `knowledge_type`, semantic validators, parsers, or Phase behavior. Missing registry, unregistered profile, placeholder/non-registered status, wrong contract ID, missing instruction/template file, or forbidden ownership fields fail closed.
 
+Standalone policy preflight validates only the selected `knowledge_profile_id` entry after confirming the top-level registry shape. Other registry entries may be draft, disabled, placeholder, incomplete, or future-contract work in progress; they do not block admission of a valid selected profile. This keeps active admission tied to the concrete requested profile without turning the canonical repository into a concrete profile catalog.
+
 Example:
 
 ```text
