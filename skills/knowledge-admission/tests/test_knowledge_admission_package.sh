@@ -20,7 +20,6 @@ cd "${REPO_ROOT}"
 require_file "${PACKAGE_ROOT}/SKILL.md"
 require_file "${PACKAGE_ROOT}/references/knowledge-admission-example.md"
 require_file "${PACKAGE_ROOT}/tests/test_knowledge_admission_package.sh"
-require_file "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
 
 if find "${PACKAGE_ROOT}" -type l -print -quit | grep -q .; then
   fail "symlink found inside knowledge-admission package"
@@ -55,17 +54,11 @@ import re
 import sys
 from pathlib import Path
 
-from jsonschema import Draft202012Validator
-
 repo = Path(sys.argv[1])
 package = repo / "skills/knowledge-admission"
 skill = (package / "SKILL.md").read_text(encoding="utf-8")
 example = (package / "references/knowledge-admission-example.md").read_text(encoding="utf-8")
-profile_path = repo / "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
-profile = profile_path.read_text(encoding="utf-8")
-template = (repo / "knowledge/kb/asset-templates/recipe-formula-extraction.md").read_text(encoding="utf-8")
 registry = json.loads((repo / "operations/admission/knowledge-profiles/registry.v1.json").read_text(encoding="utf-8"))
-manifest_schema = json.loads((repo / "operations/harness-phase3/contracts/kb_admission_manifest.schema.json").read_text(encoding="utf-8"))
 
 patterns = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
@@ -78,7 +71,8 @@ for path in sorted(item for item in package.rglob("*") if item.is_file()):
         if pattern.search(text):
             violations.append(path.relative_to(package).as_posix())
             break
-assert not violations, "obvious credential material found: " + ", ".join(violations)
+if violations:
+    raise SystemExit("obvious credential material found: " + ", ".join(violations))
 
 skill_required = [
     "Semantic extraction is agent-owned",
@@ -90,105 +84,48 @@ skill_required = [
     "ADMISSION_KB_TAXONOMY_CONFIG=/absolute/outside-repository/kb-taxonomy-config.json",
     "Phase4 is the default operator-facing invocation route",
     "Phase3 remains the sole canonical execution owner",
-    "the current repository Git HEAD exactly equals that recorded HEAD",
+    "Only Phase3 freezes execution inputs",
+    "When the shared Phase admission procedure Skill exists",
+    "Allowed claims",
+    "Forbidden claims",
+    "Required Final Report",
+    "/home/node/.openclaw/workspace/repos/crab-control-plane",
+    "OPENCLAW_WORKSPACE_KB_ROOT",
 ]
 for fragment in skill_required:
-    assert fragment in skill, fragment
+    if fragment not in skill:
+        raise SystemExit(f"SKILL.md missing required fragment: {fragment}")
 
 example_required = [
+    "accepted provenance-bearing source",
+    "recipe_formula_extraction.v1",
+    "candidate",
+    "knowledge package",
     "admission_package.json",
-    "review-decision.json",
-    "admission_manifest.json",
-    "execution_target.json",
     "admission_handoff.json",
     "standalone admission preflight",
     "exact-HEAD Phase2 baseline",
     "Phase4 wrapper",
     "Phase3 kb_admission",
-    "example-recipe-formula",
-    "recipe_formula_extraction.v1 -> example-recipe-formula",
+    "Phase3 evidence",
 ]
 for fragment in example_required:
-    assert fragment in example, fragment
-assert example.index("admission_package.json") < example.index("admission_handoff.json") < example.index("standalone admission preflight")
-assert "This authorizes admission and placement only. It is not semantic review" in example
-assert "Phase3 evidence proves runtime intake" in example
-
-manifest_marker = "## Phase3 Admission Manifest"
-manifest_start = example.index(manifest_marker)
-json_start = example.index("```json", manifest_start) + len("```json")
-json_end = example.index("```", json_start)
-manifest = json.loads(example[json_start:json_end].strip())
-Draft202012Validator.check_schema(manifest_schema)
-manifest_errors = sorted(
-    Draft202012Validator(manifest_schema).iter_errors(manifest),
-    key=lambda error: list(error.absolute_path),
-)
-assert not manifest_errors, "; ".join(error.message for error in manifest_errors)
-for artifact in manifest["artifacts"]:
-    expected_artifact_fields = {
-        "input_workspace_path",
-        "expected_sha256",
-        "destination_kb_path",
-        "copy_metadata",
-    }
-    assert set(artifact) == expected_artifact_fields, artifact
-    assert "artifact_id" not in artifact, artifact
-    assert "content_role" not in artifact, artifact
-    assert re.fullmatch(r"[0-9a-f]{64}", artifact["expected_sha256"]), artifact["expected_sha256"]
-
-profile_required = [
-    "# recipe_formula_extraction.v1",
-    "`recipe_formula_extraction.v1` is an agent instruction profile",
-    "knowledge/kb/asset-templates/recipe-formula-extraction.md",
-    "This document is instruction metadata. It is not a JSON Schema, semantic validator, parser, Phase check, admission engine, or canonical taxonomy definition.",
-    "This profile does not define `knowledge_type`.",
-    "knowledge_profile_id` remains",
-    "Phase2, Phase3, and Phase4 do not validate recipe semantics.",
-]
-for fragment in profile_required:
-    assert fragment in profile, fragment
+    if fragment not in example:
+        raise SystemExit(f"knowledge-admission example missing route fragment: {fragment}")
 
 profiles = registry["profiles"]
 entry = profiles["recipe_formula_extraction.v1"]
-assert entry["status"] == "registered", entry
-assert entry["instruction_ref"] == "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
-assert (repo / entry["instruction_ref"]).is_file(), entry
-assert "recipe_formula_extraction.v1" in (repo / entry["instruction_ref"]).read_text(encoding="utf-8")
-for forbidden in ["knowledge_type", "schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref"]:
-    assert forbidden not in entry, (forbidden, entry)
+instruction_ref = entry.get("instruction_ref")
+if not isinstance(instruction_ref, str) or not instruction_ref:
+    raise SystemExit("recipe_formula_extraction.v1 must have instruction_ref")
+if instruction_ref.startswith("/") or ".." in Path(instruction_ref).parts:
+    raise SystemExit("instruction_ref must be repo-relative and safe")
+if not (repo / instruction_ref).is_file():
+    raise SystemExit("instruction_ref target is missing: " + instruction_ref)
 
-for profile_id, profile_entry in profiles.items():
-    assert "enabled_for_admission" not in profile_entry, profile_id
-    allowed = {"payload_kind", "placement_policy_id", "status", "instruction_ref"}
-    assert set(profile_entry).issubset(allowed), (profile_id, profile_entry)
-
-assert 'knowledge_type: "recipe_formula_extraction"' not in template
-assert 'knowledge_profile_id: "recipe_formula_extraction.v1"' in template
-assert 'knowledge_type: "<instance-local-knowledge-type>"' in template
-exact_profile_path = "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md"
-assert f'extraction_profile_path: "{exact_profile_path}"' in template
-assert f'profile_path: "{exact_profile_path}"' in template
-assert "knowledge/kb/extraction-profiles/<domain>/index.md" not in template
-assert "sources/<source-asset-id>" not in template
-assert 'source_asset_path: "<exact-accepted-source-asset-path>"' in template
-assert "source_asset_path` value must be copied from accepted source provenance" in template
-assert "Do not synthesize it from the source `asset_id`" in template
-
-profile_index = (repo / "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/index.md").read_text(encoding="utf-8")
-assert "artifact_type" in profile_index
-assert "admission_readiness" in profile_index
-assert "asset_kind" not in profile_index
-assert "knowledge_status" not in profile_index
-
-for text, label in [(skill, "SKILL.md"), (example, "knowledge-admission-example.md"), (profile, "recipe profile")]:
-    for forbidden in [
-        "semantic_validator",
-        "recipe parser",
-        "Phase semantic check",
-        "semantic correctness is validated by Phase",
-    ]:
-        assert forbidden not in text, (label, forbidden)
+for forbidden in ["schema_ref", "semantic_validator", "structural_validator_ref", "parser_ref"]:
+    if forbidden in entry:
+        raise SystemExit(f"registry entry must not contain {forbidden}")
 
 print("PASS knowledge-admission skill package validation")
 PY

@@ -31,6 +31,22 @@ accepted provenance-bearing source
 
 Phase3 remains the sole canonical execution owner. Phase4 is the default invocation route. Phase2 checks exact-HEAD repo/control-plane readiness. Admission Stage 1 and Stage 2 are contract layers, not runtime phases.
 
+## Repository And Runtime Locations
+
+Prefer the canonical repository checkout:
+
+```text
+/home/node/.openclaw/workspace/repos/crab-control-plane
+```
+
+The live KB corpus is normally under `OPENCLAW_WORKSPACE_KB_ROOT` or:
+
+```text
+/home/node/.openclaw/workspace/kb
+```
+
+Repository `knowledge/kb/` contains documentation, templates, profiles, and examples. It is not the live KB corpus.
+
 ## Activation
 
 Use knowledge-admission mode when:
@@ -186,7 +202,21 @@ Accepted Phase2 baseline <RUN_ID> was created for and reused at repository HEAD 
 
 Phase4 is the default operator-facing invocation route.
 
-Phase3 `kb_admission` is the sole canonical execution and evidence owner. Do not claim admission until Phase3 succeeds, emits canonical evidence, and the admitted destination hashes match expected values.
+Do not invoke Phase3 directly during normal knowledge admission.
+
+Phase3 `kb_admission` is the sole canonical execution and evidence owner. Only Phase3 freezes execution inputs. Phase4 does not own canonical execution evidence. Phase2 baseline readiness is not admission.
+
+Do not claim admission until Phase3 succeeds, emits canonical evidence, and the admitted destination hashes match expected values.
+
+### Exceptional Direct Phase3 Fallback
+
+Direct Phase3 use is allowed only when Phase4 is unavailable or defective, the limitation is reported, and the operator explicitly approves the fallback.
+
+The final report must record why Phase4 was not used, who approved direct Phase3 execution, the canonical Phase3 run directory, and that no Phase4 wrapper metadata exists. Use existing Phase contracts for command details.
+
+### Future Shared Procedure
+
+When the shared Phase admission procedure Skill exists, use it for standalone preflight, Phase2, Phase4, Phase3, freeze, fallback, evidence, and reporting details instead of duplicating those procedures here.
 
 ## Fail Closed
 
@@ -215,3 +245,40 @@ Use these canonical contracts instead of duplicating generic route details:
 - `knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md`
 - `operations/harness-phase4/PHASE4_WRAPPER_CONTRACT.md`
 - `operations/harness-phase3/PHASE3_EXECUTION_CONTRACT.md`
+
+## Allowed claims
+
+- Prepared a knowledge candidate using `<knowledge_profile_id>`.
+- Prepared an admission-authorized knowledge package.
+- Standalone admission preflight passed.
+- Accepted Phase2 baseline `<RUN_ID>` matches repository HEAD `<SHA>`.
+- Phase4 invoked Phase3.
+- Phase3 admitted the knowledge artifact and emitted canonical evidence under `<RUN_DIR>`.
+- The admitted destination hash matches the expected SHA-256.
+
+## Forbidden claims
+
+- The Skill admitted the knowledge.
+- Phase2 admitted the knowledge.
+- Phase4 admitted the knowledge.
+- Phase validated semantic correctness.
+- Admission authorization proves semantic review.
+- The knowledge is admitted before successful Phase3 evidence exists.
+
+## Required Final Report
+
+Include:
+
+- source asset reference;
+- `knowledge_profile_id`;
+- knowledge `asset_id`;
+- `asset_slug`;
+- `knowledge_type`;
+- typed destination;
+- standalone preflight status;
+- accepted Phase2 baseline run and exact repo HEAD;
+- Phase4 wrapper run or approved fallback reason;
+- Phase3 canonical run directory and exit status;
+- admitted destination path;
+- expected and observed SHA-256;
+- limits or unresolved blockers.
