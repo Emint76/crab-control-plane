@@ -17,15 +17,9 @@ Supported universal admission kinds:
 | admission_kind | profile_id | knowledge_profile_id |
 |---|---|---|
 | `source_capture` | `source_capture.v1` | forbidden / `null` |
-| `knowledge_asset` | `knowledge_asset.v1` | required registered extraction profile |
+| `knowledge_asset` | `knowledge_asset.v1` | required instance-registered extraction profile |
 
-Registered knowledge profile IDs include:
-
-- `product_type_extraction.v1`
-- `recipe_formula_extraction.v1`
-- `component_extraction.v1`
-
-`component_extraction.v1` is the extraction/profile identifier. The resulting knowledge asset may still be described conceptually as a component profile.
+Concrete `knowledge_profile_id` values are defined by the deployed instance, not by the canonical repository. The repository owns the generic `knowledge_extraction.v1` profile contract and templates for instance configuration.
 
 ## Output
 
@@ -159,6 +153,16 @@ operations/admission/schemas/kb_taxonomy_config.v1.schema.json
 
 The config is local operator/instance input and must not be committed as real instance configuration. Committed fixtures are test inputs only; positive validation tests copy them outside the repository before invoking the validator. The config must declare allowed knowledge types and the `knowledge_profile_id -> allowed knowledge_type` mapping. Every mapped type must also appear in `allowed_knowledge_types`; otherwise the entire config is rejected before the current handoff is evaluated. Missing config, invalid config, unknown `knowledge_type`, or profile/type mismatch fails closed for knowledge assets. Shape-only diagnostic mode is not admission readiness.
 
+For real knowledge-asset admission readiness, standalone admission policy preflight also loads the active instance knowledge profile registry from:
+
+```text
+ADMISSION_KNOWLEDGE_PROFILE_REGISTRY
+```
+
+The selected `knowledge_profile_id` must exist in that instance registry, have `status: registered`, use `profile_contract_id: knowledge_extraction.v1`, and include instruction/template references that resolve relative to the registry file's directory unless absolute. The registry entry must not contain `knowledge_type`, semantic validators, parsers, or Phase behavior. Missing registry, unregistered profile, placeholder/non-registered status, wrong contract ID, missing instruction/template file, or forbidden ownership fields fail closed.
+
+Standalone policy preflight validates only the selected `knowledge_profile_id` entry after confirming the top-level registry shape. Other registry entries may be draft, disabled, placeholder, incomplete, or future-contract work in progress; they do not block admission of a valid selected profile. This keeps active admission tied to the concrete requested profile without turning the canonical repository into a concrete profile catalog.
+
 Example:
 
 ```text
@@ -209,7 +213,7 @@ Source capture packages preserve producer-prepared source material and route to 
 
 Knowledge asset packages preserve reviewed knowledge artifacts and route to `knowledge/`.
 
-Product Type, Recipe Formula, and Component are not admission kinds. They are knowledge profile specializations expressed through `knowledge_profile_id`.
+Product Type, Recipe Formula, and Component are not admission kinds. They may be implemented by an instance as concrete profile specializations expressed through `knowledge_profile_id`, but they are not canonical repository profile registrations.
 
 ## Knowledge Profile Handling
 
@@ -225,9 +229,9 @@ elif component...
 
 Profile-specific semantic validation remains outside universal admission. Profile maturity and status is descriptive metadata, not evidence of a profile-specific admission implementation.
 
-Stage 2 contains no profile-specific executable implementation, and adding a new registered knowledge profile must not require new Stage 2 admission code.
+Stage 2 contains no profile-specific executable implementation, and adding a new instance-registered knowledge profile must not require new Stage 2 admission code.
 
-Out-of-repo packages using the old `component_profile.v1` identifier require migration to `component_extraction.v1`. No live data migration is part of this PR.
+Out-of-repo packages using older instance profile identifiers require instance-local migration. No live data migration is part of this PR.
 
 ## Phase Ownership
 

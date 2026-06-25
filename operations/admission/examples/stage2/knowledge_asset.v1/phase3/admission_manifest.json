@@ -1,0 +1,25 @@
+{
+  "admission_type": "knowledge_asset",
+  "artifacts": [
+    {
+      "copy_metadata": {
+        "content_role": "example_knowledge_asset",
+        "example_only": true
+      },
+      "destination_kb_path": "example-domain/example-source-family/knowledge/example-knowledge-type/example-knowledge-asset/knowledge-asset.md",
+      "expected_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "input_workspace_path": "example-domain/example-source-family/workflow/admission-stage2-example/example-knowledge-asset-001/payload/knowledge-asset.md"
+    }
+  ],
+  "copy_operation": {
+    "content_mode": "byte_for_byte",
+    "operation_type": "copy",
+    "overwrite_policy": "fail_closed_on_hash_mismatch",
+    "requested_by": "admission-stage2-example"
+  },
+  "lineage": {
+    "admission_package_ref": "operations/admission/examples/stage2/knowledge_asset.v1/stage1/admission_package.json",
+    "asset_id": "example-knowledge-asset-001",
+    "knowledge_profile_id": "example_knowledge_profile.v1"
+  }
+}

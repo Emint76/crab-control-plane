@@ -1,0 +1,6 @@
+{
+  "approved_destination": "kb",
+  "artifact_id": "example-knowledge-asset-001",
+  "decision": "approve",
+  "rationale": "Example knowledge asset is authorized for controlled KB admission."
+}

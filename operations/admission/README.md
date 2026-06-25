@@ -21,6 +21,8 @@ For knowledge assets, Stage 2 also requires `placement.knowledge_type` and uses 
 
 `knowledge_type` is instance-local placement taxonomy, not identity or lineage. The repository defines the contract and validation interface; real KB instances own concrete allowed values and profile-to-type mappings.
 
+Concrete `knowledge_profile_id` values are also instance-defined. The repository owns the generic `knowledge_extraction.v1` contract and profile/registry templates, not an active concrete profile catalog.
+
 The operational route is:
 
 ```text
@@ -69,5 +71,7 @@ operations/admission/schemas/kb_taxonomy_config.v1.schema.json
 ```
 
 Standalone policy preflight loads real local taxonomy config from `ADMISSION_KB_TAXONOMY_CONFIG` for `knowledge_asset` handoffs. The variable must contain an absolute filesystem path to an outside-Git local config file, and the resolved real path must be outside the repository root. Symlinks cannot be used to point an outside path back into the repository. Preflight fails closed when the path is missing, relative, inside the repository, nonexistent, invalid, internally inconsistent, or does not allow the requested `knowledge_profile_id` and `knowledge_type`.
+
+Standalone policy preflight also requires `ADMISSION_KNOWLEDGE_PROFILE_REGISTRY` for `knowledge_asset` handoffs. That instance-supplied registry selects concrete profile IDs using `profile_contract_id: knowledge_extraction.v1`; relative `instruction_ref` and `output_template_ref` values resolve from the registry file's directory. Preflight validates only the selected profile entry, so unrelated draft or incomplete entries do not block a valid selected profile. Source admissions do not require this registry.
 
 Phase3 remains the sole canonical execution/admission evidence owner.

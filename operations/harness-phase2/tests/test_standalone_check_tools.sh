@@ -23,7 +23,27 @@ fi
 
 cd "${REPO_ROOT}"
 TAXONOMY_CONFIG="${TMP_ROOT}/kb_taxonomy_config.noncanonical.json"
+PROFILE_REGISTRY="${TMP_ROOT}/knowledge-profile-registry.json"
 cp operations/admission/tests/fixtures/kb_taxonomy_config.noncanonical.json "${TAXONOMY_CONFIG}"
+mkdir -p "${TMP_ROOT}/profiles/example"
+printf '# Example instance profile instruction\n' >"${TMP_ROOT}/profiles/example/instruction.md"
+printf '# Example instance output template\n' >"${TMP_ROOT}/profiles/example/output-template.md"
+cat >"${PROFILE_REGISTRY}" <<'EOF'
+{
+  "registry_id": "knowledge_profiles.v1",
+  "profiles": {
+    "example_knowledge_profile.v1": {
+      "profile_contract_id": "knowledge_extraction.v1",
+      "knowledge_profile_id": "example_knowledge_profile.v1",
+      "instruction_ref": "profiles/example/instruction.md",
+      "output_template_ref": "profiles/example/output-template.md",
+      "payload_kind": "file",
+      "placement_policy_id": "kb_knowledge_domain_first.v1",
+      "status": "registered"
+    }
+  }
+}
+EOF
 
 pass_case() {
   local label="$1"
@@ -113,7 +133,7 @@ pass_case \
 
 pass_case \
   "standalone valid Stage 2 knowledge handoff" \
-  env ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
+  env ADMISSION_KNOWLEDGE_PROFILE_REGISTRY="${PROFILE_REGISTRY}" ADMISSION_KB_TAXONOMY_CONFIG="${TAXONOMY_CONFIG}" \
   "${PYTHON_BIN}" operations/harness-phase2/bin/check_admission_policy.py \
     . \
-    operations/admission/examples/stage2/knowledge_product_type.v1/admission_handoff.json
+    operations/admission/examples/stage2/knowledge_asset.v1/admission_handoff.json

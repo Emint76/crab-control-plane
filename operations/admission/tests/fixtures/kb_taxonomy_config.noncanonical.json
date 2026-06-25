@@ -3,19 +3,11 @@
   "config_version": 1,
   "local_only": true,
   "allowed_knowledge_types": [
-    "example-component",
-    "example-product-type",
-    "example-recipe-formula"
+    "example-knowledge-type"
   ],
   "profile_knowledge_type_map": {
-    "component_extraction.v1": [
-      "example-component"
-    ],
-    "product_type_extraction.v1": [
-      "example-product-type"
-    ],
-    "recipe_formula_extraction.v1": [
-      "example-recipe-formula"
+    "example_knowledge_profile.v1": [
+      "example-knowledge-type"
     ]
   }
 }

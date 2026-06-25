@@ -1,0 +1,15 @@
+{
+  "admission_kind": "knowledge_asset",
+  "asset_id": "example-knowledge-asset-001",
+  "knowledge_profile_id": "example_knowledge_profile.v1",
+  "payload_path": "../payload/knowledge-asset.md",
+  "profile_data": {
+    "example_only": true
+  },
+  "profile_id": "knowledge_asset.v1",
+  "provenance": {
+    "source_asset_path": "example-domain/example-source-family/sources/example-source-asset/",
+    "source_id": "example-source-asset"
+  },
+  "review_status": "approved"
+}

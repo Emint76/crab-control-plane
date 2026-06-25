@@ -63,10 +63,24 @@ def validate(schema_key: str, instance: object, source: Path) -> None:
 
 registry = json.loads((admission / "knowledge-profiles" / "registry.v1.json").read_text(encoding="utf-8"))
 profiles = registry["profiles"]
-assert {"product_type_extraction.v1", "recipe_formula_extraction.v1", "component_extraction.v1"} <= set(profiles)
-for profile_id, entry in profiles.items():
-    assert "enabled_for_admission" not in entry, profile_id
-    assert set(entry) == {"payload_kind", "placement_policy_id", "status"}, profile_id
+assert profiles == {}, "canonical registry must not contain active concrete profiles"
+assert not (repo / "knowledge/kb/extraction-profiles/cosmetics-household-chemistry/recipe-formula-extraction.v1.md").exists()
+generic_contract = repo / "knowledge/kb/extraction-profiles/knowledge-extraction.v1.md"
+assert generic_contract.is_file()
+generic_contract_text = generic_contract.read_text(encoding="utf-8")
+assert "profile_contract_id" in generic_contract_text
+assert "knowledge_extraction.v1" in generic_contract_text
+assert "knowledge_profile_id is instance-defined" in generic_contract_text
+assert "not a semantic validator" in generic_contract_text
+
+profile_template = json.loads((admission / "knowledge-profiles" / "profile.template.json").read_text(encoding="utf-8"))
+assert profile_template["profile_contract_id"] == "knowledge_extraction.v1"
+assert profile_template["knowledge_profile_id"] == "<instance-defined-profile-id>"
+assert profile_template["instruction_ref"] == "<instance-local-instruction-ref>"
+assert profile_template["output_template_ref"] == "<instance-local-or-selected-template-ref>"
+assert "knowledge_type" not in profile_template
+registry_template = json.loads((admission / "knowledge-profiles" / "registry.template.json").read_text(encoding="utf-8"))
+assert registry_template == {"registry_id": "knowledge_profiles.v1", "profiles": {}}
 
 for path in sorted((admission / "profiles").glob("*.json")):
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -111,7 +125,7 @@ for handoff_path in examples:
         validate("operations/admission/schemas/knowledge_asset.v1.schema.json", package, package_path)
         profile_id = package["knowledge_profile_id"]
         seen_profiles.add(profile_id)
-        assert profile_id in profiles
+        assert profile_id == "example_knowledge_profile.v1"
     assert "knowledge_type" not in package, package_path
 
     review_path = repo / handoff["review_evidence"]["approval_ref"]
@@ -143,7 +157,7 @@ for handoff_path in examples:
     else:
         assert "knowledge_type" not in placement, handoff_path
 
-assert seen_profiles == set(profiles), seen_profiles
+assert seen_profiles == {"example_knowledge_profile.v1"}, seen_profiles
 taxonomy_fixture = json.loads((admission / "tests/fixtures/kb_taxonomy_config.noncanonical.json").read_text(encoding="utf-8"))
 validate("operations/admission/schemas/kb_taxonomy_config.v1.schema.json", taxonomy_fixture, admission / "tests/fixtures/kb_taxonomy_config.noncanonical.json")
 for example_type in taxonomy_fixture["allowed_knowledge_types"]:
@@ -181,7 +195,6 @@ normative_text = "\n".join(
         repo / "docs/ADMISSION_STAGE2_CONTRACT.md",
         repo / "docs/ADMISSION_CHECK_OWNERSHIP.md",
         repo / "knowledge/kb/KNOWLEDGE_CANDIDATE_ADMISSION_RUNBOOK.md",
-        repo / "knowledge/kb/asset-templates/recipe-formula-extraction.md",
         repo / "control-plane/policy/KNOWLEDGE_EXTRACTION_PROFILE_POLICY.md",
     ]
 )
@@ -194,6 +207,8 @@ for forbidden in [
 
 stage2_contract = (repo / "docs/ADMISSION_STAGE2_CONTRACT.md").read_text(encoding="utf-8")
 assert "ADMISSION_KB_TAXONOMY_CONFIG" in stage2_contract
+assert "ADMISSION_KNOWLEDGE_PROFILE_REGISTRY" in stage2_contract
+assert "profile_contract_id: knowledge_extraction.v1" in stage2_contract
 assert "absolute filesystem path to an outside-Git local config file" in stage2_contract
 assert "resolved real path must be outside the repository root" in stage2_contract
 assert "symlink outside the repository that resolves back into the repository is rejected" in stage2_contract

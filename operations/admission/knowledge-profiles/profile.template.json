@@ -1,0 +1,9 @@
+{
+  "instruction_ref": "<instance-local-instruction-ref>",
+  "knowledge_profile_id": "<instance-defined-profile-id>",
+  "output_template_ref": "<instance-local-or-selected-template-ref>",
+  "payload_kind": "file",
+  "placement_policy_id": "kb_knowledge_domain_first.v1",
+  "profile_contract_id": "knowledge_extraction.v1",
+  "status": "registered"
+}
