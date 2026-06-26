@@ -26,6 +26,20 @@ Proposed knowledge extraction profile documentation lives in:
 
 These references describe structures, profiles, and templates only. They do not change live KB layout semantics, authorize KB admission, add runtime behavior, or make Phase perform semantic extraction.
 
+## Knowledge distillation flow matrix
+
+The canonical repository defines the generic Knowledge Distillation Flow Matrix contract in `knowledge/kb/KNOWLEDGE_DISTILLATION_FLOW_MATRIX.md`.
+
+The active matrix is instance-local configuration. It declares allowed semantic transformation routes between accepted source captures and admitted knowledge assets. It controls which transformations an agent may attempt, not physical storage by itself.
+
+Actual knowledge assets still use the typed domain-first placement model:
+
+```text
+<domain-area>/<publisher-id-or-source-family-id>/knowledge/<knowledge-type>/<asset-slug>/
+```
+
+Concrete matrix nodes, flows, `knowledge_type` values, and `knowledge_profile_id` values belong to the deployed instance, not to the canonical repository.
+
 ## Repo-defined live KB top-level layout
 
 The workspace KB root uses a domain-first layout.
