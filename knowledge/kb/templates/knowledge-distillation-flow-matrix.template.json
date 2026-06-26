@@ -1,0 +1,25 @@
+{
+  "matrix_contract_id": "knowledge_distillation_flow_matrix.v1",
+  "matrix_id": "<instance-defined-matrix-id>",
+  "nodes": [
+    {
+      "node_id": "<instance-defined-input-node-id>",
+      "asset_kind": "source_capture",
+      "knowledge_type": null
+    },
+    {
+      "node_id": "<instance-defined-output-node-id>",
+      "asset_kind": "knowledge_asset",
+      "knowledge_type": "<instance-defined-knowledge-type>"
+    }
+  ],
+  "flows": [
+    {
+      "flow_id": "<instance-defined-flow-id>",
+      "from_node_id": "<instance-defined-input-node-id>",
+      "to_node_id": "<instance-defined-output-node-id>",
+      "knowledge_profile_id": "<instance-defined-profile-id>",
+      "status": "draft"
+    }
+  ]
+}

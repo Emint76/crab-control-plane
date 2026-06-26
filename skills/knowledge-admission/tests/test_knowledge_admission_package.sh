@@ -75,6 +75,40 @@ if violations:
     raise SystemExit("obvious credential material found: " + ", ".join(violations))
 
 skill_required = [
+    "KNOWLEDGE_DISTILLATION_FLOW_MATRIX=/path/to/instance/knowledge-distillation-flow-matrix.json",
+    "accepted provenance-bearing input asset",
+    "accepted `source_capture` assets",
+    "already admitted `knowledge_asset` assets",
+    "select active instance distillation flow",
+    "select the flow-defined knowledge_profile_id",
+    "use the output node knowledge_type",
+    "each flow is exactly one edge",
+    "only `active` flows may be executed",
+    "draft or disabled flows must not be executed",
+    "If exactly one active direct flow matches",
+    "If multiple direct flows match",
+    "If no active direct flow or connected active path exists",
+    "A concrete input asset must be mapped to a declared matrix input node before flow selection",
+    "If exactly one declared node matches",
+    "If multiple declared nodes match",
+    "Flow execution begins only after both input and output nodes are unambiguous",
+    "must not guess a node from folder name, source-family name, asset ID, asset slug, profile ID, or undocumented semantic interpretation",
+    "Do not invent a direct shortcut",
+    "ordered sequence of connected active flows",
+    "finite and simple",
+    "same `flow_id` must not occur more than once in one path",
+    "same `node_id` must not occur more than once in one path",
+    "must not execute a cyclic or indefinitely repeating path",
+    "exactly one matching finite simple active path",
+    "Process one flow at a time",
+    "The next hop may begin only after successful Phase3 evidence for the previous hop",
+    "Each flow in a path has its own `knowledge_profile_id`",
+    "A later hop does not inherit the preceding hop's profile",
+    "Do not combine several hops into one knowledge candidate",
+    "Do not use an unadmitted intermediate candidate",
+    "Graph reachability does not authorize an undeclared direct flow",
+    "branching paths and multiple independent incoming flows",
+    "stop and request explicit user approval",
     "Semantic extraction is agent-owned",
     "Admission, Phase2, Phase3, and Phase4 do not validate semantic correctness, domain-specific correctness, domain-specific safety or compliance",
     "Semantic review is deferred to the later wiki/semantic layer",
@@ -124,6 +158,66 @@ if profiles:
 generic_contract = repo / "knowledge/kb/extraction-profiles/knowledge-extraction.v1.md"
 if not generic_contract.is_file():
     raise SystemExit("missing generic knowledge_extraction.v1 contract")
+
+matrix_contract_path = repo / "knowledge/kb/KNOWLEDGE_DISTILLATION_FLOW_MATRIX.md"
+if not matrix_contract_path.is_file():
+    raise SystemExit("missing Knowledge Distillation Flow Matrix contract")
+matrix_contract = matrix_contract_path.read_text(encoding="utf-8")
+matrix_required = [
+    "knowledge_distillation_flow_matrix.v1",
+    "Each flow represents exactly one semantic transformation edge",
+    "one declared input node",
+    "one declared output node",
+    "A concrete input asset must be mapped to a declared matrix input node before flow selection",
+    "if exactly one declared node matches",
+    "if multiple declared nodes match",
+    "flow execution begins only after both input and output nodes are unambiguous",
+    "The agent must not guess a node from",
+    "A distillation path is an ordered sequence of connected active flows",
+    "finite simple path",
+    "the same `flow_id` must not occur more than once in one path",
+    "the same `node_id` must not occur more than once in one path",
+    "must not execute a cyclic or indefinitely repeating path",
+    "exactly one matching finite simple active path",
+    "Path order is derived from graph connectivity",
+    "The existing `nodes + flows` model is sufficient",
+    "Every step produces a separate admitted knowledge asset",
+    "Graph reachability does not authorize an undeclared direct flow",
+    "A single output node may have multiple independent incoming flows",
+    "Non-normative",
+    "illustrative",
+    "instance-defined",
+    "not canonical",
+]
+for fragment in matrix_required:
+    if fragment not in matrix_contract:
+        raise SystemExit(f"matrix contract missing required fragment: {fragment}")
+
+matrix_template_path = repo / "knowledge/kb/templates/knowledge-distillation-flow-matrix.template.json"
+if not matrix_template_path.is_file():
+    raise SystemExit("missing Knowledge Distillation Flow Matrix template")
+matrix_template = json.loads(matrix_template_path.read_text(encoding="utf-8"))
+if matrix_template.get("matrix_contract_id") != "knowledge_distillation_flow_matrix.v1":
+    raise SystemExit("matrix template must use knowledge_distillation_flow_matrix.v1")
+if matrix_template.get("matrix_id") != "<instance-defined-matrix-id>":
+    raise SystemExit("matrix template must use placeholder matrix_id")
+flows = matrix_template.get("flows")
+if not isinstance(flows, list) or not flows:
+    raise SystemExit("matrix template must contain placeholder flows")
+if any(flow.get("status") == "active" for flow in flows if isinstance(flow, dict)):
+    raise SystemExit("matrix template must not contain an active flow")
+template_text = matrix_template_path.read_text(encoding="utf-8")
+for forbidden in [
+    "humblebee",
+    "cosmetics-household",
+    "almond-oat",
+    "recipe_formula_extraction",
+    "product_type_extraction",
+    "formulation_extraction",
+    "component_extraction",
+]:
+    if forbidden in template_text:
+        raise SystemExit(f"matrix template must not contain current-instance marker: {forbidden}")
 
 profile_template = json.loads((repo / "operations/admission/knowledge-profiles/profile.template.json").read_text(encoding="utf-8"))
 registry_template = json.loads((repo / "operations/admission/knowledge-profiles/registry.template.json").read_text(encoding="utf-8"))

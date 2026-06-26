@@ -44,12 +44,19 @@ knowledge_extraction.v1
 
 Every instance-defined profile using this contract must preserve these rules:
 
-- accepted provenance-bearing source material is required;
+- an accepted provenance-bearing input asset is required;
+- the input asset may be an accepted `source_capture` asset;
+- the input asset may be an already admitted `knowledge_asset` when an active instance Knowledge Distillation Flow Matrix flow authorizes that transformation;
 - semantic extraction is agent-owned;
 - directly source-stated material, agent interpretation, inference, not stated, and not validated must remain distinguishable;
-- source provenance must be preserved;
+- direct provenance to the selected input asset must be preserved;
+- transitive provenance back to originating source assets must be preserved;
+- upstream input assets must not be mutated;
+- every downstream knowledge asset needs a new stable identity;
 - concrete profile instructions are instance-owned;
 - output template selection is instance-owned;
+- the concrete profile is selected through the active instance flow being executed;
+- one profile execution performs one semantic transformation edge;
 - `knowledge_profile_id` is instance-defined;
 - `knowledge_type` is a separate instance-local placement value;
 - Admission and Phase do not validate semantic correctness;
