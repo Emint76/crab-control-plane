@@ -105,6 +105,32 @@ One normal `knowledge-admission` execution processes one selected active flow.
 
 The agent must not encode an entire multi-stage chain as one opaque flow.
 
+## Node Resolution
+
+A concrete input asset must be mapped to a declared matrix input node before flow selection.
+
+For an admitted `knowledge_asset`, `asset_kind` and its admitted `knowledge_type` may identify the node.
+
+For a `source_capture`, or whenever several nodes match the same asset characteristics, node selection is not automatically unique.
+
+Rules:
+
+- if exactly one declared node matches, the agent may use it;
+- if multiple declared nodes match, the agent must stop and ask the user to select the input node, output node, or concrete flow;
+- the same ambiguity rule applies to requested output-node resolution;
+- flow execution begins only after both input and output nodes are unambiguous.
+
+The agent must not guess a node from:
+
+- folder name;
+- source-family name;
+- asset ID;
+- asset slug;
+- profile ID;
+- undocumented semantic interpretation.
+
+Do not add node fields or runtime selector mechanisms to bypass ambiguity. Node selection is a process step owned by the agent and operator context.
+
 The output of every flow is a separate knowledge asset with:
 
 - its own stable `asset_id`;
@@ -135,10 +161,21 @@ flow B.to_node_id == flow C.from_node_id
 
 Path order is derived from graph connectivity.
 
+A path considered for one user request must be a finite simple path:
+
+- the same `flow_id` must not occur more than once in one path;
+- the same `node_id` must not occur more than once in one path;
+- the agent must not execute a cyclic or indefinitely repeating path;
+- a matrix may contain cycles for separately requested transformations, but one execution request must not traverse a cycle;
+- exactly one active path means exactly one matching finite simple active path;
+- if path resolution remains ambiguous because of cycles or several simple paths, stop and ask the user to choose.
+
 Do not introduce:
 
 - numeric step ordering;
+- cycle counters;
 - a duplicate sequence field;
+- a graph engine;
 - a second path registry;
 - an opaque full-chain flow type.
 

@@ -74,8 +74,8 @@ The agent must:
 3. load the explicit instance Knowledge Distillation Flow Matrix;
 4. determine the input node and requested output node;
 5. select one active flow or ordered active path authorized by the matrix;
-6. select the flow-defined `knowledge_profile_id`;
-7. use the output node's `knowledge_type`;
+6. select each hop's flow-defined `knowledge_profile_id`;
+7. use each hop's output node `knowledge_type`;
 8. follow the instance-local instruction referenced by that profile;
 9. prepare the semantic extraction as a working candidate;
 10. separate directly source-stated material, agent interpretation, inferred content, not stated, and not validated;
@@ -133,6 +133,24 @@ The agent must:
 9. preserve direct and transitive lineage;
 10. continue through the existing knowledge-admission process.
 
+## Node Resolution
+
+A concrete input asset must be mapped to a declared matrix input node before flow selection.
+
+For an admitted `knowledge_asset`, `asset_kind` and its admitted `knowledge_type` may identify the node.
+
+For a `source_capture`, or whenever several nodes match the same asset characteristics, node selection is not automatically unique.
+
+If exactly one declared node matches, the agent may use it.
+
+If multiple declared nodes match, the agent must stop and ask the user to select the input node, output node, or concrete flow.
+
+The same ambiguity rule applies to requested output-node resolution.
+
+Flow execution begins only after both input and output nodes are unambiguous.
+
+The agent must not guess a node from folder name, source-family name, asset ID, asset slug, profile ID, or undocumented semantic interpretation.
+
 If exactly one active direct flow matches the requested input and output nodes, use it.
 
 If multiple direct flows match and the request does not disambiguate them, stop and ask the user to choose the route.
@@ -147,9 +165,15 @@ Do not infer a flow from folder names, profile IDs, asset IDs, slugs, or knowled
 
 A downstream result may require an ordered sequence of connected active flows. Path order is derived from graph connectivity, where each flow's output node is the next flow's input node.
 
-If exactly one active path matches and all referenced profiles are already registered and usable, the agent may proceed through that path in response to the user's downstream request.
+A path considered for one user request must be finite and simple. The same `flow_id` must not occur more than once in one path. The same `node_id` must not occur more than once in one path.
 
-If multiple active paths match, stop and ask the user to choose.
+The agent must not execute a cyclic or indefinitely repeating path. A matrix may contain cycles for separately requested transformations, but one execution request must not traverse a cycle.
+
+Exactly one active path means exactly one matching finite simple active path.
+
+If exactly one finite simple active path matches and all referenced profiles are already registered and usable, the agent may proceed through that path in response to the user's downstream request.
+
+If path resolution remains ambiguous because of cycles or several simple paths, stop and ask the user to choose.
 
 Process one flow at a time:
 
@@ -164,6 +188,8 @@ input asset
 ```
 
 Every hop produces a separate knowledge asset with its own candidate, admission package, typed destination, Phase execution, and canonical evidence. The next hop may begin only after successful Phase3 evidence for the previous hop.
+
+Each flow in a path has its own `knowledge_profile_id`. Each hop uses that flow's profile and output-node `knowledge_type`. Profile availability and usability are checked separately before each hop. A later hop does not inherit the preceding hop's profile.
 
 Do not combine several hops into one knowledge candidate, one admission package, or one Phase execution. Do not use an unadmitted intermediate candidate as canonical input to a downstream flow.
 
