@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
+import uuid
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -107,6 +108,8 @@ def run_builder(candidate_output: Path, run_dir: Path) -> dict[str, Any]:
         str(PILOT),
         "--output-dir",
         str(candidate_output),
+        "--ingredient-registry",
+        str(REGISTRY),
     ]
     proc = subprocess.run(command, text=True, capture_output=True)
     (run_dir / "builder.stdout").write_text(proc.stdout, encoding="utf-8")
@@ -155,19 +158,101 @@ def compare(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def commit_candidate(candidate_output: Path) -> list[str]:
-    changed = []
-    for name in OUTPUT_FILES:
-        src = candidate_output / name
-        if not src.exists():
-            continue
-        dst = ACTIVE_OUTPUT / name
-        old_sha = sha256_path(dst) if dst.exists() else None
-        new_sha = sha256_path(src)
-        if old_sha != new_sha:
-            shutil.copy2(src, dst)
-            changed.append(str(dst))
-    return changed
+def validate_required_outputs(output_dir: Path) -> list[str]:
+    return [name for name in OUTPUT_FILES if not (output_dir / name).is_file()]
+
+
+def validate_determinism(output_dir: Path) -> dict[str, Any]:
+    path = output_dir / "determinism.json"
+    if not path.is_file():
+        return {"status": "FAIL", "errors": [{"code": "determinism_missing", "detail": str(path)}]}
+    try:
+        evidence = read_json(path)
+    except Exception as exc:
+        return {"status": "FAIL", "errors": [{"code": "determinism_malformed", "detail": str(exc)}]}
+    required = (
+        "first_graph_sha256", "second_graph_sha256",
+        "first_model_sha256", "second_model_sha256",
+    )
+    errors: list[dict[str, Any]] = []
+    if not isinstance(evidence, dict):
+        errors.append({"code": "determinism_malformed", "detail": "evidence must be an object"})
+        evidence = {}
+    if str(evidence.get("status", "")).upper() != "PASS":
+        errors.append({"code": "determinism_status_failed", "detail": evidence.get("status")})
+    for field in required:
+        value = evidence.get(field)
+        if not isinstance(value, str) or len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+            errors.append({"code": "determinism_sha_malformed", "detail": field})
+    if evidence.get("first_graph_sha256") != evidence.get("second_graph_sha256"):
+        errors.append({"code": "repeated_build_graph_hash_mismatch"})
+    if evidence.get("first_model_sha256") != evidence.get("second_model_sha256"):
+        errors.append({"code": "repeated_build_model_hash_mismatch"})
+    graph_path = output_dir / "graph.json"
+    model_path = output_dir / "_deterministic_model.json"
+    if graph_path.is_file() and evidence.get("second_graph_sha256") != sha256_path(graph_path):
+        errors.append({"code": "determinism_graph_hash_not_candidate"})
+    if model_path.is_file() and evidence.get("second_model_sha256") != sha256_path(model_path):
+        errors.append({"code": "determinism_model_hash_not_candidate"})
+    return {"status": "FAIL" if errors else "PASS", "errors": errors, "evidence": evidence}
+
+
+def transactional_replace(candidate_output: Path, run_dir: Path, before_sha_path: Path) -> dict[str, Any]:
+    token = uuid.uuid4().hex
+    staged = ACTIVE_OUTPUT.parent / f".{ACTIVE_OUTPUT.name}.staged-{token}"
+    rollback = ACTIVE_OUTPUT.parent / f".{ACTIVE_OUTPUT.name}.rollback-{token}"
+    active_moved = False
+    result: dict[str, Any] = {
+        "status": "FAIL", "active_replaced": False,
+        "staged_output": str(staged), "rollback_output": str(rollback),
+    }
+    try:
+        shutil.copytree(candidate_output, staged)
+        missing = validate_required_outputs(staged)
+        if missing:
+            raise RuntimeError(f"staged output missing required files: {missing}")
+        staged_determinism = validate_determinism(staged)
+        if staged_determinism["status"] != "PASS":
+            raise RuntimeError(f"staged determinism verification failed: {staged_determinism['errors']}")
+        staged_verification = run_verify(staged / "graph.json", before_sha_path, run_dir / "staged-verification.json")
+        result["staged_verification"] = staged_verification
+        if staged_verification.get("status") != "PASS":
+            raise RuntimeError("staged graph verification failed")
+
+        os.replace(ACTIVE_OUTPUT, rollback)
+        active_moved = True
+        os.replace(staged, ACTIVE_OUTPUT)
+        missing = validate_required_outputs(ACTIVE_OUTPUT)
+        if missing:
+            raise RuntimeError(f"installed output missing required files: {missing}")
+        installed_determinism = validate_determinism(ACTIVE_OUTPUT)
+        if installed_determinism["status"] != "PASS":
+            raise RuntimeError(f"installed determinism verification failed: {installed_determinism['errors']}")
+        installed_verification = run_verify(ACTIVE_GRAPH, before_sha_path, run_dir / "installed-verification.json")
+        result["installed_verification"] = installed_verification
+        if installed_verification.get("status") != "PASS":
+            raise RuntimeError("installed graph verification failed")
+
+        shutil.rmtree(rollback)
+        result.update({"status": "PASS", "active_replaced": True})
+        return result
+    except Exception as exc:
+        result["error"] = str(exc)
+        try:
+            if active_moved:
+                failed = ACTIVE_OUTPUT.parent / f".{ACTIVE_OUTPUT.name}.failed-{token}"
+                if ACTIVE_OUTPUT.exists():
+                    os.replace(ACTIVE_OUTPUT, failed)
+                os.replace(rollback, ACTIVE_OUTPUT)
+                if failed.exists():
+                    shutil.rmtree(failed)
+            result["rollback_restored"] = active_moved
+        except Exception as rollback_exc:
+            result["rollback_error"] = str(rollback_exc)
+        return result
+    finally:
+        if staged.exists():
+            shutil.rmtree(staged)
 
 
 def write_report(path: Path, mode: str, status: str, run_dir: Path, comparison: dict[str, Any], verification: dict[str, Any]) -> None:
@@ -209,7 +294,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     mode = "check" if args.check else "dry-run" if args.dry_run else "apply"
-    timestamp = datetime.now(timezone.utc).strftime("graphify-kb-%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("graphify-kb-%Y%m%dT%H%M%S%fZ")
     run_dir = PILOT / "runs" / timestamp
     snapshot_dir = PILOT / "snapshots" / timestamp
     candidate_output = run_dir / "candidate-output"
@@ -257,8 +342,13 @@ def main(argv: list[str] | None = None) -> int:
 
     snapshot_active(snapshot_dir)
     builder = run_builder(candidate_output, run_dir)
-    if builder["returncode"] != 0 or not (candidate_output / "graph.json").exists():
+    missing_outputs = validate_required_outputs(candidate_output)
+    determinism = validate_determinism(candidate_output)
+    if builder["returncode"] != 0 or missing_outputs or determinism["status"] != "PASS":
         verification = {"status": "FAIL", "errors": [{"code": "builder_failed", "detail": builder}]}
+        if missing_outputs:
+            verification["errors"].append({"code": "required_outputs_missing", "detail": missing_outputs})
+        verification["errors"].extend(determinism["errors"])
         new_stats = graph_stats(candidate_output / "graph.json")
         comparison = compare(old_stats, new_stats)
         write_json(run_dir / "new-stats.json", new_stats)
@@ -272,14 +362,18 @@ def main(argv: list[str] | None = None) -> int:
     new_stats = graph_stats(candidate_output / "graph.json")
     verification = run_verify(candidate_output / "graph.json", before_sha_path, run_dir / "verification.json")
     comparison = compare(old_stats, new_stats)
-    if not comparison["ingredient_ids_unchanged"]:
-        verification["status"] = "FAIL"
-        verification.setdefault("errors", []).append({"code": "ingredient_ids_changed", "detail": comparison})
     status = "PASS" if verification.get("status") == "PASS" else "FAIL"
 
     changed_files: list[str] = []
+    replacement: dict[str, Any] | None = None
     if args.apply and status == "PASS":
-        changed_files = commit_candidate(candidate_output)
+        replacement = transactional_replace(candidate_output, run_dir, before_sha_path)
+        if replacement["status"] != "PASS":
+            status = "FAIL"
+            verification["status"] = "FAIL"
+            verification.setdefault("errors", []).append({"code": "transactional_replace_failed", "detail": replacement})
+        else:
+            changed_files = [str(ACTIVE_OUTPUT)]
     elif args.apply and status != "PASS":
         changed_files = []
 
@@ -295,9 +389,11 @@ def main(argv: list[str] | None = None) -> int:
         "snapshot_dir": str(snapshot_dir),
         "candidate_output": str(candidate_output),
         "builder": builder,
+        "determinism": determinism,
+        "replacement": replacement,
         "changed_files": changed_files,
-        "active_replaced": bool(args.apply and status == "PASS"),
-        "active_output_sha_after": active_output_sha() if args.apply and status == "PASS" else None,
+        "active_replaced": bool(replacement and replacement.get("active_replaced")),
+        "active_output_sha_after": active_output_sha() if replacement and replacement.get("active_replaced") else None,
     }
     write_json(run_dir / "manifest.json", manifest)
     print(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True))

@@ -49,17 +49,12 @@ Verify at minimum:
 - Every Ingredient node has `properties.reference_path` when registry-backed reference layer is active.
 - Formulation asset SHA values are unchanged during rebuild.
 - Old/new stats and graph SHA are saved.
-- Repeat rebuild is deterministic, or any difference is explained as a technical build parameter issue.
-
-Current Humblebee graph baseline after Ingredient reference materialization:
-
-- Formulation nodes: 137
-- Ingredient nodes: 316
-- Source nodes: 127
-- USES links: 1263
-- DERIVED_FROM links: 137
-- Total nodes: 580
-- Total links: 1400
+- Builder determinism evidence is present, well formed, has PASS status, and records
+  identical repeated-build graph and model hashes.
+- Node and relation counts exactly match values derived from the current admitted
+  Formulation assets, ingredient registry, source identities, and valid Composition
+  references. Counts are not fixed baselines.
+- Registry JSONL is well formed and contains unique, non-empty `ingredient_id` values.
 
 ## Scripts
 
@@ -69,7 +64,7 @@ Run from anywhere:
 python3 /home/node/.openclaw/workspace/skills/graphify-kb/scripts/verify_graph.py
 ```
 
-`verify_graph.py` checks structure, IDs, dangling links, counts, registry alignment,
+`verify_graph.py` checks structure, IDs, dangling links, derived counts, registry alignment,
 Ingredient `reference_path`, and optional corpus SHA stability. It never fixes data.
 
 ```bash
@@ -78,7 +73,9 @@ python3 /home/node/.openclaw/workspace/skills/graphify-kb/scripts/rebuild_graph.
 python3 /home/node/.openclaw/workspace/skills/graphify-kb/scripts/rebuild_graph.py --apply
 ```
 
-`rebuild_graph.py` orchestrates the existing builder only. It writes evidence under:
+`rebuild_graph.py` orchestrates the existing builder only. Apply uses a verified staged
+sibling directory and whole-directory rename with rollback; it never replaces output
+files individually. It writes evidence under:
 
 - `/home/node/.openclaw/workspace/graphify-pilots/humblebee-formulations-v1/runs/graphify-kb-<timestamp>/`
 - `/home/node/.openclaw/workspace/graphify-pilots/humblebee-formulations-v1/snapshots/graphify-kb-<timestamp>/`
