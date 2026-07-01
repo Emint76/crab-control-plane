@@ -92,6 +92,10 @@ source-admission-skill-validate:
 knowledge-admission-skill-validate:
 	bash skills/knowledge-admission/tests/test_knowledge_admission_package.sh
 
+.PHONY: graphify-kb-skill-validate
+graphify-kb-skill-validate:
+	$(PYTHON) -m unittest discover -s skills/graphify-kb/tests -p 'test_*.py'
+
 openclaw-local-ci:
 	$(MAKE) orchestration-ci
 	$(MAKE) openclaw-dryrun-ci
